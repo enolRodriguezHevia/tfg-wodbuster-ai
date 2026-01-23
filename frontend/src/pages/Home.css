@@ -1,0 +1,69 @@
+/* Contenedor principal */
+.home-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+/* Cada mitad */
+.home-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+/* Lado login */
+.login-side {
+  background-color: #f0f0f0;
+  border-right: 2px solid #ccc;
+}
+
+.login-side button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.login-side button:hover {
+  background-color: #45a049;
+}
+
+/* Lado sign up */
+.signup-side {
+  background-color: #e0f7fa;
+}
+
+.signup-side button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  background-color: #0288d1;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.signup-side button:hover {
+  background-color: #0277bd;
+}
+
+/* Texto centrado */
+.home-half h2 {
+  margin-bottom: 10px;
+}
+
+.home-half p {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #555;
+}
