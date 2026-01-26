@@ -1,0 +1,88 @@
+/* Contenedor del dashboard */
+.dashboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+/* Contenedor de botones de funcionalidades */
+.functionality-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 250px));
+  gap: 30px;
+  max-width: 1000px;
+  width: 100%;
+}
+
+/* Botón de funcionalidad */
+.function-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 30px;
+  background-color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  min-height: 200px;
+}
+
+.function-button:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.function-button:active {
+  transform: translateY(-4px);
+}
+
+.button-icon {
+  font-size: 60px;
+  margin-bottom: 15px;
+}
+
+.button-profile-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 3px solid #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.button-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #667eea;
+  text-align: center;
+}
+
+/* Responsive para botones de funcionalidades */
+@media (max-width: 768px) {
+  .functionality-buttons {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .function-button {
+    min-height: 150px;
+    padding: 30px 20px;
+  }
+
+  .button-icon {
+    font-size: 50px;
+  }
+
+  .button-text {
+    font-size: 18px;
+  }
+}

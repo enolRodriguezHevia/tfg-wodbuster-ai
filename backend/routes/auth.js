@@ -74,7 +74,8 @@ router.post('/login', async (req, res) => {
         sex: user.sex,
         age: user.age,
         weight: user.weight,
-        height: user.height
+        height: user.height,
+        profilePhoto: user.profilePhoto
       }
     });
 

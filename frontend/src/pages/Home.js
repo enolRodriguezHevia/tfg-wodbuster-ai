@@ -1,29 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./Home.css"; // Importamos el CSS externo
+import "./Home.css";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    // Verificar si hay un usuario logueado
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
-  }, []);
-
-  // Si está logueado, mostrar solo el botón de Perfil
-  if (isLoggedIn) {
-    return (
-      <div className="home-logged-container">
-        <button className="profile-main-button" onClick={() => navigate("/profile")}>
-          Perfil
-        </button>
-      </div>
-    );
-  }
-
-  // Si no está logueado, mostrar Login y Sign Up
   return (
     <div className="home-container">
       {/* Lado Login */}

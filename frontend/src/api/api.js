@@ -36,6 +36,37 @@ export const loginUser = (credentials) => request("/auth/login", "POST", credent
 export const getUserProfile = (username) => request(`/user/${username}`);
 export const updateUserProfile = (username, userData) => request(`/user/${username}`, "PUT", userData);
 
+// Upload Profile Photo
+export const uploadProfilePhoto = async (username, file) => {
+  try {
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+
+    const res = await fetch(`${API_URL}/user/${username}/photo`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || data.error || "Error al subir la foto");
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error en uploadProfilePhoto:', error);
+    
+    // Si el error ya es un Error con mensaje, lanzarlo tal cual
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    // Si no, crear un nuevo Error
+    throw new Error("Error al subir la foto de perfil");
+  }
+};
+
 // Users (ejemplo: obtener lista de usuarios)
 export const getUsers = () => request("/users");
 

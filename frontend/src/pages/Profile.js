@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile, updateUserProfile } from "../api/api";
+import { getUserProfile, updateUserProfile, uploadProfilePhoto } from "../api/api";
+import Navbar from "../components/Navbar";
+import ImageCropper from "../components/ImageCropper";
 import "./Profile.css";
 
 export default function Profile() {
@@ -9,6 +11,11 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
   
   const [userData, setUserData] = useState({
     username: "",
@@ -16,7 +23,8 @@ export default function Profile() {
     sex: "N/D",
     age: "",
     weight: "",
-    height: ""
+    height: "",
+    profilePhoto: null
   });
 
   const [editData, setEditData] = useState({
@@ -55,7 +63,8 @@ export default function Profile() {
         sex: response.user.sex || "N/D",
         age: response.user.age,
         weight: response.user.weight,
-        height: response.user.height
+        height: response.user.height,
+        profilePhoto: response.user.profilePhoto || null
       };
       
       setUserData(updatedUserData);
@@ -99,6 +108,138 @@ export default function Profile() {
         ...editData,
         [fieldName]: ""
       });
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tamaño (5MB máximo)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        setError("La imagen es demasiado grande. Tamaño máximo: 5MB");
+        e.target.value = null; // Limpiar el input
+        return;
+      }
+
+      // Validar tipo de archivo
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        setError("Solo se permiten imágenes en formato PNG o JPG");
+        e.target.value = null; // Limpiar el input
+        return;
+      }
+
+      setError(""); // Limpiar errores previos
+      
+      // Crear preview de la imagen para el cropper
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageToCrop(reader.result);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const createImage = (url) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image));
+      image.addEventListener('error', (error) => reject(error));
+      image.setAttribute('crossOrigin', 'anonymous');
+      image.src = url;
+    });
+
+  const getCroppedImg = async (imageSrc, pixelCrop) => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg', 0.95);
+    });
+  };
+
+  const handleCropComplete = async (croppedAreaPixels) => {
+    try {
+      const croppedBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      
+      // Crear un archivo desde el blob
+      const croppedFile = new File([croppedBlob], "profile.jpg", { type: "image/jpeg" });
+      
+      setSelectedFile(croppedFile);
+      
+      // Crear preview de la imagen recortada
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+        setCroppedImage(reader.result);
+      };
+      reader.readAsDataURL(croppedBlob);
+      
+      setShowCropper(false);
+      setImageToCrop(null);
+    } catch (error) {
+      console.error("Error al recortar la imagen:", error);
+      setError("Error al procesar la imagen");
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setShowCropper(false);
+    setImageToCrop(null);
+    // Limpiar el input de archivo
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = null;
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!selectedFile) {
+      setError("Por favor selecciona una imagen");
+      return;
+    }
+
+    try {
+      setError("");
+      const response = await uploadProfilePhoto(userData.username, selectedFile);
+      setSuccessMessage("Foto de perfil actualizada con éxito");
+      
+      // Recargar los datos del perfil
+      await loadUserProfile(userData.username);
+      
+      // Limpiar el archivo seleccionado y preview
+      setSelectedFile(null);
+      setPreviewImage(null);
+      
+      // Limpiar el input de archivo
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) fileInput.value = null;
+      
+      // Actualizar localStorage
+      const loggedUser = JSON.parse(localStorage.getItem("user"));
+      loggedUser.profilePhoto = response.profilePhoto;
+      localStorage.setItem("user", JSON.stringify(loggedUser));
+      
+    } catch (err) {
+      setError(err.message || "Error al subir la foto");
     }
   };
 
@@ -173,21 +314,17 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
-  };
-
   if (loading) {
     return <div className="profile-container"><p>Cargando perfil...</p></div>;
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <h1>Mi Perfil</h1>
-        <button className="logout-btn" onClick={handleLogout}>Cerrar Sesión</button>
-      </div>
+    <>
+      <Navbar />
+      <div className="profile-container">
+        <div className="profile-header">
+          <h1>Mi Perfil</h1>
+        </div>
 
       {error && <div className="error-message">{error}</div>}
       {successMessage && <div className="success-message">{successMessage}</div>}
@@ -195,6 +332,19 @@ export default function Profile() {
       {!isEditing ? (
         // Modo visualización
         <div className="profile-view">
+          <div className="profile-photo-container">
+            {userData.profilePhoto ? (
+              <img 
+                src={`http://localhost:3000/${userData.profilePhoto}`} 
+                alt="Foto de perfil" 
+                className="profile-photo"
+              />
+            ) : (
+              <div className="profile-photo-placeholder">
+                <span className="placeholder-icon">👤</span>
+              </div>
+            )}
+          </div>
           <div className="profile-info">
             <div className="info-row">
               <span className="info-label">Usuario:</span>
@@ -228,6 +378,47 @@ export default function Profile() {
       ) : (
         // Modo edición
         <form className="profile-edit" onSubmit={handleSubmit}>
+          {/* Sección de foto de perfil */}
+          <div className="photo-upload-section">
+            <h3>Foto de Perfil</h3>
+            <div className="photo-upload-container">
+              <div className="current-photo">
+                {previewImage ? (
+                  <img src={previewImage} alt="Preview" className="profile-photo-preview" />
+                ) : userData.profilePhoto ? (
+                  <img 
+                    src={`http://localhost:3000/${userData.profilePhoto}`} 
+                    alt="Foto actual" 
+                    className="profile-photo-preview"
+                  />
+                ) : (
+                  <div className="no-photo">Sin foto</div>
+                )}
+              </div>
+              <div className="photo-upload-controls">
+                <input
+                  type="file"
+                  id="profilePhotoInput"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="profilePhotoInput" className="select-photo-btn">
+                  Seleccionar Foto
+                </label>
+                {selectedFile && (
+                  <button 
+                    type="button" 
+                    className="upload-photo-btn"
+                    onClick={handleUploadPhoto}
+                  >
+                    Subir Foto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="form-group">
             <label>Usuario: <span className="required">*</span></label>
             <input
@@ -383,6 +574,16 @@ export default function Profile() {
           </div>
         </form>
       )}
-    </div>
+
+      {/* Modal de recorte de imagen */}
+      {showCropper && imageToCrop && (
+        <ImageCropper
+          image={imageToCrop}
+          onComplete={handleCropComplete}
+          onCancel={handleCancelCrop}
+        />
+      )}
+      </div>
+    </>
   );
 }

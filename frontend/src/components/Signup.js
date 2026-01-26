@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { signUpUser } from "../api/api"; // módulo externo para llamadas al backend
+import { useNavigate } from "react-router-dom";
+import { signUpUser, loginUser } from "../api/api"; // módulo externo para llamadas al backend
 
-export default function SignUp() {
-  const [formData, setFormData] = useState({
+export default function SignUp() {  const navigate = useNavigate();  const [formData, setFormData] = useState({
     email: "",
     username: "",
     password: "",
@@ -30,17 +30,24 @@ export default function SignUp() {
         height: formData.height ? Number(formData.height) : undefined
       };
 
+      // Registrar usuario
       await signUpUser(payload);
       setMessage("Usuario registrado correctamente ✅");
-      setFormData({
-        email: "",
-        username: "",
-        password: "",
-        sex: "N/D",
-        age: "",
-        weight: "",
-        height: ""
+      
+      // Auto-login después del registro
+      const loginResponse = await loginUser({
+        username: formData.username,
+        password: formData.password
       });
+
+      // Guardar usuario en localStorage
+      localStorage.setItem("user", JSON.stringify(loginResponse.user));
+
+      // Redirigir a /home después de 1 segundo
+      setTimeout(() => {
+        navigate("/home");
+      }, 1000);
+
     } catch (error) {
       setMessage(`Error: ${error.message} ❌`);
     }

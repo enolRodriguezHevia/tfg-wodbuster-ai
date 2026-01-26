@@ -1,7 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
+
+// Configurar multer para subir fotos
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/profiles/';
+    // Crear directorio si no existe
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Solo se permiten imágenes en formato PNG o JPG'));
+  }
+});
 
 // Funciones de validación
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -25,7 +59,8 @@ router.get('/:username', async (req, res) => {
         sex: user.sex,
         age: user.age,
         weight: user.weight,
-        height: user.height
+        height: user.height,
+        profilePhoto: user.profilePhoto
       }
     });
 
@@ -155,12 +190,72 @@ router.put('/:username', async (req, res) => {
         sex: user.sex,
         age: user.age,
         weight: user.weight,
-        height: user.height
+        height: user.height,
+        profilePhoto: user.profilePhoto
       }
     });
 
   } catch (err) {
     console.error('Error al actualizar perfil:', err);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// POST - Subir foto de perfil
+router.post('/:username/photo', (req, res, next) => {
+  upload.single('profilePhoto')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // Error de Multer
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'La imagen es demasiado grande. Tamaño máximo: 5MB' });
+      }
+      return res.status(400).json({ message: `Error al subir archivo: ${err.message}` });
+    } else if (err) {
+      // Error personalizado (tipo de archivo)
+      return res.status(400).json({ message: err.message });
+    }
+    // Sin errores, continuar con el controlador
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se ha proporcionado ninguna imagen' });
+    }
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      // Eliminar el archivo subido si el usuario no existe
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Eliminar la foto anterior si existe
+    if (user.profilePhoto) {
+      const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
+      if (fs.existsSync(oldPhotoPath)) {
+        fs.unlinkSync(oldPhotoPath);
+      }
+    }
+
+    // Guardar la ruta relativa de la nueva foto
+    user.profilePhoto = req.file.path.replace(/\\/g, '/');
+    await user.save();
+
+    res.status(200).json({
+      message: 'Foto de perfil actualizada con éxito',
+      profilePhoto: user.profilePhoto
+    });
+
+  } catch (err) {
+    console.error('Error al subir foto de perfil:', err);
+    // Eliminar el archivo si hubo un error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ message: 'Error del servidor' });
   }
 });

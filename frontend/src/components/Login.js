@@ -28,9 +28,9 @@ export default function Login() {
       // Guardar datos del usuario en localStorage
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirigir al perfil
+      // Redirigir a /home
       setTimeout(() => {
-        navigate("/profile");
+        navigate("/home");
       }, 1000);
 
       setFormData({ username: "", password: "" });

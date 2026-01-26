@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
   height: {
     type: Number,
     min: 0
+  },
+  profilePhoto: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 
