@@ -32,6 +32,10 @@ async function request(endpoint, method = "GET", body) {
 export const signUpUser = (userData) => request("/auth/signup", "POST", userData);
 export const loginUser = (credentials) => request("/auth/login", "POST", credentials);
 
+// User Profile
+export const getUserProfile = (username) => request(`/user/${username}`);
+export const updateUserProfile = (username, userData) => request(`/user/${username}`, "PUT", userData);
+
 // Users (ejemplo: obtener lista de usuarios)
 export const getUsers = () => request("/users");
 

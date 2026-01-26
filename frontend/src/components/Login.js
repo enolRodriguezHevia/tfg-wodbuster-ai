@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/api"; // Módulo externo para las consultas
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     password: ""
@@ -23,8 +25,13 @@ export default function Login() {
       console.log("DEBUG: Login data recibida:", data); // Mensaje de depuración
       setMessage("¡Login exitoso! ✅");
 
-      // Aquí podrías guardar datos del usuario en localStorage o contexto
-      // localStorage.setItem("user", JSON.stringify(data.user));
+      // Guardar datos del usuario en localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Redirigir al perfil
+      setTimeout(() => {
+        navigate("/profile");
+      }, 1000);
 
       setFormData({ username: "", password: "" });
     } catch (error) {
