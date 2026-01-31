@@ -9,7 +9,7 @@ const ejercicioSchema = new mongoose.Schema({
   entrenamientoId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Entrenamiento',
-    default: null
+    required: true
   },
   nombre: {
     type: String,
@@ -18,18 +18,22 @@ const ejercicioSchema = new mongoose.Schema({
   },
   series: {
     type: Number,
-    min: 0
+    required: true,
+    min: 1
   },
   repeticiones: {
     type: Number,
-    min: 0
+    required: true,
+    min: 1
   },
   peso: {
     type: Number,
+    required: true,
     min: 0
   },
   valoracion: {
     type: Number,
+    required: true,
     min: 1,
     max: 10
   }

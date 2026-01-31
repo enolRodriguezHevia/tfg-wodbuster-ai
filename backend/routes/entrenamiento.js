@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Entrenamiento = require('../models/Entrenamiento');
+const Ejercicio = require('../models/Ejercicio');
 const User = require('../models/User');
 
 // POST - Registrar un nuevo entrenamiento
@@ -46,20 +47,32 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Calcular volumen total
+    const volumenTotal = ejercicios.reduce((total, ej) => {
+      return total + (ej.peso * ej.repeticiones * ej.series);
+    }, 0);
+
     // Crear el entrenamiento
     const nuevoEntrenamiento = new Entrenamiento({
       userId: user._id,
       fecha: fecha ? new Date(fecha) : new Date(),
-      ejercicios: ejercicios.map(ej => ({
+      volumenTotal: volumenTotal
+    });
+
+    await nuevoEntrenamiento.save();
+
+    // Crear los ejercicios en la tabla separada
+    const ejerciciosCreados = await Ejercicio.insertMany(
+      ejercicios.map(ej => ({
+        userId: user._id,
+        entrenamientoId: nuevoEntrenamiento._id,
         nombre: ej.nombre,
         series: ej.series,
         repeticiones: ej.repeticiones,
         peso: ej.peso,
         valoracion: ej.valoracion
       }))
-    });
-
-    await nuevoEntrenamiento.save();
+    );
 
     res.status(201).json({
       message: 'Entrenamiento registrado con éxito',
@@ -67,7 +80,14 @@ router.post('/', async (req, res) => {
         id: nuevoEntrenamiento._id,
         fecha: nuevoEntrenamiento.fecha,
         volumenTotal: nuevoEntrenamiento.volumenTotal,
-        ejercicios: nuevoEntrenamiento.ejercicios
+        ejercicios: ejerciciosCreados.map(ej => ({
+          id: ej._id,
+          nombre: ej.nombre,
+          series: ej.series,
+          repeticiones: ej.repeticiones,
+          peso: ej.peso,
+          valoracion: ej.valoracion
+        }))
       }
     });
 
@@ -95,14 +115,30 @@ router.get('/:username', async (req, res) => {
     const entrenamientos = await Entrenamiento.find({ userId: user._id })
       .sort({ fecha: -1 }); // Más recientes primero
 
+    // Obtener ejercicios para cada entrenamiento
+    const entrenamientosConEjercicios = await Promise.all(
+      entrenamientos.map(async (entrenamiento) => {
+        const ejercicios = await Ejercicio.find({ entrenamientoId: entrenamiento._id });
+        
+        return {
+          id: entrenamiento._id,
+          fecha: entrenamiento.fecha,
+          volumenTotal: entrenamiento.volumenTotal,
+          ejercicios: ejercicios.map(ej => ({
+            id: ej._id,
+            nombre: ej.nombre,
+            series: ej.series,
+            repeticiones: ej.repeticiones,
+            peso: ej.peso,
+            valoracion: ej.valoracion
+          })),
+          cantidadEjercicios: ejercicios.length
+        };
+      })
+    );
+
     res.status(200).json({
-      entrenamientos: entrenamientos.map(e => ({
-        id: e._id,
-        fecha: e.fecha,
-        volumenTotal: e.volumenTotal,
-        ejercicios: e.ejercicios,
-        cantidadEjercicios: e.ejercicios.length
-      }))
+      entrenamientos: entrenamientosConEjercicios
     });
 
   } catch (err) {
@@ -122,12 +158,22 @@ router.get('/detalle/:id', async (req, res) => {
       return res.status(404).json({ message: 'Entrenamiento no encontrado' });
     }
 
+    // Obtener los ejercicios de la tabla separada
+    const ejercicios = await Ejercicio.find({ entrenamientoId: id });
+
     res.status(200).json({
       entrenamiento: {
         id: entrenamiento._id,
         fecha: entrenamiento.fecha,
         volumenTotal: entrenamiento.volumenTotal,
-        ejercicios: entrenamiento.ejercicios
+        ejercicios: ejercicios.map(ej => ({
+          id: ej._id,
+          nombre: ej.nombre,
+          series: ej.series,
+          repeticiones: ej.repeticiones,
+          peso: ej.peso,
+          valoracion: ej.valoracion
+        }))
       }
     });
 
@@ -142,13 +188,17 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Eliminar el entrenamiento
     const entrenamiento = await Entrenamiento.findByIdAndDelete(id);
 
     if (!entrenamiento) {
       return res.status(404).json({ message: 'Entrenamiento no encontrado' });
     }
 
-    res.status(200).json({ message: 'Entrenamiento eliminado con éxito' });
+    // Eliminar también todos los ejercicios asociados
+    await Ejercicio.deleteMany({ entrenamientoId: id });
+
+    res.status(200).json({ message: 'Entrenamiento y ejercicios eliminados con éxito' });
 
   } catch (err) {
     console.error('Error al eliminar entrenamiento:', err);
