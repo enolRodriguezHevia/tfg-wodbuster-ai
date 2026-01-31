@@ -82,6 +82,18 @@ export const getOneRMExercises = (username) => request(`/onerm/${username}/ejerc
 export const getAllOneRM = (username) => request(`/onerm/${username}`);
 export const deleteOneRM = (id) => request(`/onerm/${id}`, "DELETE");
 
+// Entrenamientos
+export const registerEntrenamiento = (entrenamientoData) => request("/entrenamiento", "POST", entrenamientoData);
+export const getEntrenamientos = (username) => request(`/entrenamiento/${username}`);
+export const getEntrenamientoDetalle = (id) => request(`/entrenamiento/detalle/${id}`);
+export const deleteEntrenamiento = (id) => request(`/entrenamiento/${id}`, "DELETE");
+export const getEntrenamientoStats = (username) => request(`/entrenamiento/${username}/stats`);
+
+// WODs CrossFit
+export const registerWodCrossFit = (wodData) => request("/wod-crossfit", "POST", wodData);
+export const getWodsCrossFit = (username) => request(`/wod-crossfit/${username}`);
+export const deleteWodCrossFit = (id) => request(`/wod-crossfit/${id}`, "DELETE");
+
 // Aquí puedes añadir más recursos según tu backend
 
 

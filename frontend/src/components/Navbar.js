@@ -22,6 +22,10 @@ export default function Navbar() {
     navigate("/benchmarks");
   };
 
+  const goToWodsCrossFit = () => {
+    navigate("/wods-crossfit");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -31,6 +35,9 @@ export default function Navbar() {
         <div className="navbar-links">
           <button className="navbar-link-btn" onClick={goToBenchmarks}>
             Benchmarks
+          </button>
+          <button className="navbar-link-btn" onClick={goToWodsCrossFit}>
+            WODs CrossFit
           </button>
           <button className="navbar-link-btn" onClick={goToProfile}>
             Perfil

@@ -20,6 +20,8 @@ connectDB();
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/onerm', require('./routes/oneRM'));
+app.use('/api/entrenamiento', require('./routes/entrenamiento'));
+app.use('/api/wod-crossfit', require('./routes/wodCrossFit'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));

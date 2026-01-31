@@ -1,0 +1,374 @@
+.entrenamientos-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 30px;
+}
+
+.entrenamientos-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.entrenamientos-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 32px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.error-message {
+  padding: 15px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  padding: 15px;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 25px;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.form-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.btn-nuevo-entrenamiento {
+  padding: 15px 30px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.btn-nuevo-entrenamiento:hover {
+  background-color: #5a52d5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-cancel-form {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-cancel-form:hover {
+  background-color: #5a6268;
+}
+
+.entrenamiento-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-group label .required {
+  color: #dc3545;
+  margin-left: 4px;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ejercicios-section {
+  margin-top: 20px;
+}
+
+.ejercicios-section h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.ejercicio-card {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  margin-bottom: 15px;
+}
+
+.ejercicio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ejercicio-header h4 {
+  margin: 0;
+  color: #667eea;
+}
+
+.btn-remove-ejercicio {
+  padding: 5px 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.btn-remove-ejercicio:hover {
+  background-color: #c82333;
+}
+
+.ejercicio-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.btn-add-ejercicio {
+  padding: 12px 24px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.btn-add-ejercicio:hover {
+  background-color: #218838;
+}
+
+.volumen-total-preview {
+  padding: 15px;
+  background-color: #e7f3ff;
+  border-left: 4px solid #007bff;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #004085;
+}
+
+.btn-submit {
+  padding: 15px 30px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-submit:hover {
+  background-color: #5a52d5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Lista de entrenamientos */
+.entrenamientos-list {
+  margin-top: 40px;
+}
+
+.entrenamientos-list h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-style: italic;
+}
+
+.entrenamientos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.entrenamiento-item {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.entrenamiento-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.entrenamiento-info {
+  flex: 1;
+}
+
+.entrenamiento-fecha {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.entrenamiento-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  font-size: 14px;
+  color: #666;
+}
+
+.stat strong {
+  color: #667eea;
+  font-size: 16px;
+}
+
+.entrenamiento-ejercicios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ejercicio-badge {
+  padding: 4px 12px;
+  background-color: #e7f3ff;
+  color: #004085;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-delete {
+  padding: 10px 20px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .entrenamientos-container {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .form-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-nuevo-entrenamiento,
+  .btn-submit,
+  .btn-add-ejercicio {
+    width: 100%;
+  }
+
+  .entrenamiento-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .btn-delete {
+    width: 100%;
+  }
+
+  .entrenamiento-stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

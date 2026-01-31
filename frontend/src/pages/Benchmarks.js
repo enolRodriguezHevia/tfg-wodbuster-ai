@@ -37,14 +37,22 @@ const EJERCICIOS_DISPONIBLES = [
   "Bench Press",
   "Deadlift",
   "Overhead Press",
-  "Pull-ups",
   "Barbell Row",
   "Front Squat",
   "Incline Press",
   "Hip Thrust",
   "Clean",
   "Snatch",
-  "Thruster"
+  "Thruster",
+  "Lunges",
+  "Leg Press",
+  "Shoulder Press",
+  "Romanian Deadlift",
+  "Sumo Deadlift",
+  "Cable Row",
+  "Lat Pulldown",
+  "Leg Curl",
+  "Leg Extension"
 ];
 
 export default function Benchmarks() {
