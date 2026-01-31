@@ -260,4 +260,55 @@ router.post('/:username/photo', (req, res, next) => {
   }
 });
 
+// DELETE - Eliminar cuenta de usuario
+router.delete('/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { password } = req.body;
+
+    // Validar que se proporciona la contraseña
+    if (!password || password.trim() === '') {
+      return res.status(400).json({ message: 'Debe proporcionar su contraseña para eliminar la cuenta' });
+    }
+
+    // Buscar el usuario
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Verificar la contraseña
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Contraseña incorrecta' });
+    }
+
+    // Eliminar la foto de perfil si existe
+    if (user.profilePhoto) {
+      const photoPath = path.join(__dirname, '..', user.profilePhoto);
+      if (fs.existsSync(photoPath)) {
+        try {
+          fs.unlinkSync(photoPath);
+        } catch (err) {
+          console.error('Error al eliminar foto de perfil:', err);
+          // Continuar con la eliminación aunque falle borrar la foto
+        }
+      }
+    }
+
+    // Eliminar el usuario de la base de datos
+    await User.deleteOne({ username });
+
+    res.status(200).json({ 
+      message: 'Cuenta eliminada permanentemente',
+      success: true 
+    });
+
+  } catch (err) {
+    console.error('Error al eliminar cuenta:', err);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

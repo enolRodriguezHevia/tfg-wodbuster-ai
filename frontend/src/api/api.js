@@ -35,6 +35,7 @@ export const loginUser = (credentials) => request("/auth/login", "POST", credent
 // User Profile
 export const getUserProfile = (username) => request(`/user/${username}`);
 export const updateUserProfile = (username, userData) => request(`/user/${username}`, "PUT", userData);
+export const deleteUserAccount = (username, password) => request(`/user/${username}`, "DELETE", { password });
 
 // Upload Profile Photo
 export const uploadProfilePhoto = async (username, file) => {
@@ -74,6 +75,14 @@ export const getUsers = () => request("/users");
 export const getWods = () => request("/wods");
 export const createWod = (wodData) => request("/wods", "POST", wodData);
 
+// 1RM (One Rep Max)
+export const registerOneRM = (oneRMData) => request("/onerm", "POST", oneRMData);
+export const getOneRMHistory = (username, ejercicio) => request(`/onerm/${username}/${ejercicio}`);
+export const getOneRMExercises = (username) => request(`/onerm/${username}/ejercicios/lista`);
+export const getAllOneRM = (username) => request(`/onerm/${username}`);
+export const deleteOneRM = (id) => request(`/onerm/${id}`, "DELETE");
+
 // Aquí puedes añadir más recursos según tu backend
+
 
 

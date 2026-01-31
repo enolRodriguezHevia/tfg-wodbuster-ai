@@ -43,9 +43,9 @@ export default function SignUp() {  const navigate = useNavigate();  const [form
       // Guardar usuario en localStorage
       localStorage.setItem("user", JSON.stringify(loginResponse.user));
 
-      // Redirigir a /home después de 1 segundo
+      // Redirigir a /dashboard después de 1 segundo
       setTimeout(() => {
-        navigate("/home");
+        navigate("/dashboard");
       }, 1000);
 
     } catch (error) {

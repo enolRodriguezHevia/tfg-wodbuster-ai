@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile, updateUserProfile, uploadProfilePhoto } from "../api/api";
+import { getUserProfile, updateUserProfile, uploadProfilePhoto, deleteUserAccount } from "../api/api";
 import Navbar from "../components/Navbar";
 import ImageCropper from "../components/ImageCropper";
 import "./Profile.css";
@@ -16,6 +16,12 @@ export default function Profile() {
   const [showCropper, setShowCropper] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
   const [croppedImage, setCroppedImage] = useState(null);
+  
+  // Estados para eliminación de cuenta
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [accountDeleted, setAccountDeleted] = useState(false);
   
   const [userData, setUserData] = useState({
     username: "",
@@ -314,6 +320,49 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteAccount = () => {
+    // Mostrar el modal de confirmación
+    setShowDeleteModal(true);
+    setDeleteError("");
+    setDeletePassword("");
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletePassword("");
+    setDeleteError("");
+  };
+
+  const handleConfirmDelete = async (e) => {
+    e.preventDefault();
+    setDeleteError("");
+
+    // Validar que se proporcionó la contraseña
+    if (!deletePassword || deletePassword.trim() === "") {
+      setDeleteError("Debe introducir su contraseña para confirmar");
+      return;
+    }
+
+    try {
+      // Llamar a la API para eliminar la cuenta
+      await deleteUserAccount(userData.username, deletePassword);
+      
+      // Limpiar localStorage
+      localStorage.removeItem("user");
+      
+      // Mostrar pantalla de confirmación de eliminación
+      setAccountDeleted(true);
+      setShowDeleteModal(false);
+      
+    } catch (err) {
+      setDeleteError(err.message || "Error al eliminar la cuenta");
+    }
+  };
+
+  const handleReturnToLogin = () => {
+    navigate("/");
+  };
+
   if (loading) {
     return <div className="profile-container"><p>Cargando perfil...</p></div>;
   }
@@ -373,6 +422,9 @@ export default function Profile() {
           </div>
           <button className="edit-btn" onClick={() => setIsEditing(true)}>
             Modificar datos
+          </button>
+          <button className="delete-account-btn" onClick={handleDeleteAccount}>
+            Eliminar Cuenta
           </button>
         </div>
       ) : (
@@ -582,6 +634,67 @@ export default function Profile() {
           onComplete={handleCropComplete}
           onCancel={handleCancelCrop}
         />
+      )}
+
+      {/* Modal de confirmación de eliminación de cuenta */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-container delete-modal">
+            <h2>⚠️ Eliminar Cuenta</h2>
+            <div className="modal-content">
+              <p className="warning-title">Esta acción es irreversible</p>
+              <ul className="warning-list">
+                <li>Se eliminarán todos tus datos personales de forma permanente</li>
+                <li>Perderás el acceso a todas las funcionalidades de la aplicación</li>
+                <li>No podrás recuperar tu cuenta una vez eliminada</li>
+              </ul>
+              
+              <form onSubmit={handleConfirmDelete} className="delete-form">
+                <div className="form-group">
+                  <label>Para confirmar, introduce tu contraseña:</label>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Contraseña"
+                    autoFocus
+                  />
+                </div>
+                
+                {deleteError && <div className="error-message">{deleteError}</div>}
+                
+                <div className="modal-actions">
+                  <button type="submit" className="btn-danger">
+                    Eliminar mi cuenta
+                  </button>
+                  <button type="button" className="btn-cancel" onClick={handleCancelDelete}>
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pantalla de cuenta eliminada */}
+      {accountDeleted && (
+        <div className="modal-overlay">
+          <div className="modal-container account-deleted-modal">
+            <h2>✅ Cuenta Eliminada</h2>
+            <div className="modal-content">
+              <p className="success-text">
+                Tu cuenta ha sido eliminada permanentemente.
+              </p>
+              <p className="info-text">
+                Todos tus datos personales han sido eliminados de nuestros sistemas.
+              </p>
+              <button className="btn-primary" onClick={handleReturnToLogin}>
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </>

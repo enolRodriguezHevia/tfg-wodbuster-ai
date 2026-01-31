@@ -24,6 +24,29 @@
   letter-spacing: 1px;
 }
 
+.navbar-links {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.navbar-link-btn {
+  padding: 8px 16px;
+  background-color: transparent;
+  color: white;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.navbar-link-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
 .navbar-logout-btn {
   padding: 10px 20px;
   background-color: white;
@@ -50,10 +73,23 @@
 @media (max-width: 768px) {
   .navbar-content {
     padding: 12px 20px;
+    flex-direction: column;
+    gap: 15px;
   }
 
   .navbar-title {
     font-size: 20px;
+  }
+
+  .navbar-links {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .navbar-link-btn {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .navbar-logout-btn {
