@@ -1,0 +1,334 @@
+.plan-entrenamiento-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.plan-entrenamiento-container h1 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.info-section {
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.info-section p {
+  margin: 10px 0;
+  color: #555;
+}
+
+.warning-text {
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.generar-section {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.btn-generar {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-generar:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-generar:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.error-message h3 {
+  margin-top: 0;
+}
+
+.error-message pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: inherit;
+}
+
+.advertencia-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 15px;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.advertencia-message h3 {
+  margin-top: 0;
+}
+
+.datos-utilizados {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.datos-utilizados h3 {
+  color: #333;
+  margin-top: 0;
+}
+
+.datos-utilizados ul {
+  list-style: none;
+  padding: 0;
+}
+
+.datos-utilizados li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.datos-utilizados li:last-child {
+  border-bottom: none;
+}
+
+.prompt-generado {
+  background: white;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.prompt-header h3 {
+  color: #28a745;
+  margin: 0;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.prompt-content {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 15px;
+  max-height: 600px;
+  overflow-y: auto;
+  margin: 15px 0;
+}
+
+.prompt-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.prompt-footer {
+  background: #e7f3ff;
+  border: 1px solid #b3d7ff;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.prompt-footer p {
+  margin: 0;
+  color: #004085;
+  font-size: 0.9rem;
+}
+
+.planes-anteriores {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #e9ecef;
+}
+
+.planes-anteriores h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.planes-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.plan-card {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.plan-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #007bff;
+}
+
+.plan-card h3 {
+  color: #007bff;
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+}
+
+.btn-eliminar-plan {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.btn-eliminar-plan:hover {
+  opacity: 1;
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+.plan-fecha {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.plan-datos {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+}
+
+.plan-datos small {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Modal para ver planes anteriores */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content .prompt-generado {
+  border: none;
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .plan-entrenamiento-container {
+    padding: 10px;
+  }
+
+  .plan-entrenamiento-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .prompt-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .prompt-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .planes-lista {
+    grid-template-columns: 1fr;
+  }
+}

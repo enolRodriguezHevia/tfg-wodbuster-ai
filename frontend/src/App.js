@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Benchmarks from "./pages/Benchmarks";
 import Entrenamientos from "./pages/Entrenamientos";
 import WodsCrossFit from "./pages/WodsCrossFit";
+import PlanEntrenamiento from "./pages/PlanEntrenamiento";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/benchmarks" element={<Benchmarks />} />
         <Route path="/entrenamientos" element={<Entrenamientos />} />
         <Route path="/wods-crossfit" element={<WodsCrossFit />} />
+        <Route path="/plan-entrenamiento" element={<PlanEntrenamiento />} />
       </Routes>
     </Router>
   );

@@ -22,6 +22,7 @@ app.use('/api/user', require('./routes/user'));
 app.use('/api/onerm', require('./routes/oneRM'));
 app.use('/api/entrenamiento', require('./routes/entrenamiento'));
 app.use('/api/wod-crossfit', require('./routes/wodCrossFit'));
+app.use('/api/plan-entrenamiento', require('./routes/planEntrenamiento'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));

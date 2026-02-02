@@ -26,6 +26,10 @@ export default function Navbar() {
     navigate("/wods-crossfit");
   };
 
+  const goToPlanEntrenamiento = () => {
+    navigate("/plan-entrenamiento");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -38,6 +42,9 @@ export default function Navbar() {
           </button>
           <button className="navbar-link-btn" onClick={goToWodsCrossFit}>
             WODs CrossFit
+          </button>
+          <button className="navbar-link-btn" onClick={goToPlanEntrenamiento}>
+            Plan de Entrenamiento
           </button>
           <button className="navbar-link-btn" onClick={goToProfile}>
             Perfil

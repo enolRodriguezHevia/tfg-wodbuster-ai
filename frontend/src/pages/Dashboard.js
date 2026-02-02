@@ -44,6 +44,10 @@ export default function Dashboard() {
             <span className="button-icon">⚡</span>
             <span className="button-text">WODs CrossFit</span>
           </button>
+          <button className="function-button" onClick={() => navigate("/plan-entrenamiento")}>
+            <span className="button-icon">📋</span>
+            <span className="button-text">Plan de Entrenamiento</span>
+          </button>
           {/* Aquí se añadirán más botones de funcionalidades */}
         </div>
       </div>
