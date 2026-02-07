@@ -1,22 +1,20 @@
-const express = require('express');
-const router = express.Router();
 const OneRM = require('../models/OneRM');
 const User = require('../models/User');
+const { validateOneRMData } = require('../validators/oneRMValidator');
 
-// POST - Registrar un nuevo 1RM
-router.post('/', async (req, res) => {
+/**
+ * Registra un nuevo record de 1RM para un ejercicio
+ * @param {Object} req - Objeto de petición con username, nombreEjercicio, peso y fecha opcional
+ * @param {Object} res - Objeto de respuesta
+ */
+const registrarOneRM = async (req, res) => {
   try {
     const { username, nombreEjercicio, peso, fecha } = req.body;
 
     // Validaciones
-    if (!username || !nombreEjercicio || !peso) {
-      return res.status(400).json({ 
-        message: 'Faltan campos obligatorios: username, nombreEjercicio y peso son requeridos' 
-      });
-    }
-
-    if (typeof peso !== 'number' || peso <= 0) {
-      return res.status(400).json({ message: 'El peso debe ser un número mayor que 0' });
+    const validation = validateOneRMData({ username, nombreEjercicio, peso });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.error });
     }
 
     // Buscar el usuario
@@ -49,10 +47,14 @@ router.post('/', async (req, res) => {
     console.error('Error al registrar 1RM:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// GET - Obtener historial de 1RM de un usuario para un ejercicio específico
-router.get('/:username/:ejercicio', async (req, res) => {
+/**
+ * Obtiene el historial de 1RM de un usuario para un ejercicio específico
+ * @param {Object} req - Objeto de petición con username y ejercicio en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerHistorialPorEjercicio = async (req, res) => {
   try {
     const { username, ejercicio } = req.params;
 
@@ -81,10 +83,14 @@ router.get('/:username/:ejercicio', async (req, res) => {
     console.error('Error al obtener historial de 1RM:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// GET - Obtener todos los ejercicios únicos con 1RM de un usuario
-router.get('/:username/ejercicios/lista', async (req, res) => {
+/**
+ * Obtiene la lista de ejercicios únicos con 1RM de un usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerListaEjercicios = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -105,10 +111,14 @@ router.get('/:username/ejercicios/lista', async (req, res) => {
     console.error('Error al obtener lista de ejercicios:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// GET - Obtener todos los registros de 1RM de un usuario
-router.get('/:username', async (req, res) => {
+/**
+ * Obtiene todos los registros de 1RM de un usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerTodosLosRegistros = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -134,10 +144,14 @@ router.get('/:username', async (req, res) => {
     console.error('Error al obtener registros de 1RM:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// DELETE - Eliminar un registro de 1RM
-router.delete('/:id', async (req, res) => {
+/**
+ * Elimina un registro de 1RM
+ * @param {Object} req - Objeto de petición con id en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const eliminarOneRM = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -153,6 +167,12 @@ router.delete('/:id', async (req, res) => {
     console.error('Error al eliminar registro de 1RM:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  registrarOneRM,
+  obtenerHistorialPorEjercicio,
+  obtenerListaEjercicios,
+  obtenerTodosLosRegistros,
+  eliminarOneRM
+};

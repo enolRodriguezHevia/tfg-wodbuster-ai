@@ -1,19 +1,28 @@
-const express = require('express');
-const router = express.Router();
 const Entrenamiento = require('../models/Entrenamiento');
 const Ejercicio = require('../models/Ejercicio');
 const User = require('../models/User');
+const { validateEjercicios, calcularVolumenTotal, validateUsername } = require('../validators/entrenamientoValidator');
 
-// POST - Registrar un nuevo entrenamiento
-router.post('/', async (req, res) => {
+/**
+ * Registra un nuevo entrenamiento con sus ejercicios
+ * @param {Object} req - Objeto de petición con username, fecha y ejercicios
+ * @param {Object} res - Objeto de respuesta
+ */
+const registrarEntrenamiento = async (req, res) => {
   try {
     const { username, fecha, ejercicios } = req.body;
 
-    // Validaciones básicas
-    if (!username || !ejercicios || !Array.isArray(ejercicios) || ejercicios.length === 0) {
+    // Validar username
+    if (!validateUsername(username)) {
       return res.status(400).json({ 
-        message: 'Faltan campos obligatorios: username y ejercicios (array) son requeridos' 
+        message: 'Username es requerido' 
       });
+    }
+
+    // Validar ejercicios
+    const ejerciciosValidation = validateEjercicios(ejercicios);
+    if (!ejerciciosValidation.valid) {
+      return res.status(400).json({ message: ejerciciosValidation.error });
     }
 
     // Buscar el usuario
@@ -22,35 +31,8 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Validar cada ejercicio
-    for (let i = 0; i < ejercicios.length; i++) {
-      const ej = ejercicios[i];
-      
-      if (!ej.nombre || typeof ej.nombre !== 'string' || !ej.nombre.trim()) {
-        return res.status(400).json({ message: `Ejercicio ${i + 1}: El nombre es obligatorio` });
-      }
-      
-      if (typeof ej.series !== 'number' || ej.series < 1) {
-        return res.status(400).json({ message: `Ejercicio ${i + 1}: Las series deben ser al menos 1` });
-      }
-      
-      if (typeof ej.repeticiones !== 'number' || ej.repeticiones < 1) {
-        return res.status(400).json({ message: `Ejercicio ${i + 1}: Las repeticiones deben ser al menos 1` });
-      }
-      
-      if (typeof ej.peso !== 'number' || ej.peso < 0) {
-        return res.status(400).json({ message: `Ejercicio ${i + 1}: El peso debe ser 0 o mayor` });
-      }
-      
-      if (typeof ej.valoracion !== 'number' || ej.valoracion < 1 || ej.valoracion > 10) {
-        return res.status(400).json({ message: `Ejercicio ${i + 1}: La valoración debe estar entre 1 y 10` });
-      }
-    }
-
     // Calcular volumen total
-    const volumenTotal = ejercicios.reduce((total, ej) => {
-      return total + (ej.peso * ej.repeticiones * ej.series);
-    }, 0);
+    const volumenTotal = calcularVolumenTotal(ejercicios);
 
     // Crear el entrenamiento
     const nuevoEntrenamiento = new Entrenamiento({
@@ -100,10 +82,14 @@ router.post('/', async (req, res) => {
       error: err.message 
     });
   }
-});
+};
 
-// GET - Obtener todos los entrenamientos de un usuario
-router.get('/:username', async (req, res) => {
+/**
+ * Obtiene todos los entrenamientos de un usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerEntrenamientos = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -145,10 +131,14 @@ router.get('/:username', async (req, res) => {
     console.error('Error al obtener entrenamientos:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// GET - Obtener un entrenamiento específico por ID
-router.get('/detalle/:id', async (req, res) => {
+/**
+ * Obtiene un entrenamiento específico por ID
+ * @param {Object} req - Objeto de petición con id en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerEntrenamientoPorId = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -181,10 +171,14 @@ router.get('/detalle/:id', async (req, res) => {
     console.error('Error al obtener entrenamiento:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// DELETE - Eliminar un entrenamiento
-router.delete('/:id', async (req, res) => {
+/**
+ * Elimina un entrenamiento y sus ejercicios asociados
+ * @param {Object} req - Objeto de petición con id en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const eliminarEntrenamiento = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -204,10 +198,14 @@ router.delete('/:id', async (req, res) => {
     console.error('Error al eliminar entrenamiento:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// GET - Estadísticas de entrenamientos
-router.get('/:username/stats', async (req, res) => {
+/**
+ * Obtiene estadísticas de entrenamientos de un usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerEstadisticas = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -232,6 +230,12 @@ router.get('/:username/stats', async (req, res) => {
     console.error('Error al obtener estadísticas:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  registrarEntrenamiento,
+  obtenerEntrenamientos,
+  obtenerEntrenamientoPorId,
+  eliminarEntrenamiento,
+  obtenerEstadisticas
+};

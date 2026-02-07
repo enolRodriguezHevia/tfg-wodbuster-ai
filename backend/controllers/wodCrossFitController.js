@@ -1,34 +1,26 @@
-const express = require('express');
-const router = express.Router();
 const WodCrossFit = require('../models/WodCrossFit');
 const User = require('../models/User');
+const { validateWodData } = require('../validators/wodCrossFitValidator');
 
-// POST - Registrar un nuevo WOD CrossFit
-router.post('/', async (req, res) => {
+/**
+ * Registra un nuevo WOD CrossFit
+ * @param {Object} req - Objeto de petición con username, nombreWod, nivel, tiempo, fecha opcional y notas
+ * @param {Object} res - Objeto de respuesta
+ */
+const registrarWod = async (req, res) => {
   try {
     const { username, nombreWod, nivel, tiempo, fecha, notas } = req.body;
 
-    // Validaciones básicas
-    if (!username || !nombreWod || !nivel || tiempo === undefined) {
-      return res.status(400).json({ 
-        message: 'Faltan campos obligatorios: username, nombreWod, nivel y tiempo son requeridos' 
-      });
+    // Validaciones
+    const validation = validateWodData({ username, nombreWod, nivel, tiempo });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.error });
     }
 
     // Buscar el usuario
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    // Validar nivel
-    if (!['rx', 'intermedio', 'escalado'].includes(nivel)) {
-      return res.status(400).json({ message: 'Nivel inválido. Debe ser: rx, intermedio o escalado' });
-    }
-
-    // Validar tiempo
-    if (typeof tiempo !== 'number' || tiempo <= 0) {
-      return res.status(400).json({ message: 'El tiempo debe ser un número positivo (en segundos)' });
     }
 
     // Crear el WOD
@@ -64,10 +56,14 @@ router.post('/', async (req, res) => {
       error: err.message 
     });
   }
-});
+};
 
-// GET - Obtener todos los WODs de un usuario
-router.get('/:username', async (req, res) => {
+/**
+ * Obtiene todos los WODs CrossFit de un usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerWods = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -103,10 +99,14 @@ router.get('/:username', async (req, res) => {
       error: err.message 
     });
   }
-});
+};
 
-// DELETE - Eliminar un WOD por ID
-router.delete('/:id', async (req, res) => {
+/**
+ * Elimina un WOD CrossFit por ID
+ * @param {Object} req - Objeto de petición con id en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const eliminarWod = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -128,6 +128,10 @@ router.delete('/:id', async (req, res) => {
       error: err.message 
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  registrarWod,
+  obtenerWods,
+  eliminarWod
+};

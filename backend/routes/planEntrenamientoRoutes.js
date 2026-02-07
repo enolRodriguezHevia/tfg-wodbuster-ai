@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const planEntrenamientoController = require('../controllers/planEntrenamiento');
+const planEntrenamientoController = require('../controllers/planEntrenamientoController');
 
 // Generar nuevo plan de entrenamiento (devuelve el prompt por ahora)
 router.post('/generar/:username', planEntrenamientoController.generarPlanEntrenamiento);

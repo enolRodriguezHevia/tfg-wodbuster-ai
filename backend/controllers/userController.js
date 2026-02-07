@@ -1,10 +1,16 @@
-const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
+const { 
+  validateEmail, 
+  validateUsername, 
+  validateSex, 
+  validateAge, 
+  validateWeight, 
+  validateHeight 
+} = require('../validators/authValidator');
 
 // Configurar multer para subir fotos
 const storage = multer.diskStorage({
@@ -37,12 +43,13 @@ const upload = multer({
   }
 });
 
-// Funciones de validación
-const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validateUsername = (username) => /^[a-zA-Z0-9_-]{4,20}$/.test(username);
 
-// GET - Obtener información del perfil del usuario
-router.get('/:username', async (req, res) => {
+/**
+ * Obtiene información del perfil del usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerPerfil = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -68,10 +75,14 @@ router.get('/:username', async (req, res) => {
     console.error('Error al obtener perfil:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// PUT - Actualizar información del perfil del usuario
-router.put('/:username', async (req, res) => {
+/**
+ * Actualiza información del perfil del usuario
+ * @param {Object} req - Objeto de petición con username en params y datos a actualizar en body
+ * @param {Object} res - Objeto de respuesta
+ */
+const actualizarPerfil = async (req, res) => {
   try {
     const { username } = req.params;
     const { email, newUsername, sex, age, weight, height, currentPassword, newPassword } = req.body;
@@ -100,19 +111,19 @@ router.put('/:username', async (req, res) => {
       return res.status(400).json({ message: 'Username inválido (4-20 caracteres, solo letras, números, guiones y guiones bajos)' });
     }
 
-    if (sex && !['masculino', 'femenino', 'N/D'].includes(sex)) {
+    if (sex && !validateSex(sex)) {
       return res.status(400).json({ message: 'Sexo inválido. Debe ser: masculino, femenino o N/D' });
     }
 
-    if (age !== undefined && age !== null && age !== '' && (age < 0 || age > 150)) {
+    if (age !== undefined && age !== null && age !== '' && !validateAge(age)) {
       return res.status(400).json({ message: 'Edad inválida' });
     }
 
-    if (weight !== undefined && weight !== null && weight !== '' && (weight < 0 || weight > 500)) {
+    if (weight !== undefined && weight !== null && weight !== '' && !validateWeight(weight)) {
       return res.status(400).json({ message: 'Peso inválido' });
     }
 
-    if (height !== undefined && height !== null && height !== '' && (height < 0 || height > 300)) {
+    if (height !== undefined && height !== null && height !== '' && !validateHeight(height)) {
       return res.status(400).json({ message: 'Altura inválida' });
     }
 
@@ -199,25 +210,14 @@ router.put('/:username', async (req, res) => {
     console.error('Error al actualizar perfil:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// POST - Subir foto de perfil
-router.post('/:username/photo', (req, res, next) => {
-  upload.single('profilePhoto')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      // Error de Multer
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: 'La imagen es demasiado grande. Tamaño máximo: 5MB' });
-      }
-      return res.status(400).json({ message: `Error al subir archivo: ${err.message}` });
-    } else if (err) {
-      // Error personalizado (tipo de archivo)
-      return res.status(400).json({ message: err.message });
-    }
-    // Sin errores, continuar con el controlador
-    next();
-  });
-}, async (req, res) => {
+/**
+ * Maneja la subida de foto de perfil
+ * @param {Object} req - Objeto de petición con username en params y archivo
+ * @param {Object} res - Objeto de respuesta
+ */
+const subirFotoPerfil = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -258,10 +258,14 @@ router.post('/:username/photo', (req, res, next) => {
     }
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-// DELETE - Eliminar cuenta de usuario
-router.delete('/:username', async (req, res) => {
+/**
+ * Elimina cuenta de usuario permanentemente
+ * @param {Object} req - Objeto de petición con username en params y password en body
+ * @param {Object} res - Objeto de respuesta
+ */
+const eliminarCuenta = async (req, res) => {
   try {
     const { username } = req.params;
     const { password } = req.body;
@@ -309,6 +313,12 @@ router.delete('/:username', async (req, res) => {
     console.error('Error al eliminar cuenta:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  obtenerPerfil,
+  actualizarPerfil,
+  subirFotoPerfil,
+  eliminarCuenta,
+  upload // Exportar configuración de multer para uso en routes
+};

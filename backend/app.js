@@ -16,13 +16,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Conectar a MongoDB
 connectDB();
 
-// Rutas (las crearemos después)
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/onerm', require('./routes/oneRM'));
-app.use('/api/entrenamiento', require('./routes/entrenamiento'));
-app.use('/api/wod-crossfit', require('./routes/wodCrossFit'));
-app.use('/api/plan-entrenamiento', require('./routes/planEntrenamiento'));
+// Rutas
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/user', require('./routes/userRoutes'));
+app.use('/api/onerm', require('./routes/oneRMRoutes'));
+app.use('/api/entrenamiento', require('./routes/entrenamientoRoutes'));
+app.use('/api/wod-crossfit', require('./routes/wodCrossFitRoutes'));
+app.use('/api/plan-entrenamiento', require('./routes/planEntrenamientoRoutes'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor escuchando en el puerto ${PORT}`));

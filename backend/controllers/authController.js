@@ -1,27 +1,44 @@
-const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { validateEmail, validateUsername, validatePassword } = require('../validators/authValidator');
 
-// Funciones de validación
-const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validateUsername = (username) => /^[a-zA-Z0-9_-]{4,20}$/.test(username);
-const validatePassword = (password) => /^[\S]{8,64}$/.test(password);
-
-router.post('/signup', async (req, res) => {
+/**
+ * Registra un nuevo usuario en el sistema
+ * @param {Object} req - Objeto de petición con email, username, password y datos opcionales
+ * @param {Object} res - Objeto de respuesta
+ */
+const signup = async (req, res) => {
   try {
     const { email, username, password, sex, age, weight, height } = req.body;
 
     // Validaciones
-    if (!validateEmail(email)) return res.status(400).json({ message: 'Email inválido' });
-    if (!validateUsername(username)) return res.status(400).json({ message: 'Username inválido' });
-    if (!validatePassword(password)) return res.status(400).json({ message: 'Contraseña inválida' });
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Email inválido' });
+    }
+    
+    if (!validateUsername(username)) {
+      return res.status(400).json({ message: 'Username inválido' });
+    }
+    
+    if (!validatePassword(password)) {
+      return res.status(400).json({ message: 'Contraseña inválida' });
+    }
 
-    if (await User.findOne({ email })) return res.status(400).json({ message: 'Email ya registrado' });
-    if (await User.findOne({ username })) return res.status(400).json({ message: 'Username ya registrado' });
+    // Verificar si el email o username ya existen
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      return res.status(400).json({ message: 'Email ya registrado' });
+    }
 
+    const usernameExists = await User.findOne({ username });
+    if (usernameExists) {
+      return res.status(400).json({ message: 'Username ya registrado' });
+    }
+
+    // Hash de la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Crear nuevo usuario
     const newUser = new User({
       email,
       username,
@@ -33,32 +50,39 @@ router.post('/signup', async (req, res) => {
     });
 
     await newUser.save();
+    
     res.status(201).json({ message: 'Usuario creado con éxito' });
 
   } catch (err) {
-    console.error(err);
+    console.error('Error en signup:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
-});
+};
 
-router.post('/login', async (req, res) => {
+/**
+ * Autentica un usuario existente
+ * @param {Object} req - Objeto de petición con username y password
+ * @param {Object} res - Objeto de respuesta
+ */
+const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    // Validar datos de entrada
     if (!username || !password) {
       console.log("DEBUG: Datos incompletos enviados", req.body);
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
+    // Buscar usuario
     const user = await User.findOne({ username });
-
     if (!user) {
       console.log(`DEBUG: Usuario no encontrado: ${username}`);
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
+    // Verificar contraseña
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       console.log(`DEBUG: Contraseña incorrecta para usuario: ${username}`);
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
@@ -66,6 +90,7 @@ router.post('/login', async (req, res) => {
 
     console.log(`DEBUG: Login exitoso para usuario: ${username}`);
 
+    // Responder con datos del usuario (sin contraseña)
     res.status(200).json({
       message: "Login exitoso ✅",
       user: {
@@ -83,6 +108,9 @@ router.post('/login', async (req, res) => {
     console.error("DEBUG: Error en login:", err);
     res.status(500).json({ message: "Error del servidor" });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  signup,
+  login
+};
