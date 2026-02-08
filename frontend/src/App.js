@@ -9,6 +9,7 @@ import Benchmarks from "./pages/Benchmarks";
 import Entrenamientos from "./pages/Entrenamientos";
 import WodsCrossFit from "./pages/WodsCrossFit";
 import PlanEntrenamiento from "./pages/PlanEntrenamiento";
+import AnalisisVideos from "./pages/AnalisisVideos";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/entrenamientos" element={<Entrenamientos />} />
         <Route path="/wods-crossfit" element={<WodsCrossFit />} />
         <Route path="/plan-entrenamiento" element={<PlanEntrenamiento />} />
+        <Route path="/analisis-videos" element={<AnalisisVideos />} />
       </Routes>
     </Router>
   );

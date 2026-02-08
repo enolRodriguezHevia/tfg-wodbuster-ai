@@ -30,6 +30,10 @@ export default function Navbar() {
     navigate("/plan-entrenamiento");
   };
 
+  const goToAnalisisVideos = () => {
+    navigate("/analisis-videos");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -45,6 +49,9 @@ export default function Navbar() {
           </button>
           <button className="navbar-link-btn" onClick={goToPlanEntrenamiento}>
             Plan de Entrenamiento
+          </button>
+          <button className="navbar-link-btn" onClick={goToAnalisisVideos}>
+            Análisis de Videos
           </button>
           <button className="navbar-link-btn" onClick={goToProfile}>
             Perfil

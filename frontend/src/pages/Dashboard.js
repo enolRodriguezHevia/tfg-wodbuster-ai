@@ -48,6 +48,10 @@ export default function Dashboard() {
             <span className="button-icon">📋</span>
             <span className="button-text">Plan de Entrenamiento</span>
           </button>
+          <button className="function-button" onClick={() => navigate("/analisis-videos")}>
+            <span className="button-icon">🎥</span>
+            <span className="button-text">Análisis de Videos IA</span>
+          </button>
           {/* Aquí se añadirán más botones de funcionalidades */}
         </div>
       </div>

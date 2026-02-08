@@ -25,8 +25,11 @@ export default function Login() {
       console.log("DEBUG: Login data recibida:", data); // Mensaje de depuración
       setMessage("¡Login exitoso! ✅");
 
-      // Guardar datos del usuario en localStorage
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Guardar datos del usuario y token en localStorage
+      localStorage.setItem("user", JSON.stringify({
+        ...data.user,
+        token: data.token
+      }));
 
       // Redirigir a /dashboard
       setTimeout(() => {
