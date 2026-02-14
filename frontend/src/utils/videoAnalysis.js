@@ -451,3 +451,426 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
     imagenVisualizada
   };
 }
+
+/**
+ * Analizar video de peso muerto frame por frame
+ */
+export async function analizarPesoMuertoVideo(videoFile) {
+  try {
+    console.log("🎬 Iniciando análisis de peso muerto...");
+    
+    // Inicializar PoseLandmarker
+    const detector = await initializePoseLandmarker();
+    
+    // Crear elemento de video
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(videoFile);
+    video.muted = true;
+    
+    // Esperar a que el video esté listo
+    await new Promise((resolve) => {
+      video.onloadedmetadata = resolve;
+    });
+    
+    const duracion = video.duration;
+    const fps = 30; // Analizar 30 frames por segundo
+    const frameInterval = 1 / fps;
+    
+    const resultadosFrames = [];
+    const landmarksFrames = []; // Guardar landmarks para visualización
+    let frameCount = 0;
+    
+    // Crear canvas para visualización
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    
+    // Analizar frames
+    for (let tiempo = 0; tiempo < duracion; tiempo += frameInterval) {
+      video.currentTime = tiempo;
+      
+      // Esperar a que el frame esté listo
+      await new Promise((resolve) => {
+        video.onseeked = resolve;
+      });
+      
+      // Detectar pose
+      const resultados = detector.detectForVideo(video, performance.now());
+      
+      if (resultados.landmarks && resultados.landmarks.length > 0) {
+        const landmarks = resultados.landmarks[0];
+        
+        // Usar el lado más visible (el que tiene mayor diferencia en coordenada Z)
+        const caderaIzq = landmarks[23]; // LEFT_HIP
+        const rodillaIzq = landmarks[25]; // LEFT_KNEE
+        const tobilloIzq = landmarks[27]; // LEFT_ANKLE
+        const hombroIzq = landmarks[11]; // LEFT_SHOULDER
+        
+        const caderaDer = landmarks[24]; // RIGHT_HIP
+        const rodillaDer = landmarks[26]; // RIGHT_KNEE
+        const tobilloDer = landmarks[28]; // RIGHT_ANKLE
+        const hombroDer = landmarks[12]; // RIGHT_SHOULDER
+        
+        // Determinar qué lado está más de perfil
+        const visibilidadIzq = Math.abs(caderaIzq.z - rodillaIzq.z);
+        const visibilidadDer = Math.abs(caderaDer.z - rodillaDer.z);
+        
+        let cadera, rodilla, tobillo, hombro;
+        if (visibilidadIzq < visibilidadDer) {
+          cadera = caderaIzq;
+          rodilla = rodillaIzq;
+          tobillo = tobilloIzq;
+          hombro = hombroIzq;
+        } else {
+          cadera = caderaDer;
+          rodilla = rodillaDer;
+          tobillo = tobilloDer;
+          hombro = hombroDer;
+        }
+        
+        // Calcular ángulos clave
+        const anguloRodilla = calcularAngulo(cadera, rodilla, tobillo);
+        const anguloCadera = calcularAngulo(hombro, cadera, rodilla);
+        
+        // Posición Y de la cadera (0 = arriba, 1 = abajo en MediaPipe)
+        const posicionCadera = cadera.y;
+        
+        // Calcular ángulo del torso con respecto a la vertical
+        const deltaX = Math.abs(hombro.x - cadera.x);
+        const deltaY = Math.abs(hombro.y - cadera.y);
+        const anguloTorso = Math.atan2(deltaX, deltaY) * 180 / Math.PI;
+        
+        // Validar que sea un frame válido de peso muerto (rangos más permisivos)
+        const esFrameValido = anguloRodilla >= 20 && anguloRodilla <= 180 &&
+                              anguloCadera >= 20 && anguloCadera <= 180;
+        
+        if (!esFrameValido) {
+          frameCount++;
+          continue;
+        }
+        
+        resultadosFrames.push({
+          tiempo,
+          frameIndex: resultadosFrames.length,
+          posicionCadera,
+          anguloRodilla,
+          anguloCadera,
+          anguloTorso,
+          posicionHombro: hombro.y,
+          posicionRodilla: rodilla.y,
+          posicionTobillo: tobillo.y
+        });
+        
+        // Guardar landmarks para visualización
+        landmarksFrames.push({
+          landmarks,
+          tiempo,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight
+        });
+        
+        frameCount++;
+      }
+      
+      // Limitar análisis para no saturar (máximo 300 frames = 10 segundos)
+      if (frameCount >= 300) break;
+    }
+    
+    console.log(`✅ Analizados ${frameCount} frames (${duracion.toFixed(2)}s de video)`);
+    
+    // Analizar resultados y detectar repeticiones
+    const resultado = await analizarResultadosPesoMuerto(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);
+    
+    // Limpiar
+    URL.revokeObjectURL(video.src);
+    
+    return resultado;
+    
+  } catch (error) {
+    console.error("❌ Error en análisis de peso muerto:", error);
+    throw error;
+  }
+}
+
+/**
+ * Detectar repeticiones de peso muerto basándose en la posición de la cadera
+ * Enfoque simple: encontrar cadera más baja (inicio) y postura más erguida DESPUÉS del inicio (lockout)
+ */
+function detectarRepeticionesPesoMuerto(frames) {
+  if (frames.length < 10) {
+    console.log('⚠️ Muy pocos frames para análisis:', frames.length);
+    return [];
+  }
+  
+  console.log(`📊 Análisis de peso muerto:`);
+  console.log(`  - Total frames: ${frames.length}`);
+  console.log(`  - Rango temporal: ${frames[0].tiempo.toFixed(2)}s - ${frames[frames.length-1].tiempo.toFixed(2)}s`);
+  
+  // 1. INICIO: Buscar el punto donde la cadera está MÁS BAJA (máximo Y) en todo el video
+  // Este es el punto donde el atleta agarra la barra antes de levantar
+  const posicionesCadera = frames.map(f => f.posicionCadera);
+  const maxCaderaY = Math.max(...posicionesCadera);
+  const minCaderaY = Math.min(...posicionesCadera);
+  console.log(`  - Rango cadera Y: ${minCaderaY.toFixed(3)} (más alta) a ${maxCaderaY.toFixed(3)} (más baja)`);
+  
+  const frameInicio = frames.find(f => f.posicionCadera === maxCaderaY);
+  const indiceInicio = frames.indexOf(frameInicio);
+  
+  console.log(`  - INICIO encontrado (cadera más baja): índice=${indiceInicio}, t=${frameInicio.tiempo.toFixed(2)}s`);
+  console.log(`    - Cadera Y=${frameInicio.posicionCadera.toFixed(3)} (más baja)`);
+  console.log(`    - Hombro Y=${frameInicio.posicionHombro.toFixed(3)}`);
+  
+  // 2. LOCKOUT: Buscar hombros MÁS ALTOS (menor Y) DESPUÉS del inicio
+  console.log(`\n📋 TODAS LAS POSICIONES desde inicio hasta final:`);
+  console.log(`    Idx | Tiempo  | Cadera Y | Hombro Y`);
+  console.log(`    ----|---------|----------|----------`);
+  
+  let framesPosteriores = frames.slice(indiceInicio + 1);
+  
+  if (framesPosteriores.length === 0) {
+    console.log('⚠️ No hay frames posteriores al inicio');
+    return [];
+  }
+  
+  // Imprimir todas las posiciones
+  for (let i = 0; i < framesPosteriores.length; i++) {
+    const frame = framesPosteriores[i];
+    const idxGlobal = indiceInicio + 1 + i;
+    console.log(`    ${idxGlobal.toString().padStart(3)} | ${frame.tiempo.toFixed(2)}s | ${frame.posicionCadera.toFixed(3)} | ${frame.posicionHombro.toFixed(3)}`);
+  }
+  
+  // Buscar el frame con TORSO MÁS VERTICAL (menor ángulo de torso)
+  // Este es el mejor indicador del lockout en peso muerto
+  let mejorLockout = null;
+  let mejorScore = Infinity; // Menor ángulo de torso = más vertical = mejor
+  let mejorIndice = -1;
+  
+  for (let i = 0; i < framesPosteriores.length; i++) {
+    const frame = framesPosteriores[i];
+    const scoreTorso = frame.anguloTorso; // Menor ángulo = más vertical
+    
+    if (scoreTorso < mejorScore) {
+      mejorScore = scoreTorso;
+      mejorLockout = frame;
+      mejorIndice = indiceInicio + 1 + i;
+    }
+  }
+  
+  const frameLockout = mejorLockout;
+  
+  console.log(`\n  - LOCKOUT encontrado (torso más vertical): índice=${mejorIndice}, t=${frameLockout.tiempo.toFixed(2)}s`);
+  console.log(`    - Cadera Y=${frameLockout.posicionCadera.toFixed(3)}, Hombro Y=${frameLockout.posicionHombro.toFixed(3)}`);
+  console.log(`    - Torso: ${frameLockout.anguloTorso.toFixed(1)}° (más vertical)`);
+  console.log(`  - Movimiento de cadera: ${frameInicio.posicionCadera.toFixed(3)} → ${frameLockout.posicionCadera.toFixed(3)} (subió ${(frameInicio.posicionCadera - frameLockout.posicionCadera).toFixed(3)})`);
+  console.log(`  - Movimiento de hombros: ${frameInicio.posicionHombro.toFixed(3)} → ${frameLockout.posicionHombro.toFixed(3)} (subió ${(frameInicio.posicionHombro - frameLockout.posicionHombro).toFixed(3)})`);
+  console.log(`  - Cambio de torso: ${frameInicio.anguloTorso.toFixed(1)}° → ${frameLockout.anguloTorso.toFixed(1)}° (enderezó ${(frameInicio.anguloTorso - frameLockout.anguloTorso).toFixed(1)}°)`);  
+  // Calcular amplitud del movimiento
+  const amplitudCadera = frameInicio.posicionCadera - frameLockout.posicionCadera;
+  const amplitudHombros = frameInicio.posicionHombro - frameLockout.posicionHombro;
+  
+  console.log(`  - Amplitud cadera: ${amplitudCadera.toFixed(3)}`);
+  console.log(`  - Amplitud hombros: ${amplitudHombros.toFixed(3)}`);
+  
+  // Crear una repetición con los frames detectados
+  const repeticion = {
+    numero: 1,
+    frameInicio: frameInicio,
+    frameLockout: frameLockout,
+    amplitud: Math.max(amplitudCadera, amplitudHombros),
+    tiempoInicio: frameInicio.tiempo,
+    tiempoLockout: frameLockout.tiempo,
+    duracion: Math.abs(frameLockout.tiempo - frameInicio.tiempo)
+  };
+  
+  console.log(`✅ Frames detectados - duración: ${repeticion.duracion.toFixed(2)}s`);
+  
+  return [repeticion];
+}
+
+/**
+ * Analizar resultados de peso muerto
+ */
+async function analizarResultadosPesoMuerto(frames, landmarksFrames, duracion, video, canvas, ctx) {
+  if (frames.length === 0) {
+    return {
+      esCorrecta: false,
+      feedback: [
+        "❌ No se pudo detectar la pose en el video.",
+        "📹 Asegúrate de grabar:",
+        "• Completamente de LADO (perfil, no de frente)",
+        "• Tu cuerpo COMPLETO visible (cabeza a pies)",
+        "• Buena iluminación",
+        "• Cámara estable y a altura media"
+      ],
+      duracion: Math.round(duracion),
+      repeticionesDetectadas: 0,
+      repeticiones: [],
+      imagenInicio: null,
+      imagenLockout: null
+    };
+  }
+  
+  // Detectar repeticiones
+  const repeticiones = detectarRepeticionesPesoMuerto(frames);
+  
+  if (repeticiones.length === 0) {
+    return {
+      esCorrecta: false,
+      feedback: [
+        "❌ No se detectaron repeticiones válidas de peso muerto.",
+        "📹 Asegúrate de:",
+        "• Realizar el movimiento completo (desde abajo hasta lockout)",
+        "• Mantener tu cuerpo completo visible durante todo el ejercicio",
+        "• Grabar completamente de perfil",
+        "💡 Consejo: El movimiento debe tener suficiente rango de movimiento (subir y bajar la cadera claramente)"
+      ],
+      duracion: Math.round(duracion),
+      repeticionesDetectadas: 0,
+      repeticiones: [],
+      imagenInicio: null,
+      imagenLockout: null
+    };
+  }
+  
+  // Tomar la primera repetición para análisis de técnica
+  const primeraRep = repeticiones[0];
+  const frameInicio = primeraRep.frameInicio;
+  const frameLockout = primeraRep.frameLockout;
+  
+  console.log(`📊 Analizando repetición 1:`);
+  console.log(`  - Inicio: ${frameInicio.tiempo.toFixed(2)}s, Cadera Y=${frameInicio.posicionCadera.toFixed(3)}`);
+  console.log(`  - Lockout: ${frameLockout.tiempo.toFixed(2)}s, Cadera Y=${frameLockout.posicionCadera.toFixed(3)}`);
+  console.log(`  - Amplitud: ${primeraRep.amplitud.toFixed(3)}, Duración: ${primeraRep.duracion.toFixed(2)}s`);
+  
+  // Generar imágenes visualizadas para inicio y lockout
+  let imagenInicio = null;
+  let imagenLockout = null;
+  
+  try {
+    // Imagen de inicio
+    const inicioIdx = frameInicio.frameIndex;
+    if (inicioIdx !== undefined && inicioIdx < landmarksFrames.length && landmarksFrames[inicioIdx]) {
+      const frameData = landmarksFrames[inicioIdx];
+      video.currentTime = frameData.tiempo;
+      await new Promise((resolve) => { video.onseeked = resolve; });
+      
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      dibujarLandmarks(ctx, frameData.landmarks, canvas.width, canvas.height);
+      
+      // Agregar texto indicando que es el inicio
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 30px Arial';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeText('INICIO', 20, 50);
+      ctx.fillText('INICIO', 20, 50);
+      
+      imagenInicio = canvas.toDataURL('image/jpeg', 0.9);
+    }
+    
+    // Imagen de lockout
+    const lockoutIdx = frameLockout.frameIndex;
+    if (lockoutIdx !== undefined && lockoutIdx < landmarksFrames.length && landmarksFrames[lockoutIdx]) {
+      const frameData = landmarksFrames[lockoutIdx];
+      video.currentTime = frameData.tiempo;
+      await new Promise((resolve) => { video.onseeked = resolve; });
+      
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      dibujarLandmarks(ctx, frameData.landmarks, canvas.width, canvas.height);
+      
+      // Agregar texto indicando que es el lockout
+      ctx.fillStyle = '#00FF00';
+      ctx.font = 'bold 30px Arial';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeText('LOCKOUT', 20, 50);
+      ctx.fillText('LOCKOUT', 20, 50);
+      
+      imagenLockout = canvas.toDataURL('image/jpeg', 0.9);
+    }
+  } catch (error) {
+    console.error("⚠️ Error al generar imágenes visualizadas:", error);
+  }
+  
+  // Evaluar técnica
+  const feedback = [];
+  let esCorrecta = true;
+  
+  // 1. Verificar ángulo de rodilla en lockout (debe estar casi completamente extendida)
+  if (frameLockout.anguloRodilla < 160) {
+    feedback.push(`❌ No extendiste completamente las rodillas en el lockout (${frameLockout.anguloRodilla.toFixed(1)}°).`);
+    feedback.push(`💡 Extiende completamente piernas y caderas al final del movimiento.`);
+    esCorrecta = false;
+  } else {
+    feedback.push(`✅ Buena extensión de rodillas en el lockout (${frameLockout.anguloRodilla.toFixed(1)}°).`);
+  }
+  
+  // 2. Verificar posición relativa hombros-cadera en inicio (hombros NO deben estar más bajos que cadera)
+  // En MediaPipe: Y más grande = más abajo
+  if (frameInicio.posicionHombro > frameInicio.posicionCadera) {
+    feedback.push(`❌ Tus hombros están por debajo de las caderas al inicio. Esto es peligroso para la espalda.`);
+    feedback.push(`💡 Antes de levantar: sube el pecho, activa el core y mantén los hombros por encima de las caderas.`);
+    esCorrecta = false;
+  }
+  
+  // 3. Verificar ángulo del torso en inicio (debe estar inclinado hacia adelante, no horizontal)
+  if (frameInicio.anguloTorso < 30) {
+    feedback.push(`⚠️ Tu torso está muy vertical al inicio (${frameInicio.anguloTorso.toFixed(1)}°). El peso muerto requiere inclinación.`);
+    esCorrecta = false;
+  } else if (frameInicio.anguloTorso > 75) {
+    feedback.push(`❌ Tu espalda está demasiado horizontal al inicio (${frameInicio.anguloTorso.toFixed(1)}°). Esto es peligroso.`);
+    feedback.push(`💡 Eleva más el pecho y baja las caderas antes de levantar. Tu espalda debe estar más diagonal, no horizontal.`);
+    esCorrecta = false;
+  }
+  
+  // 4. Verificar que el torso termine más vertical en lockout
+  if (frameLockout.anguloTorso > 15) {
+    feedback.push(`⚠️ Tu torso no está completamente vertical en el lockout (${frameLockout.anguloTorso.toFixed(1)}°).`);
+    feedback.push(`💡 Empuja las caderas hacia adelante y endereza el torso completamente.`);
+    esCorrecta = false;
+  } else {
+    feedback.push(`✅ Buena postura final, torso vertical en el lockout.`);
+  }
+  
+  if (esCorrecta) {
+    feedback.push("🎉 ¡Excelente técnica de peso muerto!");
+    feedback.push("💪 Mantén esta forma en todas las repeticiones.");
+  } else {
+    feedback.push("📝 Corrige estos aspectos para mejorar tu técnica y prevenir lesiones.");
+  }
+  
+  // Preparar información de todas las repeticiones
+  const repeticionesInfo = repeticiones.map(rep => ({
+    numero: rep.numero,
+    tiempoInicio: rep.tiempoInicio.toFixed(2),
+    tiempoLockout: rep.tiempoLockout.toFixed(2),
+    duracion: rep.duracion.toFixed(2),
+    anguloRodillaInicio: rep.frameInicio.anguloRodilla.toFixed(1),
+    anguloRodillaLockout: rep.frameLockout.anguloRodilla.toFixed(1),
+    anguloTorsoInicio: rep.frameInicio.anguloTorso.toFixed(1),
+    anguloTorsoLockout: rep.frameLockout.anguloTorso.toFixed(1)
+  }));
+  
+  return {
+    esCorrecta,
+    feedback,
+    duracion: Math.round(duracion),
+    repeticionesDetectadas: repeticiones.length,
+    repeticiones: repeticionesInfo,
+    imagenInicio,
+    imagenLockout,
+    detallesPrimeraRep: {
+      inicio: {
+        tiempo: frameInicio.tiempo.toFixed(2),
+        anguloRodilla: frameInicio.anguloRodilla.toFixed(1),
+        anguloTorso: frameInicio.anguloTorso.toFixed(1)
+      },
+      lockout: {
+        tiempo: frameLockout.tiempo.toFixed(2),
+        anguloRodilla: frameLockout.anguloRodilla.toFixed(1),
+        anguloTorso: frameLockout.anguloTorso.toFixed(1)
+      }
+    }
+  };
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { analizarSentadillaVideo } from "../utils/videoAnalysis";
+import { analizarSentadillaVideo, analizarPesoMuertoVideo } from "../utils/videoAnalysis";
 import "./AnalisisVideos.css";
 
 export default function AnalisisVideos() {
@@ -178,14 +178,17 @@ export default function AnalisisVideos() {
     setIsAnalyzing(true);
 
     try {
-      // Analizar video con MediaPipe en el frontend (solo sentadilla por ahora)
+      // Analizar video con MediaPipe en el frontend
       let resultadoAnalisis;
       
       if (ejercicioSeleccionado === "sentadilla") {
         setError("Analizando video con IA... Esto puede tardar 30-60 segundos.");
         resultadoAnalisis = await analizarSentadillaVideo(videoFile);
+      } else if (ejercicioSeleccionado === "peso-muerto") {
+        setError("Analizando video de peso muerto con IA... Esto puede tardar 30-60 segundos.");
+        resultadoAnalisis = await analizarPesoMuertoVideo(videoFile);
       } else {
-        setError("Por ahora solo está disponible el análisis de sentadilla");
+        setError("Por ahora solo están disponibles los análisis de sentadilla y peso muerto");
         setIsAnalyzing(false);
         return;
       }
@@ -410,7 +413,7 @@ export default function AnalisisVideos() {
                     </div>
                   )}
 
-                  {/* Visualización de Pose detectada */}
+                  {/* Visualización de Pose detectada - Sentadilla */}
                   {resultado.imagenVisualizada && (
                     <div className="visualizacion-section">
                       <h3>Detección de Pose (Punto más bajo)</h3>
@@ -432,6 +435,61 @@ export default function AnalisisVideos() {
                           />
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Visualización de Pose detectada - Peso Muerto */}
+                  {resultado.imagenInicio && resultado.imagenLockout && (
+                    <div className="visualizacion-section">
+                      <h3>Detección de Pose - Frames Clave</h3>
+                      <div className="videos-comparison">
+                        <div className="video-column">
+                          <h4>Inicio (Cadera más baja)</h4>
+                          <img 
+                            src={resultado.imagenInicio} 
+                            alt="Frame de inicio" 
+                            style={{width: '100%', borderRadius: '8px'}}
+                          />
+                          {resultado.detallesPrimeraRep && (
+                            <div className="frame-info">
+                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.inicio.tiempo}s</p>
+                              <p>📐 Rodilla: {resultado.detallesPrimeraRep.inicio.anguloRodilla}°</p>
+                              <p>📏 Torso: {resultado.detallesPrimeraRep.inicio.anguloTorso}°</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="video-column">
+                          <h4>Lockout (Cadera más alta)</h4>
+                          <img 
+                            src={resultado.imagenLockout} 
+                            alt="Frame de lockout" 
+                            style={{width: '100%', borderRadius: '8px'}}
+                          />
+                          {resultado.detallesPrimeraRep && (
+                            <div className="frame-info">
+                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.lockout.tiempo}s</p>
+                              <p>📐 Rodilla: {resultado.detallesPrimeraRep.lockout.anguloRodilla}°</p>
+                              <p>📏 Torso: {resultado.detallesPrimeraRep.lockout.anguloTorso}°</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Información de todas las repeticiones */}
+                      {resultado.repeticiones && resultado.repeticiones.length > 1 && (
+                        <div className="repeticiones-info">
+                          <h4>📊 Todas las repeticiones detectadas ({resultado.repeticiones.length})</h4>
+                          <div className="repeticiones-grid">
+                            {resultado.repeticiones.map((rep, index) => (
+                              <div key={index} className="repeticion-item">
+                                <strong>Rep {rep.numero}</strong>
+                                <p>⏱️ {rep.tiempoInicio}s → {rep.tiempoLockout}s ({rep.duracion}s)</p>
+                                <p>📐 Rodilla: {rep.anguloRodillaInicio}° → {rep.anguloRodillaLockout}°</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
