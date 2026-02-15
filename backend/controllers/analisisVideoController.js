@@ -1,14 +1,13 @@
 const AnalisisVideo = require("../models/AnalisisVideo");
 const mongoose = require("mongoose");
-const fs = require("fs").promises;
-const path = require("path");
+const { generarFeedbackEjercicio } = require("../services/llmService");
 
 /**
- * Analizar un video de ejercicio
+ * Analizar un video de ejercicio con IA (LLM)
  */
 exports.analizarVideo = async (req, res) => {
   try {
-    const { ejercicio, analisisResultado } = req.body;
+    const { ejercicio, analisisResultado, frames, framesClave, metricas } = req.body;
     const videoFile = req.file;
     const userId = req.user.id;
 
@@ -18,32 +17,82 @@ exports.analizarVideo = async (req, res) => {
     }
 
     // Validar ejercicio
-    const ejerciciosValidos = ["sentadilla", "press-hombros", "peso-muerto", "flexiones", "dominadas"];
+    const ejerciciosValidos = ["sentadilla", "press-hombros", "peso-muerto", "remo-barra", "flexiones", "dominadas"];
     if (!ejercicio || !ejerciciosValidos.includes(ejercicio)) {
-      // Eliminar archivo subido si la validación falla
-      await fs.unlink(videoFile.path);
       return res.status(400).json({ message: "Ejercicio no válido" });
     }
 
-    console.log(`Recibiendo análisis del ejercicio: ${ejercicio}`);
+    console.log(`🎬 Recibiendo análisis del ejercicio: ${ejercicio}`);
 
-    // Parsear resultado del análisis desde el frontend
-    let resultadoAnalisis;
-    if (analisisResultado) {
-      resultadoAnalisis = JSON.parse(analisisResultado);
-    } else {
+    // Parsear datos del análisis
+    let resultadoAnalisis, framesData, framesClaveParsed, metricasParsed;
+    
+    try {
+      if (analisisResultado) resultadoAnalisis = JSON.parse(analisisResultado);
+      if (frames) framesData = JSON.parse(frames);
+      if (framesClave) framesClaveParsed = JSON.parse(framesClave);
+      if (metricas) metricasParsed = JSON.parse(metricas);
+    } catch (parseErr) {
+      return res.status(400).json({ message: "Error al parsear datos del análisis" });
+    }
+
+    if (!resultadoAnalisis) {
       return res.status(400).json({ message: "No se recibió el resultado del análisis" });
     }
 
-    // Guardar análisis en la base de datos
+    // NUEVA FUNCIONALIDAD: Generar feedback con LLM si hay datos disponibles
+    let feedbackLLM = null;
+    let tokensUsados = 0;
+    
+    if (framesData && framesClaveParsed && process.env.OPENAI_API_KEY) {
+      console.log(`🤖 Generando feedback con IA para ${ejercicio}...`);
+      
+      try {
+        const llmResponse = await generarFeedbackEjercicio(
+          ejercicio,
+          framesData,
+          framesClaveParsed,
+          metricasParsed
+        );
+        
+        if (llmResponse.success) {
+          feedbackLLM = llmResponse.feedback;
+          tokensUsados = llmResponse.tokensUsados;
+          console.log(`✅ Feedback IA generado exitosamente (${tokensUsados} tokens)`);
+        } else {
+          console.log(`⚠️ Fallback a feedback básico: ${llmResponse.error}`);
+          feedbackLLM = llmResponse.feedback;
+        }
+      } catch (llmErr) {
+        console.error(`❌ Error al generar feedback con IA: ${llmErr.message}`);
+        return res.status(500).json({ 
+          message: "Error al generar feedback con IA",
+          error: llmErr.message 
+        });
+      }
+    } else {
+      const missingItems = [];
+      if (!framesData) missingItems.push('frames');
+      if (!framesClaveParsed) missingItems.push('framesClave');
+      if (!process.env.OPENAI_API_KEY) missingItems.push('OPENAI_API_KEY');
+      
+      return res.status(400).json({ 
+        message: `Faltan datos necesarios para el análisis: ${missingItems.join(', ')}` 
+      });
+    }
+
+    // El feedback siempre viene del LLM ahora
+    const feedbackFinal = feedbackLLM;
+
+    // Guardar análisis en la base de datos (sin guardar el video)
     const analisis = new AnalisisVideo({
       usuario: userId,
       ejercicio: ejercicio,
-      videoUrl: videoFile.path,
-      esCorrecta: resultadoAnalisis.esCorrecta,
+      videoUrl: null, // No guardamos videos físicamente
+      esCorrecta: true, // Valor por defecto - el LLM ya no clasifica
       angulos: resultadoAnalisis.angulos || {},
       rompioParalelo: resultadoAnalisis.rompioParalelo !== undefined ? resultadoAnalisis.rompioParalelo : null,
-      feedback: resultadoAnalisis.feedback,
+      feedback: feedbackFinal,
       coordenadas: resultadoAnalisis.coordenadas || {},
       duracion: resultadoAnalisis.duracion,
       repeticionesDetectadas: resultadoAnalisis.repeticionesDetectadas,
@@ -51,7 +100,7 @@ exports.analizarVideo = async (req, res) => {
 
     await analisis.save();
 
-    // Responder con el resultado (sin las coordenadas completas para reducir tamaño)
+    // Responder con el resultado
     res.status(200).json({
       id: analisis._id,
       ejercicio: analisis.ejercicio,
@@ -62,19 +111,12 @@ exports.analizarVideo = async (req, res) => {
       duracion: analisis.duracion,
       repeticionesDetectadas: analisis.repeticionesDetectadas,
       fechaAnalisis: analisis.fechaAnalisis,
+      usaIA: !!feedbackLLM,
+      tokensUsados: tokensUsados
     });
 
   } catch (err) {
-    console.error("Error al analizar video:", err);
-    
-    // Eliminar archivo si existe
-    if (req.file) {
-      try {
-        await fs.unlink(req.file.path);
-      } catch (unlinkErr) {
-        console.error("Error al eliminar archivo:", unlinkErr);
-      }
-    }
+    console.error("❌ Error al analizar video:", err);
 
     res.status(500).json({ 
       message: "Error al procesar el video",
@@ -161,13 +203,7 @@ exports.eliminarAnalisis = async (req, res) => {
       return res.status(404).json({ message: "Análisis no encontrado" });
     }
 
-    // Eliminar archivo de video
-    try {
-      await fs.unlink(analisis.videoUrl);
-    } catch (err) {
-      console.error("Error al eliminar archivo de video:", err);
-    }
-
+    // No hay archivos físicos que eliminar
     await AnalisisVideo.deleteOne({ _id: id });
 
     res.status(200).json({ message: "Análisis eliminado correctamente" });

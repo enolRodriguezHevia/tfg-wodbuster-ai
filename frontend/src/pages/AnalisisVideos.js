@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { analizarSentadillaVideo, analizarPesoMuertoVideo } from "../utils/videoAnalysis";
+import { analizarSentadillaVideo, analizarPesoMuertoVideo, analizarPressHombroVideo, analizarRemoBarraVideo } from "../utils/videoAnalysis";
 import "./AnalisisVideos.css";
 
 export default function AnalisisVideos() {
@@ -15,9 +15,7 @@ export default function AnalisisVideos() {
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
   const [historial, setHistorial] = useState([]);
-  const [estadisticas, setEstadisticas] = useState(null);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
-  const [loadingEstadisticas, setLoadingEstadisticas] = useState(false);
 
   useEffect(() => {
     // Verificar autenticación
@@ -34,8 +32,6 @@ export default function AnalisisVideos() {
   useEffect(() => {
     if (tabActiva === "historial") {
       cargarHistorial();
-    } else if (tabActiva === "estadisticas") {
-      cargarEstadisticas();
     }
   }, [tabActiva]);
 
@@ -45,6 +41,7 @@ export default function AnalisisVideos() {
         { id: "sentadilla", nombre: "Sentadilla (Squat)" },
         { id: "press-hombros", nombre: "Press de Hombros" },
         { id: "peso-muerto", nombre: "Peso Muerto (Deadlift)" },
+        { id: "remo-barra", nombre: "Remo con Barra Inclinado" },
         { id: "flexiones", nombre: "Flexiones (Push-ups)" },
         { id: "dominadas", nombre: "Dominadas (Pull-ups)" }
       ];
@@ -74,28 +71,6 @@ export default function AnalisisVideos() {
       setError("Error al cargar el historial");
     } finally {
       setLoadingHistorial(false);
-    }
-  };
-
-  const cargarEstadisticas = async () => {
-    setLoadingEstadisticas(true);
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const response = await fetch("http://localhost:3000/api/analisis-video/estadisticas", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Error al cargar estadísticas");
-
-      const data = await response.json();
-      setEstadisticas(data);
-    } catch (err) {
-      console.error("Error al cargar estadísticas:", err);
-      setError("Error al cargar estadísticas");
-    } finally {
-      setLoadingEstadisticas(false);
     }
   };
 
@@ -187,20 +162,39 @@ export default function AnalisisVideos() {
       } else if (ejercicioSeleccionado === "peso-muerto") {
         setError("Analizando video de peso muerto con IA... Esto puede tardar 30-60 segundos.");
         resultadoAnalisis = await analizarPesoMuertoVideo(videoFile);
+      } else if (ejercicioSeleccionado === "press-hombros") {
+        setError("Analizando video de press de hombros con IA... Esto puede tardar 30-60 segundos.");
+        resultadoAnalisis = await analizarPressHombroVideo(videoFile);
+      } else if (ejercicioSeleccionado === "remo-barra") {
+        setError("Analizando video de remo con barra con IA... Esto puede tardar 30-60 segundos.");
+        resultadoAnalisis = await analizarRemoBarraVideo(videoFile);
       } else {
-        setError("Por ahora solo están disponibles los análisis de sentadilla y peso muerto");
+        setError("Por ahora solo están disponibles los análisis de sentadilla, peso muerto, press de hombros y remo con barra");
         setIsAnalyzing(false);
         return;
       }
 
-      // Enviar resultado al backend para guardar
+      // Enviar resultado al backend para guardar y generar feedback con IA
       const formData = new FormData();
       formData.append("ejercicio", ejercicioSeleccionado);
       formData.append("video", videoFile);
       formData.append("analisisResultado", JSON.stringify(resultadoAnalisis));
+      
+      // Agregar datos para el LLM (si están disponibles)
+      if (resultadoAnalisis.framesCompletos) {
+        formData.append("frames", JSON.stringify(resultadoAnalisis.framesCompletos));
+      }
+      if (resultadoAnalisis.framesClave) {
+        formData.append("framesClave", JSON.stringify(resultadoAnalisis.framesClave));
+      }
+      if (resultadoAnalisis.metricas) {
+        formData.append("metricas", JSON.stringify(resultadoAnalisis.metricas));
+      }
 
       const user = JSON.parse(localStorage.getItem("user"));
       const token = user.token;
+
+      setError("Generando feedback con IA...");
 
       const response = await fetch("http://localhost:3000/api/analisis-video/analizar", {
         method: "POST",
@@ -214,6 +208,14 @@ export default function AnalisisVideos() {
 
       if (!response.ok) {
         throw new Error(data.message || "Error al guardar el análisis");
+      }
+
+      // Si el backend devolvió feedback de IA, usarlo
+      if (data.usaIA && data.feedback) {
+        console.log(`✅ Feedback generado con IA (${data.tokensUsados} tokens)`);
+        resultadoAnalisis.feedback = data.feedback;
+        resultadoAnalisis.esCorrecta = data.esCorrecta;
+        resultadoAnalisis.usaIA = true;
       }
 
       setResultado(resultadoAnalisis);
@@ -257,12 +259,6 @@ export default function AnalisisVideos() {
             onClick={() => setTabActiva("historial")}
           >
             📊 Historial
-          </button>
-          <button
-            className={`tab ${tabActiva === "estadisticas" ? "active" : ""}`}
-            onClick={() => setTabActiva("estadisticas")}
-          >
-            📈 Estadísticas
           </button>
         </div>
 
@@ -357,12 +353,89 @@ export default function AnalisisVideos() {
 
                   {resultado.feedback && (
                     <div className="feedback-section">
-                      <h3>Recomendaciones</h3>
-                      <ul className="feedback-list">
-                        {resultado.feedback.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
+                      {resultado.usaIA && (
+                        <div style={{fontSize: '0.85em', color: '#666', marginBottom: '10px'}}>
+                          🤖 Análisis generado con IA
+                        </div>
+                      )}
+                      <h3>Análisis de Técnica</h3>
+                      
+                      {/* Feedback narrativo de fisioterapeuta */}
+                      {typeof resultado.feedback === 'string' ? (
+                        <div className="feedback-narrative" style={{
+                          whiteSpace: 'pre-wrap',
+                          lineHeight: '1.8',
+                          padding: '20px',
+                          background: '#f8f9fa',
+                          borderRadius: '8px',
+                          fontSize: '1em'
+                        }}>
+                          {resultado.feedback}
+                        </div>
+                      ) : typeof resultado.feedback === 'object' && !Array.isArray(resultado.feedback) ? (
+                        /* Feedback estructurado JSON (legacy) */
+                        <>
+                          {resultado.feedback.resumen && (
+                            <div className="feedback-resumen" style={{marginBottom: '20px', padding: '15px', background: '#f0f8ff', borderRadius: '8px'}}>
+                              <strong>Resumen:</strong> {resultado.feedback.resumen}
+                            </div>
+                          )}
+                          
+                          {resultado.feedback.aspectosPositivos && resultado.feedback.aspectosPositivos.length > 0 && (
+                            <div className="feedback-subsection" style={{marginBottom: '15px'}}>
+                              <h4 style={{color: '#28a745'}}>✅ Aspectos Positivos</h4>
+                              <ul className="feedback-list">
+                                {resultado.feedback.aspectosPositivos.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {resultado.feedback.areasDeRiesgo && resultado.feedback.areasDeRiesgo.length > 0 && (
+                            <div className="feedback-subsection" style={{marginBottom: '15px'}}>
+                              <h4 style={{color: '#dc3545'}}>⚠️ Áreas de Riesgo</h4>
+                              <ul className="feedback-list">
+                                {resultado.feedback.areasDeRiesgo.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {resultado.feedback.correcciones && resultado.feedback.correcciones.length > 0 && (
+                            <div className="feedback-subsection" style={{marginBottom: '15px'}}>
+                              <h4 style={{color: '#ffc107'}}>🔧 Correcciones</h4>
+                              <ul className="feedback-list">
+                                {resultado.feedback.correcciones.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {resultado.feedback.recomendaciones && resultado.feedback.recomendaciones.length > 0 && (
+                            <div className="feedback-subsection">
+                              <h4 style={{color: '#17a2b8'}}>💡 Recomendaciones</h4>
+                              <ul className="feedback-list">
+                                {resultado.feedback.recomendaciones.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        /* Feedback tradicional (array de strings) */
+                        <>
+                          <h3>Recomendaciones</h3>
+                          <ul className="feedback-list">
+                            {Array.isArray(resultado.feedback) && resultado.feedback.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -475,21 +548,67 @@ export default function AnalisisVideos() {
                         </div>
                       </div>
                       
-                      {/* Información de todas las repeticiones */}
-                      {resultado.repeticiones && resultado.repeticiones.length > 1 && (
-                        <div className="repeticiones-info">
-                          <h4>📊 Todas las repeticiones detectadas ({resultado.repeticiones.length})</h4>
-                          <div className="repeticiones-grid">
-                            {resultado.repeticiones.map((rep, index) => (
-                              <div key={index} className="repeticion-item">
-                                <strong>Rep {rep.numero}</strong>
-                                <p>⏱️ {rep.tiempoInicio}s → {rep.tiempoLockout}s ({rep.duracion}s)</p>
-                                <p>📐 Rodilla: {rep.anguloRodillaInicio}° → {rep.anguloRodillaLockout}°</p>
-                              </div>
-                            ))}
+                    </div>
+                  )}
+
+                  {/* Visualización de Pose detectada - Press de Hombros (solo lockout) */}
+                  {resultado.imagenLockout && !resultado.imagenInicio && !resultado.imagenPeak && (
+                    <div className="visualizacion-section">
+                      <h3>Detección de Pose - Lockout</h3>
+                      <div className="video-column" style={{maxWidth: '600px', margin: '0 auto'}}>
+                        <h4>Lockout (Brazos Extendidos)</h4>
+                        <img 
+                          src={resultado.imagenLockout} 
+                          alt="Frame de lockout" 
+                          style={{width: '100%', borderRadius: '8px'}}
+                        />
+                        {resultado.detallesPrimeraRep && (
+                          <div className="frame-info">
+                            <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.lockout.tiempo}s</p>
+                            <p>💪 Codo: {resultado.detallesPrimeraRep.lockout.anguloCodo}°</p>
+                            <p>📏 Torso: {resultado.detallesPrimeraRep.lockout.anguloTorso}°</p>
                           </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Visualización de Pose detectada - Remo con Barra */}
+                  {resultado.imagenInicio && resultado.imagenPeak && (
+                    <div className="visualizacion-section">
+                      <h3>Detección de Pose - Frames Clave</h3>
+                      <div className="videos-comparison">
+                        <div className="video-column">
+                          <h4>Inicio (Brazos Extendidos)</h4>
+                          <img 
+                            src={resultado.imagenInicio} 
+                            alt="Frame de inicio" 
+                            style={{width: '100%', borderRadius: '8px'}}
+                          />
+                          {resultado.detallesPrimeraRep && (
+                            <div className="frame-info">
+                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.inicio.tiempo}s</p>
+                              <p>💪 Codo: {resultado.detallesPrimeraRep.inicio.anguloCodo}°</p>
+                              <p>📏 Torso: {resultado.detallesPrimeraRep.inicio.anguloTorso}°</p>
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <div className="video-column">
+                          <h4>Peak (Tirón Completo)</h4>
+                          <img 
+                            src={resultado.imagenPeak} 
+                            alt="Frame de peak" 
+                            style={{width: '100%', borderRadius: '8px'}}
+                          />
+                          {resultado.detallesPrimeraRep && resultado.detallesPrimeraRep.peak && (
+                            <div className="frame-info">
+                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.peak.tiempo}s</p>
+                              <p>💪 Codo: {resultado.detallesPrimeraRep.peak.anguloCodo}°</p>
+                              <p>📏 Torso: {resultado.detallesPrimeraRep.peak.anguloTorso}°</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -562,74 +681,7 @@ export default function AnalisisVideos() {
             </div>
           )}
 
-          {/* Tab: Estadísticas */}
-          {tabActiva === "estadisticas" && (
-            <div className="estadisticas-container">
-              {loadingEstadisticas ? (
-                <div className="loading-message">Cargando estadísticas...</div>
-              ) : !estadisticas || estadisticas.general.total === 0 ? (
-                <div className="empty-message">
-                  <p>No hay estadísticas disponibles</p>
-                  <button onClick={() => setTabActiva("analizar")} className="btn-volver">
-                    Analizar mi primer video
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="estadisticas-general">
-                    <h2>Estadísticas Generales</h2>
-                    <div className="stats-grid">
-                      <div className="stat-card">
-                        <div className="stat-value">{estadisticas.general.total}</div>
-                        <div className="stat-label">Videos Analizados</div>
-                      </div>
-                      <div className="stat-card correcta">
-                        <div className="stat-value">{estadisticas.general.correctos}</div>
-                        <div className="stat-label">Técnica Correcta</div>
-                      </div>
-                      <div className="stat-card incorrecta">
-                        <div className="stat-value">{estadisticas.general.incorrectos}</div>
-                        <div className="stat-label">Técnica Incorrecta</div>
-                      </div>
-                      <div className="stat-card">
-                        <div className="stat-value">{estadisticas.general.porcentajeCorrectos}%</div>
-                        <div className="stat-label">Tasa de Éxito</div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="estadisticas-ejercicios">
-                    <h2>Por Ejercicio</h2>
-                    <div className="ejercicios-stats-grid">
-                      {estadisticas.porEjercicio.map((item) => (
-                        <div key={item.ejercicio} className="ejercicio-stat-card">
-                          <h3>{ejercicios.find(e => e.id === item.ejercicio)?.nombre || item.ejercicio}</h3>
-                          <div className="ejercicio-stats">
-                            <div className="stat-row">
-                              <span>Total:</span>
-                              <strong>{item.totalAnalisis}</strong>
-                            </div>
-                            <div className="stat-row">
-                              <span>Correctos:</span>
-                              <strong className="text-success">{item.correctos}</strong>
-                            </div>
-                            <div className="stat-row">
-                              <span>Incorrectos:</span>
-                              <strong className="text-danger">{item.incorrectos}</strong>
-                            </div>
-                            <div className="stat-row">
-                              <span>Éxito:</span>
-                              <strong>{item.porcentajeCorrectos.toFixed(1)}%</strong>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </>

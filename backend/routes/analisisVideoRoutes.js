@@ -1,20 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const path = require("path");
 const analisisVideoController = require("../controllers/analisisVideoController");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Configuración de multer para videos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/videos/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "video-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// Configuración de multer - Solo para validación, sin guardar archivos
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   // Aceptar solo videos mp4 y webm

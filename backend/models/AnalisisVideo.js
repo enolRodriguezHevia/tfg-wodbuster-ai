@@ -10,15 +10,17 @@ const analisisVideoSchema = new mongoose.Schema(
     ejercicio: {
       type: String,
       required: true,
-      enum: ["sentadilla", "press-hombros", "peso-muerto", "flexiones", "dominadas"],
+      enum: ["sentadilla", "press-hombros", "peso-muerto", "remo-barra", "flexiones", "dominadas"],
     },
     videoUrl: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
     esCorrecta: {
       type: Boolean,
-      required: true,
+      required: false,
+      default: true,
     },
     angulos: {
       type: Map,
@@ -27,9 +29,10 @@ const analisisVideoSchema = new mongoose.Schema(
     rompioParalelo: {
       type: Boolean,
     },
-    feedback: [{
-      type: String,
-    }],
+    feedback: {
+      type: mongoose.Schema.Types.Mixed, // Soporta array de strings O objeto estructurado (IA)
+      required: true,
+    },
     coordenadas: {
       type: mongoose.Schema.Types.Mixed,
     },
