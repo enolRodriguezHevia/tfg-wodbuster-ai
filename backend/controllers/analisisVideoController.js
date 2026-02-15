@@ -43,6 +43,7 @@ exports.analizarVideo = async (req, res) => {
     // NUEVA FUNCIONALIDAD: Generar feedback con LLM si hay datos disponibles
     let feedbackLLM = null;
     let tokensUsados = 0;
+    let usaIA = false;
     
     if (framesData && framesClaveParsed && process.env.OPENAI_API_KEY) {
       console.log(`🤖 Generando feedback con IA para ${ejercicio}...`);
@@ -58,6 +59,7 @@ exports.analizarVideo = async (req, res) => {
         if (llmResponse.success) {
           feedbackLLM = llmResponse.feedback;
           tokensUsados = llmResponse.tokensUsados;
+          usaIA = true;
           console.log(`✅ Feedback IA generado exitosamente (${tokensUsados} tokens)`);
         } else {
           console.log(`⚠️ Fallback a feedback básico: ${llmResponse.error}`);
@@ -65,23 +67,24 @@ exports.analizarVideo = async (req, res) => {
         }
       } catch (llmErr) {
         console.error(`❌ Error al generar feedback con IA: ${llmErr.message}`);
-        return res.status(500).json({ 
-          message: "Error al generar feedback con IA",
-          error: llmErr.message 
-        });
+        // En caso de error de IA, usar feedback del frontend como fallback
+        feedbackLLM = resultadoAnalisis.feedback;
       }
     } else {
+      // Si faltan datos de IA, usar el feedback del análisis del frontend
       const missingItems = [];
       if (!framesData) missingItems.push('frames');
       if (!framesClaveParsed) missingItems.push('framesClave');
       if (!process.env.OPENAI_API_KEY) missingItems.push('OPENAI_API_KEY');
       
-      return res.status(400).json({ 
-        message: `Faltan datos necesarios para el análisis: ${missingItems.join(', ')}` 
-      });
+      console.log(`⚠️ Análisis sin IA - faltan: ${missingItems.join(', ')}`);
+      feedbackLLM = resultadoAnalisis.feedback || [
+        "❌ No se pudo analizar el video completamente.",
+        "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
+      ];
     }
 
-    // El feedback siempre viene del LLM ahora
+    // El feedback puede venir del LLM o del análisis básico
     const feedbackFinal = feedbackLLM;
 
     // Guardar análisis en la base de datos (sin guardar el video)
@@ -111,7 +114,7 @@ exports.analizarVideo = async (req, res) => {
       duracion: analisis.duracion,
       repeticionesDetectadas: analisis.repeticionesDetectadas,
       fechaAnalisis: analisis.fechaAnalisis,
-      usaIA: !!feedbackLLM,
+      usaIA: usaIA,
       tokensUsados: tokensUsados
     });
 

@@ -346,7 +346,10 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
       ],
       duracion: Math.round(duracion),
       repeticionesDetectadas: 0,
-      imagenVisualizada: null
+      imagenVisualizada: null,
+      framesCompletos: [],
+      framesClave: { inicio: null, peak: null },
+      metricas: { duracion: Math.round(duracion), repeticiones: 0, rompioParalelo: false }
     };
   }
   
@@ -357,20 +360,41 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
   );
   
   if (framesValidos.length === 0) {
+    console.log(`⚠️ No hay frames válidos. Frames totales: ${frames.length}`);
+    console.log(`📊 Ángulos de rodilla detectados: ${frames.slice(0, 10).map(f => f.anguloRodilla.toFixed(1)).join(', ')}${frames.length > 10 ? '...' : ''}`);
+    
     return {
       esCorrecta: false,
       angulos: {},
       feedback: [
         "❌ No se detectó una sentadilla válida en el video.",
-        "📹 Asegúrate de:",
-        "• Grabar SOLO la ejecución de la sentadilla",
-        "• Estar completamente de LADO a la cámara (perfil)",
-        "• No incluir movimientos previos o preparatorios",
-        "• Mantener tu cuerpo completo visible"
+        "📹 Posibles causas:",
+        "• El video muestra solo la posición inicial/final (piernas casi rectas)",
+        "• No incluye el descenso completo de la sentadilla",
+        "• La grabación debe ser de PERFIL (lado) durante toda la ejecución",
+        "• Asegúrate de grabar la sentadilla completa: bajada y subida"
       ],
       duracion: Math.round(duracion),
       repeticionesDetectadas: 0,
-      imagenVisualizada: null
+      imagenVisualizada: null,
+      framesCompletos: frames.map((frame, idx) => ({
+        indice: idx,
+        tiempo: frame.tiempo,
+        anguloRodilla: frame.anguloRodilla,
+        anguloTorso: frame.anguloTorso,
+        anguloAlineacion: frame.anguloAlineacion,
+        anguloFlexionCadera: frame.anguloFlexionCadera,
+        alturaRelativa: frame.alturaRelativa,
+        caderaY: frame.posicionCadera,
+        rodillaY: frame.posicionRodilla
+      })),
+      framesClave: { inicio: null, peak: null },
+      metricas: { 
+        duracion: Math.round(duracion), 
+        repeticiones: 0, 
+        rompioParalelo: false,
+        anguloRodillaMin: frames.length > 0 ? Math.min(...frames.map(f => f.anguloRodilla)) : 0
+      }
     };
   }
   
@@ -391,9 +415,12 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
   const anguloTorsoBajo = frameMin.anguloTorso;
   
   // Romper paralelo: cadera al nivel o más abajo que rodilla
-  // Usar umbral de -0.08 (8cm tolerancia) porque MediaPipe no es 100% preciso
-  // SOLO usar altura relativa Y, NO el ángulo de rodilla (no es indicador confiable)
-  const rompioParalelo = alturaRelativaBaja >= -0.08;
+  // alturaRelativa = cadera.y - rodilla.y
+  // En MediaPipe: Y aumenta hacia abajo (0=arriba, 1=abajo)
+  // Si alturaRelativa > 0: cadera más abajo que rodilla → SÍ rompió paralelo
+  // Si alturaRelativa < 0: cadera más arriba que rodilla → NO rompió paralelo
+  // Usar umbral de -0.02 (tolerancia de ~2cm) porque MediaPipe no es 100% preciso
+  const rompioParalelo = alturaRelativaBaja > -0.02;
   
   console.log(`📊 Punto más bajo (${framesValidos.length} frames): Rodilla=${anguloRodillaBaja}°, AlturaRel=${alturaRelativaBaja.toFixed(3)}, Torso=${anguloTorsoBajo.toFixed(1)}° (Paralelo: ${rompioParalelo})`);
   const angulosRodillaValidos = framesValidos.map(f => f.anguloRodilla);
