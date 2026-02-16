@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
   profilePhoto: {
     type: String,
     default: null
+  },
+  llmPreference: {
+    type: String,
+    enum: ['claude', 'openai'],
+    default: 'claude',
+    description: 'Modelo de IA preferido para análisis (claude o openai)'
   }
 }, { timestamps: true });
 

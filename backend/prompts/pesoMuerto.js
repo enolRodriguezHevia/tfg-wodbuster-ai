@@ -52,7 +52,7 @@ SI se detecta "hombroMasBajoQueCadera = true":
 → DEBES mencionarlo como área de riesgo PRIMERO y con máxima gravedad
 → Esta posición debe corregirse INMEDIATAMENTE antes de levantar carga
 
-SI se detecta "torsoMuyHorizontal = true" (torso <20° y >0):
+SI se detecta "torsoMuyHorizontal = true" (torso <15° y >0):
 → 🔴 RIESGO MUY ALTO - Torso prácticamente paralelo al suelo
 → El torso inicial debe estar inclinado entre 30-50° hacia la barra, NO horizontal
 → DEBES mencionarlo en areasDeRiesgo explicando que aumenta drásticamente la carga sobre la zona lumbar
@@ -66,8 +66,8 @@ Rodilla inicial:
 
 Torso inicial:
 → 30-50° = IDEAL (no mencionar en riesgo, torso inclinado hacia barra)
-→ 20-60° = ACEPTABLE (observación menor)
-→ 0-20° = RIESGO ALTO (demasiado horizontal)
+→ 15-60° = ACEPTABLE (observación menor)
+→ 0-15° = RIESGO ALTO (demasiado horizontal)
 → <0° (NEGATIVO) = PELIGRO EXTREMO (hombro más bajo que cadera, posición invertida)
 
 Alineación inicial:

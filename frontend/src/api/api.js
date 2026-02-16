@@ -100,6 +100,10 @@ export const obtenerPlanesAnteriores = (username) => request(`/plan-entrenamient
 export const obtenerPlanPorId = (username, planId) => request(`/plan-entrenamiento/${username}/${planId}`);
 export const eliminarPlan = (username, planId) => request(`/plan-entrenamiento/${username}/${planId}`, "DELETE");
 
+// Configuración de LLM
+export const obtenerConfiguracionLLM = (username) => request(`/user/${username}/llm/config`);
+export const actualizarPreferenciaLLM = (username, llmPreference) => request(`/user/${username}/llm/preference`, "PUT", { llmPreference });
+
 // Aquí puedes añadir más recursos según tu backend
 
 

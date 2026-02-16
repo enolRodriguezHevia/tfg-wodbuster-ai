@@ -1,4 +1,5 @@
 const AnalisisVideo = require("../models/AnalisisVideo");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const { generarFeedbackEjercicio } = require("../services/llmService");
 
@@ -40,12 +41,20 @@ exports.analizarVideo = async (req, res) => {
       return res.status(400).json({ message: "No se recibió el resultado del análisis" });
     }
 
+    // Obtener preferencia de LLM del usuario
+    const user = await User.findById(userId).select('llmPreference');
+    const llmPreference = user?.llmPreference || 'claude';
+    console.log(`⚙️  Preferencia de LLM del usuario: ${llmPreference.toUpperCase()}`);
+
     // NUEVA FUNCIONALIDAD: Generar feedback con LLM si hay datos disponibles
     let feedbackLLM = null;
     let tokensUsados = 0;
     let usaIA = false;
+    let modeloUsado = null;
+    let proveedorUsado = null;
+    let huboFallback = false;
     
-    if (framesData && framesClaveParsed && process.env.OPENAI_API_KEY) {
+    if (framesData && framesClaveParsed && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {
       console.log(`🤖 Generando feedback con IA para ${ejercicio}...`);
       
       try {
@@ -53,14 +62,20 @@ exports.analizarVideo = async (req, res) => {
           ejercicio,
           framesData,
           framesClaveParsed,
-          metricasParsed
+          metricasParsed,
+          llmPreference
         );
         
         if (llmResponse.success) {
           feedbackLLM = llmResponse.feedback;
           tokensUsados = llmResponse.tokensUsados;
+          modeloUsado = llmResponse.modelo;
+          proveedorUsado = llmResponse.provider;
+          huboFallback = llmResponse.fallback || false;
           usaIA = true;
-          console.log(`✅ Feedback IA generado exitosamente (${tokensUsados} tokens)`);
+          
+          const mensajeFallback = huboFallback ? ` (fallback desde ${llmResponse.preferidoFallo?.toUpperCase()})` : '';
+          console.log(`✅ Feedback IA generado exitosamente con ${proveedorUsado.toUpperCase()}${mensajeFallback} (${tokensUsados} tokens)`);
         } else {
           console.log(`⚠️ Fallback a feedback básico: ${llmResponse.error}`);
           feedbackLLM = llmResponse.feedback;
@@ -75,7 +90,7 @@ exports.analizarVideo = async (req, res) => {
       const missingItems = [];
       if (!framesData) missingItems.push('frames');
       if (!framesClaveParsed) missingItems.push('framesClave');
-      if (!process.env.OPENAI_API_KEY) missingItems.push('OPENAI_API_KEY');
+      if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) missingItems.push('API_KEYS');
       
       console.log(`⚠️ Análisis sin IA - faltan: ${missingItems.join(', ')}`);
       feedbackLLM = resultadoAnalisis.feedback || [

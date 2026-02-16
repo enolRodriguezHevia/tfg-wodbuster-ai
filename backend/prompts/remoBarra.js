@@ -73,9 +73,9 @@ Codo inicial (extendido):
 
 Torso inicial:
 → 30-50° = IDEAL (no mencionar en riesgo, torso inclinado hacia adelante)
-→ 20-60° = ACEPTABLE (observación menor)
+→ 15-60° = ACEPTABLE (observación menor)
 → >60° = DEMASIADO VERTICAL (pérdida de ángulo efectivo)
-→ 0-20° = MUY INCLINADO (riesgo de sobrecarga lumbar)
+→ 0-15° = MUY INCLINADO (riesgo de sobrecarga lumbar)
 → <0° (NEGATIVO) = POSICIÓN INVERTIDA (peligro extremo)
 
 **POSICIÓN PEAK (CONTRACCIÓN):**

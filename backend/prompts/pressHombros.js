@@ -77,23 +77,6 @@ function construirPromptPressHombros(nombreEjercicio, frames, framesClave, metri
 
 
   // =============================
-  // MÉTRICAS DE CAMBIO
-  // =============================
-
-  const cambioAnguloCodo =
-    (framesClave.inicio?.anguloCodo && framesClave.peak?.anguloCodo)
-      ? (framesClave.peak.anguloCodo - framesClave.inicio.anguloCodo).toFixed(1)
-      : 'N/A';
-
-  const cambioAnguloTorso =
-    (framesClave.inicio?.anguloTorso && framesClave.peak?.anguloTorso)
-      ? (framesClave.peak.anguloTorso - framesClave.inicio.anguloTorso).toFixed(1)
-      : 'N/A';
-
-  const amplitudMuneca = metricas?.amplitud?.toFixed(3) || 'N/A';
-
-
-  // =============================
   // PROMPT FINAL
   // =============================
 

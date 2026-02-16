@@ -8,12 +8,14 @@
     "start": "node app.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:llm": "node services/test-llm.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@mediapipe/tasks-vision": "^0.10.32",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",

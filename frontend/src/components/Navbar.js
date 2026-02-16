@@ -34,6 +34,10 @@ export default function Navbar() {
     navigate("/analisis-videos");
   };
 
+  const goToConfiguracionIA = () => {
+    navigate("/configuracion-ia");
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-content">
@@ -52,6 +56,9 @@ export default function Navbar() {
           </button>
           <button className="navbar-link-btn" onClick={goToAnalisisVideos}>
             Análisis de Videos
+          </button>
+          <button className="navbar-link-btn" onClick={goToConfiguracionIA}>
+            ⚙️ Configuración IA
           </button>
           <button className="navbar-link-btn" onClick={goToProfile}>
             Perfil

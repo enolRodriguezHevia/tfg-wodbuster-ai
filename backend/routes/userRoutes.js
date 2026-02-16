@@ -27,4 +27,8 @@ router.post('/:username/photo', (req, res, next) => {
 
 router.delete('/:username', userController.eliminarCuenta);
 
+// Rutas para configuración de LLM
+router.get('/:username/llm/config', userController.obtenerConfiguracionLLM);
+router.put('/:username/llm/preference', userController.actualizarPreferenciaLLM);
+
 module.exports = router;

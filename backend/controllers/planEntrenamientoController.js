@@ -84,18 +84,9 @@ const formatearHistorialEntrenamientos = async (entrenamientos) => {
   // Ordenar por fecha más reciente
   const entrenamientosOrdenados = entrenamientos.sort((a, b) => b.fecha - a.fecha);
   
-  // Estadísticas generales
-  const totalEntrenamientos = entrenamientos.length;
-  const volumenTotal = entrenamientos.reduce((sum, e) => sum + (e.volumenTotal || 0), 0);
-  const volumenPromedio = volumenTotal / totalEntrenamientos;
-  
-  let texto = `El usuario ha registrado ${totalEntrenamientos} entrenamientos.\n`;
-  texto += `Volumen total acumulado: ${volumenTotal.toFixed(0)} kg\n`;
-  texto += `Volumen promedio por sesión: ${volumenPromedio.toFixed(0)} kg\n\n`;
-  
   // Mostrar últimos 10 entrenamientos con ejercicios detallados
   const ultimos = entrenamientosOrdenados.slice(0, 10);
-  texto += 'Últimos entrenamientos:\n\n';
+  let texto = 'Últimos entrenamientos:\n\n';
   
   for (let i = 0; i < ultimos.length; i++) {
     const entrenamiento = ultimos[i];

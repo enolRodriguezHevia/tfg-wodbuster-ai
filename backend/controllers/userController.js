@@ -315,10 +315,120 @@ const eliminarCuenta = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene la configuración de LLM del usuario
+ * @param {Object} req - Objeto de petición con username en params
+ * @param {Object} res - Objeto de respuesta
+ */
+const obtenerConfiguracionLLM = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ username }).select('llmPreference');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Información sobre cada modelo
+    const modelosInfo = {
+      claude: {
+        nombre: 'Claude Sonnet 4.5',
+        proveedor: 'Anthropic',
+        velocidad: 'Media',
+        precision: 'Muy Alta',
+        detalle: 'Excelente',
+        especialidad: 'Análisis biomecánico profundo y explicaciones detalladas',
+        ventajas: [
+          'Respuestas más detalladas y precisas',
+          'Mejor comprensión del contexto biomecánico',
+          'Explicaciones más claras sobre prevención de lesiones',
+          'Análisis más profundo de la técnica'
+        ],
+        desventajas: [
+          'Puede tardar ligeramente más en responder',
+          'Límites de uso gratuito más restrictivos'
+        ]
+      },
+      openai: {
+        nombre: 'GPT-4o',
+        proveedor: 'OpenAI',
+        velocidad: 'Rápida',
+        precision: 'Alta',
+        detalle: 'Bueno',
+        especialidad: 'Respuestas rápidas y efectivas para análisis general',
+        ventajas: [
+          'Respuestas muy rápidas',
+          'Buen equilibrio entre velocidad y calidad',
+          'Análisis efectivo de la técnica',
+          'Recomendaciones claras y concisas'
+        ],
+        desventajas: [
+          'Menos detallado que Claude en análisis biomecánicos',
+          'Explicaciones algo más breves'
+        ]
+      }
+    };
+
+    res.status(200).json({
+      success: true,
+      llmActual: user.llmPreference || 'claude',
+      modelosDisponibles: modelosInfo
+    });
+
+  } catch (err) {
+    console.error('Error al obtener configuración LLM:', err);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+
+/**
+ * Actualiza la preferencia de LLM del usuario
+ * @param {Object} req - Objeto de petición con username en params y llmPreference en body
+ * @param {Object} res - Objeto de respuesta
+ */
+const actualizarPreferenciaLLM = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { llmPreference } = req.body;
+
+    // Validar que la preferencia sea válida
+    if (!['claude', 'openai'].includes(llmPreference)) {
+      return res.status(400).json({ 
+        message: 'Preferencia de LLM inválida. Debe ser "claude" o "openai"' 
+      });
+    }
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Actualizar preferencia
+    user.llmPreference = llmPreference;
+    await user.save();
+
+    const nombreModelo = llmPreference === 'claude' ? 'Claude Sonnet 4.5' : 'GPT-4o';
+
+    res.status(200).json({
+      success: true,
+      message: `Modelo de IA actualizado a ${nombreModelo}`,
+      llmPreference: user.llmPreference
+    });
+
+  } catch (err) {
+    console.error('Error al actualizar preferencia LLM:', err);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+
 module.exports = {
   obtenerPerfil,
   actualizarPerfil,
   subirFotoPerfil,
   eliminarCuenta,
+  obtenerConfiguracionLLM,
+  actualizarPreferenciaLLM,
   upload // Exportar configuración de multer para uso en routes
 };
