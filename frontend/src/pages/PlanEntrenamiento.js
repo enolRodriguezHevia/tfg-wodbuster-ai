@@ -6,11 +6,11 @@ import './PlanEntrenamiento.css';
 
 const PlanEntrenamiento = () => {
   const [loading, setLoading] = useState(false);
-  const [promptGenerado, setPromptGenerado] = useState(null);
+  const [planGenerado, setPlanGenerado] = useState(null);
   const [advertencia, setAdvertencia] = useState(null);
   const [error, setError] = useState(null);
   const [planesAnteriores, setPlanesAnteriores] = useState([]);
-  const [mostrarPrompt, setMostrarPrompt] = useState(false);
+  const [mostrarPlan, setMostrarPlan] = useState(false);
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
   const [mostrarPlanAnterior, setMostrarPlanAnterior] = useState(false);
 
@@ -35,7 +35,7 @@ const PlanEntrenamiento = () => {
   const handleGenerarPlan = async () => {
     setLoading(true);
     setError(null);
-    setPromptGenerado(null);
+    setPlanGenerado(null);
     setAdvertencia(null);
 
     try {
@@ -49,9 +49,9 @@ const PlanEntrenamiento = () => {
       const response = await generarPlanEntrenamiento(user.username);
 
       if (response.success) {
-        setPromptGenerado(response.prompt);
+        setPlanGenerado(response.plan);
         setAdvertencia(response.advertencia);
-        setMostrarPrompt(true);
+        setMostrarPlan(true);
         cargarPlanesAnteriores();
       } else {
         setError(response.message);
@@ -70,15 +70,15 @@ const PlanEntrenamiento = () => {
   };
 
   const copiarAlPortapapeles = () => {
-    navigator.clipboard.writeText(promptGenerado);
-    alert('Prompt copiado al portapapeles');
+    navigator.clipboard.writeText(planGenerado);
+    alert('Plan copiado al portapapeles');
   };
 
-  const descargarPrompt = () => {
+  const descargarPlan = () => {
     const element = document.createElement('a');
-    const file = new Blob([promptGenerado], { type: 'text/plain' });
+    const file = new Blob([planGenerado], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = `prompt-plan-entrenamiento-${new Date().toISOString().split('T')[0]}.txt`;
+    element.download = `plan-entrenamiento-${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -122,15 +122,15 @@ const PlanEntrenamiento = () => {
 
   const copiarPlanAnterior = () => {
     if (planSeleccionado) {
-      navigator.clipboard.writeText(planSeleccionado.promptGenerado);
-      alert('Prompt copiado al portapapeles');
+      navigator.clipboard.writeText(planSeleccionado.contenido);
+      alert('Plan copiado al portapapeles');
     }
   };
 
   const descargarPlanAnterior = () => {
     if (planSeleccionado) {
       const element = document.createElement('a');
-      const file = new Blob([planSeleccionado.promptGenerado], { type: 'text/plain' });
+      const file = new Blob([planSeleccionado.contenido], { type: 'text/plain' });
       element.href = URL.createObjectURL(file);
       const fecha = new Date(planSeleccionado.fechaGeneracion).toISOString().split('T')[0];
       element.download = `plan-entrenamiento-${fecha}.txt`;
@@ -138,6 +138,55 @@ const PlanEntrenamiento = () => {
       element.click();
       document.body.removeChild(element);
     }
+  };
+
+  // Función para renderizar el plan con formato mejorado
+  const renderizarPlan = (texto) => {
+    if (!texto) return null;
+
+    // Procesar el texto línea por línea
+    const lineas = texto.split('\n');
+    const elementos = [];
+    let key = 0;
+
+    lineas.forEach((linea, index) => {
+      // Encabezados principales (### o ##)
+      if (linea.startsWith('###')) {
+        elementos.push(<h4 key={key++} className="plan-h4">{linea.replace(/^###\s*/, '')}</h4>);
+      } else if (linea.startsWith('##')) {
+        elementos.push(<h3 key={key++} className="plan-h3">{linea.replace(/^##\s*/, '')}</h3>);
+      } else if (linea.startsWith('#')) {
+        elementos.push(<h2 key={key++} className="plan-h2">{linea.replace(/^#\s*/, '')}</h2>);
+      }
+      // Listas con viñetas o guiones
+      else if (linea.match(/^\s*[-*]\s/)) {
+        const contenido = procesarNegritas(linea.replace(/^\s*[-*]\s/, ''));
+        elementos.push(<li key={key++} className="plan-li">{contenido}</li>);
+      }
+      // Líneas separadoras
+      else if (linea.match(/^[-=]{3,}$/)) {
+        elementos.push(<hr key={key++} className="plan-separator" />);
+      }
+      // Líneas normales
+      else if (linea.trim() !== '') {
+        const contenido = procesarNegritas(linea);
+        elementos.push(<p key={key++} className="plan-p">{contenido}</p>);
+      }
+      // Líneas vacías (espacio)
+      else {
+        elementos.push(<div key={key++} className="plan-space"></div>);
+      }
+    });
+
+    return <div className="plan-rendered">{elementos}</div>;
+  };
+
+  // Función auxiliar para procesar negritas **texto**
+  const procesarNegritas = (texto) => {
+    const partes = texto.split(/\*\*(.*?)\*\*/g);
+    return partes.map((parte, i) => 
+      i % 2 === 1 ? <strong key={i}>{parte}</strong> : parte
+    );
   };
 
   return (
@@ -180,34 +229,27 @@ const PlanEntrenamiento = () => {
           </div>
         )}
 
-        {mostrarPrompt && promptGenerado && (
+        {mostrarPlan && planGenerado && (
           <div className="prompt-generado">
             <div className="prompt-header">
-              <h3>✅ Prompt generado correctamente</h3>
+              <h3>✅ Plan de Entrenamiento Generado</h3>
               <div className="prompt-actions">
                 <button onClick={copiarAlPortapapeles} className="btn-secondary">
                   📋 Copiar
                 </button>
-                <button onClick={descargarPrompt} className="btn-secondary">
+                <button onClick={descargarPlan} className="btn-secondary">
                   💾 Descargar
                 </button>
                 <button 
-                  onClick={() => setMostrarPrompt(false)} 
+                  onClick={() => setMostrarPlan(false)} 
                   className="btn-secondary"
                 >
                   ✕ Cerrar
                 </button>
               </div>
             </div>
-            <div className="prompt-content">
-              <pre>{promptGenerado}</pre>
-            </div>
-            <div className="prompt-footer">
-              <p>
-                <strong>Nota:</strong> Este es el prompt que se enviará al modelo de lenguaje (LLM) 
-                para generar tu plan de entrenamiento personalizado. En futuras versiones, 
-                esto se procesará automáticamente mediante una API.
-              </p>
+            <div className="prompt-content plan-content">
+              <div className="plan-text">{renderizarPlan(planGenerado)}</div>
             </div>
           </div>
         )}
@@ -262,8 +304,8 @@ const PlanEntrenamiento = () => {
                     minute: '2-digit'
                   })}
                 </p>
-                <div className="prompt-content">
-                  <pre>{planSeleccionado.promptGenerado}</pre>
+                <div className="prompt-content plan-content">
+                  <div className="plan-text">{renderizarPlan(planSeleccionado.contenido)}</div>
                 </div>
               </div>
             </div>

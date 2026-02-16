@@ -15,6 +15,54 @@ export default function AnalisisVideos() {
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
 
+  // Función para renderizar el feedback con formato mejorado
+  const renderizarFeedback = (texto) => {
+    if (!texto) return null;
+
+    const lineas = texto.split('\n');
+    const elementos = [];
+    let key = 0;
+
+    lineas.forEach((linea) => {
+      // Encabezados
+      if (linea.startsWith('###')) {
+        elementos.push(<h4 key={key++} className="feedback-h4">{linea.replace(/^###\s*/, '')}</h4>);
+      } else if (linea.startsWith('##')) {
+        elementos.push(<h3 key={key++} className="feedback-h3">{linea.replace(/^##\s*/, '')}</h3>);
+      } else if (linea.startsWith('#')) {
+        elementos.push(<h2 key={key++} className="feedback-h2">{linea.replace(/^#\s*/, '')}</h2>);
+      }
+      // Listas
+      else if (linea.match(/^\s*[-*]\s/)) {
+        const contenido = procesarNegritas(linea.replace(/^\s*[-*]\s/, ''));
+        elementos.push(<li key={key++} className="feedback-li">{contenido}</li>);
+      }
+      // Separadores
+      else if (linea.match(/^[-=]{3,}$/)) {
+        elementos.push(<hr key={key++} className="feedback-separator" />);
+      }
+      // Líneas normales
+      else if (linea.trim() !== '') {
+        const contenido = procesarNegritas(linea);
+        elementos.push(<p key={key++} className="feedback-p">{contenido}</p>);
+      }
+      // Espacios
+      else {
+        elementos.push(<div key={key++} className="feedback-space"></div>);
+      }
+    });
+
+    return <div className="feedback-rendered">{elementos}</div>;
+  };
+
+  // Función auxiliar para procesar negritas
+  const procesarNegritas = (texto) => {
+    const partes = texto.split(/\*\*(.*?)\*\*/g);
+    return partes.map((parte, i) => 
+      i % 2 === 1 ? <strong key={i}>{parte}</strong> : parte
+    );
+  };
+
   useEffect(() => {
     // Verificar autenticación
     const user = getLoggedUser();
@@ -280,15 +328,8 @@ export default function AnalisisVideos() {
                       
                       {/* Feedback narrativo de fisioterapeuta */}
                       {typeof resultado.feedback === 'string' ? (
-                        <div className="feedback-narrative" style={{
-                          whiteSpace: 'pre-wrap',
-                          lineHeight: '1.8',
-                          padding: '20px',
-                          background: '#f8f9fa',
-                          borderRadius: '8px',
-                          fontSize: '1em'
-                        }}>
-                          {resultado.feedback}
+                        <div className="feedback-narrative feedback-content">
+                          <div className="feedback-text">{renderizarFeedback(resultado.feedback)}</div>
                         </div>
                       ) : typeof resultado.feedback === 'object' && !Array.isArray(resultado.feedback) ? (
                         /* Feedback estructurado JSON (legacy) */
