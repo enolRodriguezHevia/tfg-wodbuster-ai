@@ -30,7 +30,7 @@ const openai = new OpenAI({
  */
 async function generarFeedbackEjercicio(ejercicio, frames, framesClave, metricas, preferencia = 'claude') {
   console.log(`🤖 Generando feedback con LLM para: ${ejercicio}`);
-  console.log(`📊 Frames analizados: ${frames.length}`);
+  console.log(`📊 Frames analizados: ${frames ? frames.length : 'N/A (solo framesClave)'}`);
   console.log(`⚙️  Preferencia del usuario: ${preferencia.toUpperCase()}`);
   
   // Construir prompt estructurado

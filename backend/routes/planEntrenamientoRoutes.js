@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const planEntrenamientoController = require('../controllers/planEntrenamientoController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Proteger todas las rutas con autenticación
+router.use(authMiddleware);
 
 // Generar nuevo plan de entrenamiento (devuelve el prompt por ahora)
 router.post('/generar/:username', planEntrenamientoController.generarPlanEntrenamiento);

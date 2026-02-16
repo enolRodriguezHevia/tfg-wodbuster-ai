@@ -11,6 +11,7 @@ const {
   validateWeight, 
   validateHeight 
 } = require('../validators/authValidator');
+const { buscarUsuario, manejarErrorServidor } = require('../utils/controllerHelpers');
 
 // Configurar multer para subir fotos
 const storage = multer.diskStorage({
@@ -53,11 +54,8 @@ const obtenerPerfil = async (req, res) => {
   try {
     const { username } = req.params;
 
-    const user = await User.findOne({ username }).select('-password');
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     res.status(200).json({
       user: {
@@ -72,8 +70,7 @@ const obtenerPerfil = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener perfil:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener perfil');
   }
 };
 
@@ -207,8 +204,7 @@ const actualizarPerfil = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al actualizar perfil:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al actualizar perfil');
   }
 };
 
@@ -251,12 +247,11 @@ const subirFotoPerfil = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al subir foto de perfil:', err);
     // Eliminar el archivo si hubo un error
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al subir foto de perfil');
   }
 };
 
@@ -310,8 +305,7 @@ const eliminarCuenta = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al eliminar cuenta:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al eliminar cuenta');
   }
 };
 
@@ -377,8 +371,7 @@ const obtenerConfiguracionLLM = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener configuración LLM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener configuración LLM');
   }
 };
 
@@ -418,8 +411,7 @@ const actualizarPreferenciaLLM = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al actualizar preferencia LLM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al actualizar preferencia LLM');
   }
 };
 
