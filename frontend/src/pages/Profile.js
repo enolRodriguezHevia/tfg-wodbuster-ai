@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserProfile, updateUserProfile, uploadProfilePhoto, deleteUserAccount } from "../api/api";
+import { getLoggedUser, updateUsername as updateUsernameAuth } from "../utils/auth";
 import Navbar from "../components/Navbar";
 import ImageCropper from "../components/ImageCropper";
 import "./Profile.css";
@@ -15,7 +16,6 @@ export default function Profile() {
   const [previewImage, setPreviewImage] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
   const [imageToCrop, setImageToCrop] = useState(null);
-  const [croppedImage, setCroppedImage] = useState(null);
   
   // Estados para eliminación de cuenta
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -46,7 +46,7 @@ export default function Profile() {
 
   useEffect(() => {
     // Obtener el username del usuario logueado (desde localStorage)
-    const loggedUser = JSON.parse(localStorage.getItem("user"));
+    const loggedUser = getLoggedUser();
     
     if (!loggedUser || !loggedUser.username) {
       navigate("/login");
@@ -197,7 +197,6 @@ export default function Profile() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
-        setCroppedImage(reader.result);
       };
       reader.readAsDataURL(croppedBlob);
       
@@ -301,9 +300,7 @@ export default function Profile() {
       
       // Actualizar localStorage si cambió el username
       if (editData.newUsername !== userData.username) {
-        const loggedUser = JSON.parse(localStorage.getItem("user"));
-        loggedUser.username = editData.newUsername;
-        localStorage.setItem("user", JSON.stringify(loggedUser));
+        updateUsernameAuth(editData.newUsername);
       }
       
       // Recargar los datos del perfil desde el servidor

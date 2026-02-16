@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getLoggedUser } from '../utils/auth';
 import { generarPlanEntrenamiento, obtenerPlanesAnteriores, eliminarPlan } from '../api/api';
 import Navbar from '../components/Navbar';
 import './PlanEntrenamiento.css';
@@ -19,7 +20,7 @@ const PlanEntrenamiento = () => {
 
   const cargarPlanesAnteriores = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = getLoggedUser();
       if (!user || !user.username) return;
 
       const response = await obtenerPlanesAnteriores(user.username);
@@ -38,7 +39,7 @@ const PlanEntrenamiento = () => {
     setAdvertencia(null);
 
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = getLoggedUser();
       if (!user || !user.username) {
         setError('No hay usuario autenticado');
         setLoading(false);

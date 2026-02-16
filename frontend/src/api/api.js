@@ -3,11 +3,19 @@ const API_URL = "http://localhost:3000/api"; // Cambia el puerto si tu backend e
 // Función genérica para manejar fetch
 async function request(endpoint, method = "GET", body) {
   try {
+    const headers = {
+      "Content-Type": "application/json"
+    };
+
+    // Agregar token JWT si existe (excepto para login y signup)
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const options = {
       method,
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined
     };
 
@@ -43,8 +51,17 @@ export const uploadProfilePhoto = async (username, file) => {
     const formData = new FormData();
     formData.append('profilePhoto', file);
 
+    const headers = {};
+    
+    // Agregar token JWT si existe
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_URL}/user/${username}/photo`, {
       method: 'POST',
+      headers,
       body: formData
     });
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { analizarSentadillaVideo, analizarPesoMuertoVideo, analizarPressHombroVideo, analizarRemoBarraVideo } from "../utils/videoAnalysis";
+import { getLoggedUser, getAuthToken } from "../utils/auth";
+import { analizarSentadillaVideo, analizarPesoMuertoVideo, analizarPressHombroVideo, analizarRemoBarraVideo } from "../utils/videoAnalysis/index";
 import "./AnalisisVideos.css";
 
 export default function AnalisisVideos() {
   const navigate = useNavigate();
-  const [tabActiva, setTabActiva] = useState("analizar"); // analizar, historial, estadisticas
   const [ejercicios, setEjercicios] = useState([]);
   const [ejercicioSeleccionado, setEjercicioSeleccionado] = useState("");
   const [videoFile, setVideoFile] = useState(null);
@@ -14,12 +14,10 @@ export default function AnalisisVideos() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
-  const [historial, setHistorial] = useState([]);
-  const [loadingHistorial, setLoadingHistorial] = useState(false);
 
   useEffect(() => {
     // Verificar autenticación
-    const user = localStorage.getItem("user");
+    const user = getLoggedUser();
     if (!user) {
       navigate("/login");
       return;
@@ -28,12 +26,6 @@ export default function AnalisisVideos() {
     // Cargar ejercicios disponibles para análisis
     cargarEjercicios();
   }, [navigate]);
-
-  useEffect(() => {
-    if (tabActiva === "historial") {
-      cargarHistorial();
-    }
-  }, [tabActiva]);
 
   const cargarEjercicios = async () => {
     try {
@@ -52,52 +44,7 @@ export default function AnalisisVideos() {
     }
   };
 
-  const cargarHistorial = async () => {
-    setLoadingHistorial(true);
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const response = await fetch("http://localhost:3000/api/analisis-video/historial?limite=20", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
 
-      if (!response.ok) throw new Error("Error al cargar historial");
-
-      const data = await response.json();
-      setHistorial(data.analisis);
-    } catch (err) {
-      console.error("Error al cargar historial:", err);
-      setError("Error al cargar el historial");
-    } finally {
-      setLoadingHistorial(false);
-    }
-  };
-
-  const eliminarAnalisis = async (id) => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar este análisis?")) {
-      return;
-    }
-
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const response = await fetch(`http://localhost:3000/api/analisis-video/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Error al eliminar análisis");
-
-      // Recargar historial
-      cargarHistorial();
-      setError("");
-    } catch (err) {
-      console.error("Error al eliminar:", err);
-      setError("Error al eliminar el análisis");
-    }
-  };
 
   const handleEjercicioChange = (e) => {
     setEjercicioSeleccionado(e.target.value);
@@ -191,8 +138,7 @@ export default function AnalisisVideos() {
         formData.append("metricas", JSON.stringify(resultadoAnalisis.metricas));
       }
 
-      const user = JSON.parse(localStorage.getItem("user"));
-      const token = user.token;
+      const token = getAuthToken();
 
       setError("Generando feedback con IA...");
 
@@ -246,26 +192,7 @@ export default function AnalisisVideos() {
           Sube un video de tu ejercicio y recibe feedback personalizado sobre tu técnica
         </p>
 
-        {/* Pestañas */}
-        <div className="tabs-container">
-          <button
-            className={`tab ${tabActiva === "analizar" ? "active" : ""}`}
-            onClick={() => setTabActiva("analizar")}
-          >
-            📹 Analizar Video
-          </button>
-          <button
-            className={`tab ${tabActiva === "historial" ? "active" : ""}`}
-            onClick={() => setTabActiva("historial")}
-          >
-            📊 Historial
-          </button>
-        </div>
-
         <div className="analisis-content">
-          {/* Tab: Analizar Video */}
-          {tabActiva === "analizar" && (
-            <>
               <form onSubmit={handleSubmit} className="analisis-form">
                 {/* Selección de ejercicio */}
                 <div className="form-section">
@@ -341,15 +268,6 @@ export default function AnalisisVideos() {
               {resultado && (
                 <div className="resultado-container">
                   <h2 className="resultado-title">Resultados del Análisis</h2>
-                  
-                  <div className={`calificacion ${resultado.esCorrecta ? 'correcta' : 'incorrecta'}`}>
-                    <span className="calificacion-icon">
-                      {resultado.esCorrecta ? "✓" : "✗"}
-                    </span>
-                    <span className="calificacion-texto">
-                      Técnica {resultado.esCorrecta ? "Correcta" : "Incorrecta"}
-                    </span>
-                  </div>
 
                   {resultado.feedback && (
                     <div className="feedback-section">
@@ -436,53 +354,6 @@ export default function AnalisisVideos() {
                           </ul>
                         </>
                       )}
-                    </div>
-                  )}
-
-                  {resultado.angulos && (
-                    <div className="angulos-section">
-                      <h3>Análisis de Ángulos</h3>
-                      <div className="angulos-grid">
-                        {resultado.angulos.rodilla && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Ángulo rodilla:</span>
-                            <span className="angulo-valor">{resultado.angulos.rodilla.toFixed(1)}°</span>
-                          </div>
-                        )}
-                        {resultado.angulos.torso && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Inclinación torso:</span>
-                            <span className="angulo-valor">{resultado.angulos.torso.toFixed(1)}°</span>
-                          </div>
-                        )}
-                        {resultado.rompioParalelo !== undefined && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Profundidad:</span>
-                            <span className="angulo-valor">
-                              {resultado.rompioParalelo ? '✓ Paralelo roto' : '✗ No rompió paralelo'}
-                            </span>
-                          </div>
-                        )}
-                        {/* Compatibilidad con análisis antiguos */}
-                        {resultado.angulos.cadera && !resultado.angulos.torso && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Cadera:</span>
-                            <span className="angulo-valor">{resultado.angulos.cadera.toFixed(1)}°</span>
-                          </div>
-                        )}
-                        {resultado.angulos.espalda && !resultado.angulos.torso && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Espalda:</span>
-                            <span className="angulo-valor">{resultado.angulos.espalda.toFixed(1)}°</span>
-                          </div>
-                        )}
-                        {resultado.angulos.alineacion && !resultado.angulos.torso && (
-                          <div className="angulo-item">
-                            <span className="angulo-nombre">Alineación:</span>
-                            <span className="angulo-valor">{resultado.angulos.alineacion.toFixed(1)}°</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   )}
 
@@ -622,66 +493,6 @@ export default function AnalisisVideos() {
                   <p className="loading-subtitle">Esto puede tardar unos segundos</p>
                 </div>
               )}
-            </>
-          )}
-
-          {/* Tab: Historial */}
-          {tabActiva === "historial" && (
-            <div className="historial-container">
-              {loadingHistorial ? (
-                <div className="loading-message">Cargando historial...</div>
-              ) : historial.length === 0 ? (
-                <div className="empty-message">
-                  <p>No tienes análisis previos</p>
-                  <button onClick={() => setTabActiva("analizar")} className="btn-volver">
-                    Analizar mi primer video
-                  </button>
-                </div>
-              ) : (
-                <div className="historial-lista">
-                  {historial.map((item) => (
-                    <div key={item._id} className="historial-item">
-                      <div className="historial-header">
-                        <div>
-                          <h3>{ejercicios.find(e => e.id === item.ejercicio)?.nombre || item.ejercicio}</h3>
-                        </div>
-                        <div className="historial-badges">
-                          <span className={`badge ${item.esCorrecta ? "correcta" : "incorrecta"}`}>
-                            {item.esCorrecta ? "✓ Correcta" : "✗ Incorrecta"}
-                          </span>
-                          <button 
-                            className="btn-eliminar-historial"
-                            onClick={() => eliminarAnalisis(item._id)}
-                            title="Eliminar análisis"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
-                      <div className="historial-info">
-                        <p>📅 {new Date(item.fechaAnalisis).toLocaleDateString("es-ES")}</p>
-                        {item.repeticionesDetectadas && (
-                          <p>🔁 {item.repeticionesDetectadas} repeticiones</p>
-                        )}
-                      </div>
-                      {item.feedback && item.feedback.length > 0 && (
-                        <div className="historial-feedback">
-                          <strong>Recomendaciones:</strong>
-                          <ul>
-                            {item.feedback.slice(0, 2).map((f, i) => (
-                              <li key={i}>{f}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-
         </div>
       </div>
     </>

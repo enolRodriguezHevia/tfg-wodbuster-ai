@@ -40,7 +40,8 @@ export default function SignUp() {  const navigate = useNavigate();  const [form
         password: formData.password
       });
 
-      // Guardar usuario en localStorage
+      // Guardar token y usuario por separado en localStorage
+      localStorage.setItem("token", loginResponse.token);
       localStorage.setItem("user", JSON.stringify(loginResponse.user));
 
       // Redirigir a /dashboard después de 1 segundo

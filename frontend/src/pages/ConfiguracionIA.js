@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { obtenerConfiguracionLLM, actualizarPreferenciaLLM } from "../api/api";
+import { getLoggedUser } from "../utils/auth";
 import Navbar from "../components/Navbar";
 import "./ConfiguracionIA.css";
 
@@ -16,7 +17,7 @@ export default function ConfiguracionIA() {
 
   useEffect(() => {
     // Obtener el username del usuario logueado
-    const loggedUser = JSON.parse(localStorage.getItem("user"));
+    const loggedUser = getLoggedUser();
     
     if (!loggedUser || !loggedUser.username) {
       navigate("/login");
