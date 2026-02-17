@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const entrenamientoController = require('../controllers/entrenamientoController');
-const authMiddleware = require('../middleware/authMiddleware');
-
-// Proteger todas las rutas con autenticación
-router.use(authMiddleware);
 
 // Rutas de entrenamientos
 router.post('/', entrenamientoController.registrarEntrenamiento);

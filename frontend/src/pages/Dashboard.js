@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getLoggedUser } from "../utils/auth";
 import Navbar from "../components/Navbar";
 import "./Dashboard.css";
 
@@ -10,7 +9,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Obtener la foto del usuario del localStorage
-    const user = getLoggedUser();
+    const user = JSON.parse(localStorage.getItem("user"));
     if (user && user.profilePhoto) {
       setUserPhoto(user.profilePhoto);
     }

@@ -4,7 +4,6 @@ const Ejercicio = require('../models/Ejercicio');
 const OneRM = require('../models/OneRM');
 const WodCrossFit = require('../models/WodCrossFit');
 const PlanEntrenamiento = require('../models/PlanEntrenamiento');
-const { generarPlanEntrenamiento: generarConLLM } = require('../services/llmService');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -266,49 +265,23 @@ exports.generarPlanEntrenamiento = async (req, res) => {
       });
     }
     
-    // Generar el plan usando el LLM
-    console.log('📤 Enviando prompt al LLM para generar plan personalizado...');
-    const resultadoLLM = await generarConLLM(resultado.prompt);
-    
-    if (!resultadoLLM.success) {
-      console.error('❌ Error al generar plan con LLM:', resultadoLLM.error);
-      return res.status(500).json({
-        success: false,
-        message: 'No se pudo generar el plan con el LLM. Por favor, inténtalo de nuevo.',
-        error: resultadoLLM.error
-      });
-    }
-    
-    // Guardar el plan generado en la base de datos
+    // Guardar el prompt generado en la base de datos
     const nuevoPlan = new PlanEntrenamiento({
       userId: user._id,
       titulo: 'Plan de Entrenamiento Personalizado',
-      contenido: resultadoLLM.plan,
-      promptGenerado: resultado.prompt,
-      modeloUsado: resultadoLLM.modelo,
-      provider: resultadoLLM.provider
+      contenido: 'Prompt generado - pendiente de procesar con LLM',
+      promptGenerado: resultado.prompt
     });
     
     await nuevoPlan.save();
     
-    console.log(`✅ Plan generado y guardado correctamente (ID: ${nuevoPlan._id})`);
-    console.log(`🤖 Modelo usado: ${resultadoLLM.modelo} (${resultadoLLM.provider})`);
-    if (resultadoLLM.fallback) {
-      console.log(`⚠️  Se usó modelo de respaldo (${resultadoLLM.preferidoFallo} falló)`);
-    }
-    
-    // Devolver el plan generado
+    // Por ahora, devolvemos el prompt generado para que el usuario lo vea
     res.json({
       success: true,
-      message: 'Plan de entrenamiento generado correctamente',
-      plan: resultadoLLM.plan,
+      message: 'Prompt generado correctamente',
+      prompt: resultado.prompt,
       advertencia: resultado.advertencia,
-      planId: nuevoPlan._id,
-      metadata: {
-        modelo: resultadoLLM.modelo,
-        provider: resultadoLLM.provider,
-        usadoFallback: resultadoLLM.fallback || false
-      }
+      planId: nuevoPlan._id
     });
     
   } catch (error) {

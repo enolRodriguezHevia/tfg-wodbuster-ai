@@ -18,12 +18,6 @@ const planEntrenamientoSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  modeloUsado: {
-    type: String
-  },
-  provider: {
-    type: String
-  },
   fechaGeneracion: {
     type: Date,
     default: Date.now

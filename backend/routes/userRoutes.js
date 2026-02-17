@@ -2,10 +2,6 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
-
-// Proteger todas las rutas con autenticación
-router.use(authMiddleware);
 
 // Rutas de usuario
 router.get('/:username', userController.obtenerPerfil);

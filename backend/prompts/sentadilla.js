@@ -34,7 +34,7 @@ Te voy a pasar los datos del punto más bajo de una sentadilla. Tu tarea es eval
 - **Flexión de cadera (hombro-cadera-rodilla):**
   Describe el cierre de la articulación de la cadera.
   50°–110° = rango normal en sentadilla profunda
-  <35° = posible retroversión pélvica (butt wink) si ocurre en la fase final del descenso
+  <45° = posible retroversión pélvica (butt wink) si ocurre en la fase final del descenso
 
 - **Romper el paralelo:** 
   Se verifica con las posiciones Y de cadera y rodilla. Significa que la cadera está al nivel o por debajo de las rodillas (rompió el paralelo).

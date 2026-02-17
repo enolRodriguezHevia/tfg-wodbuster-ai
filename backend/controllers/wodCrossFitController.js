@@ -1,6 +1,6 @@
 const WodCrossFit = require('../models/WodCrossFit');
+const User = require('../models/User');
 const { validateWodData } = require('../validators/wodCrossFitValidator');
-const { buscarUsuario, manejarErrorServidor, validarDatos } = require('../utils/controllerHelpers');
 
 /**
  * Registra un nuevo WOD CrossFit
@@ -13,11 +13,15 @@ const registrarWod = async (req, res) => {
 
     // Validaciones
     const validation = validateWodData({ username, nombreWod, nivel, tiempo });
-    if (!validarDatos(validation, res)) return;
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.error });
+    }
 
     // Buscar el usuario
-    const user = await buscarUsuario(username, res);
-    if (!user) return;
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
     // Crear el WOD
     const nuevoWod = new WodCrossFit({
@@ -44,7 +48,13 @@ const registrarWod = async (req, res) => {
     });
 
   } catch (err) {
-    manejarErrorServidor(res, err, 'al registrar WOD', true);
+    console.error('Error al registrar WOD:', err);
+    console.error('Stack trace:', err.stack);
+    console.error('Request body:', req.body);
+    res.status(500).json({ 
+      message: 'Error del servidor',
+      error: err.message 
+    });
   }
 };
 
@@ -58,8 +68,10 @@ const obtenerWods = async (req, res) => {
     const { username } = req.params;
 
     // Buscar el usuario
-    const user = await buscarUsuario(username, res);
-    if (!user) return;
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
     // Obtener todos los WODs del usuario, ordenados por fecha descendente
     const wods = await WodCrossFit.find({ userId: user._id })
@@ -81,12 +93,16 @@ const obtenerWods = async (req, res) => {
     });
 
   } catch (err) {
-    manejarErrorServidor(res, err, 'al obtener WODs');
+    console.error('Error al obtener WODs:', err);
+    res.status(500).json({ 
+      message: 'Error del servidor',
+      error: err.message 
+    });
   }
 };
 
 /**
- * Elimina un WOD CrossFit
+ * Elimina un WOD CrossFit por ID
  * @param {Object} req - Objeto de petición con id en params
  * @param {Object} res - Objeto de respuesta
  */
@@ -106,7 +122,11 @@ const eliminarWod = async (req, res) => {
     });
 
   } catch (err) {
-    manejarErrorServidor(res, err, 'al eliminar WOD');
+    console.error('Error al eliminar WOD:', err);
+    res.status(500).json({ 
+      message: 'Error del servidor',
+      error: err.message 
+    });
   }
 };
 

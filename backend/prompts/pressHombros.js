@@ -123,14 +123,14 @@ PASO 3: Calcula:
   - cambioTorso = diferencia entre valor máximo y mínimo de angTorso
 
 PASO 4: Evaluar estabilidad:
-  - Ideal: desviaciónMax ≤15°, cambioTorso ≤15°
-  - Aceptable: desviaciónMax ≤20°, cambioTorso ≤20°
+  - Ideal: desviaciónMax ≤15°, cambioTorso ≤10°
+  - Aceptable: desviaciónMax ≤20°, cambioTorso ≤15°
   - Compensación: desviaciónMax ≤25°, cambioTorso ≤20°
-  - Peligroso: desviaciónMax >25° o cambioTorso >25°
+  - Peligroso: desviaciónMax >25° o cambioTorso >20°
   - Alto riesgo: desviaciónMax >30°
 
 **VARIACIÓN NATURAL PERMITIDA:**
-NO marcar riesgo alto si: torso en lockout está entre 75-90° (desviación ≤20°) Y desviaciónMax ≤25°
+NO marcar riesgo alto si: torso en lockout está entre 75-90° (desviación ≤15°) Y desviaciónMax ≤25°
 SÍ marcar riesgo alto si: desviaciónMax >30° O lockout <70° (desviación >20° en final)
 
 ═══════════════════════════════════════════════════════════════════
