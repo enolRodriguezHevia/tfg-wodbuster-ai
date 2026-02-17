@@ -247,14 +247,17 @@ exports.generarPlanEntrenamiento = async (req, res) => {
   try {
     const { username } = req.params;
     
-    // Obtener el userId desde el username
-    const user = await User.findOne({ username });
+    // Obtener el userId y preferencia de LLM desde el username
+    const user = await User.findOne({ username }).select('_id llmPreference');
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
       });
     }
+    
+    const llmPreference = user.llmPreference || 'claude';
+    console.log(`⚙️  Preferencia de LLM del usuario: ${llmPreference.toUpperCase()}`);
     
     const resultado = await generarPrompt(user._id);
     
@@ -266,9 +269,9 @@ exports.generarPlanEntrenamiento = async (req, res) => {
       });
     }
     
-    // Generar el plan usando el LLM
+    // Generar el plan usando el LLM con la preferencia del usuario
     console.log('📤 Enviando prompt al LLM para generar plan personalizado...');
-    const resultadoLLM = await generarConLLM(resultado.prompt);
+    const resultadoLLM = await generarConLLM(resultado.prompt, llmPreference);
     
     if (!resultadoLLM.success) {
       console.error('❌ Error al generar plan con LLM:', resultadoLLM.error);
