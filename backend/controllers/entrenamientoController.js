@@ -1,7 +1,7 @@
 const Entrenamiento = require('../models/Entrenamiento');
 const Ejercicio = require('../models/Ejercicio');
-const User = require('../models/User');
 const { validateEjercicios, calcularVolumenTotal, validateUsername } = require('../validators/entrenamientoValidator');
+const { buscarUsuario, manejarErrorServidor, validarDatos } = require('../utils/controllerHelpers');
 
 /**
  * Registra un nuevo entrenamiento con sus ejercicios
@@ -21,15 +21,11 @@ const registrarEntrenamiento = async (req, res) => {
 
     // Validar ejercicios
     const ejerciciosValidation = validateEjercicios(ejercicios);
-    if (!ejerciciosValidation.valid) {
-      return res.status(400).json({ message: ejerciciosValidation.error });
-    }
+    if (!validarDatos(ejerciciosValidation, res)) return;
 
     // Buscar el usuario
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     // Calcular volumen total
     const volumenTotal = calcularVolumenTotal(ejercicios);
@@ -74,13 +70,7 @@ const registrarEntrenamiento = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al registrar entrenamiento:', err);
-    console.error('Stack trace:', err.stack);
-    console.error('Request body:', req.body);
-    res.status(500).json({ 
-      message: 'Error del servidor',
-      error: err.message 
-    });
+    manejarErrorServidor(res, err, 'al registrar entrenamiento', true);
   }
 };
 
@@ -93,13 +83,11 @@ const obtenerEntrenamientos = async (req, res) => {
   try {
     const { username } = req.params;
 
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     const entrenamientos = await Entrenamiento.find({ userId: user._id })
-      .sort({ fecha: -1 }); // Más recientes primero
+      .sort({ fecha: -1 });
 
     // Obtener ejercicios para cada entrenamiento
     const entrenamientosConEjercicios = await Promise.all(
@@ -128,8 +116,7 @@ const obtenerEntrenamientos = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener entrenamientos:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener entrenamientos');
   }
 };
 
@@ -168,8 +155,7 @@ const obtenerEntrenamientoPorId = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener entrenamiento:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener entrenamiento');
   }
 };
 
@@ -195,8 +181,7 @@ const eliminarEntrenamiento = async (req, res) => {
     res.status(200).json({ message: 'Entrenamiento y ejercicios eliminados con éxito' });
 
   } catch (err) {
-    console.error('Error al eliminar entrenamiento:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al eliminar entrenamiento');
   }
 };
 
@@ -209,10 +194,8 @@ const obtenerEstadisticas = async (req, res) => {
   try {
     const { username } = req.params;
 
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     const entrenamientos = await Entrenamiento.find({ userId: user._id });
 
@@ -227,8 +210,7 @@ const obtenerEstadisticas = async (req, res) => {
     res.status(200).json({ stats });
 
   } catch (err) {
-    console.error('Error al obtener estadísticas:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener estadísticas');
   }
 };
 

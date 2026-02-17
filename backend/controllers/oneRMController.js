@@ -1,6 +1,6 @@
 const OneRM = require('../models/OneRM');
-const User = require('../models/User');
 const { validateOneRMData } = require('../validators/oneRMValidator');
+const { buscarUsuario, manejarErrorServidor, validarDatos } = require('../utils/controllerHelpers');
 
 /**
  * Registra un nuevo record de 1RM para un ejercicio
@@ -13,15 +13,11 @@ const registrarOneRM = async (req, res) => {
 
     // Validaciones
     const validation = validateOneRMData({ username, nombreEjercicio, peso });
-    if (!validation.valid) {
-      return res.status(400).json({ message: validation.error });
-    }
+    if (!validarDatos(validation, res)) return;
 
     // Buscar el usuario
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     // Crear el registro de 1RM
     const newOneRM = new OneRM({
@@ -44,8 +40,7 @@ const registrarOneRM = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al registrar 1RM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al registrar 1RM');
   }
 };
 
@@ -59,10 +54,8 @@ const obtenerHistorialPorEjercicio = async (req, res) => {
     const { username, ejercicio } = req.params;
 
     // Buscar el usuario
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     // Buscar todos los registros de 1RM para ese ejercicio ordenados por fecha
     const registros = await OneRM.find({
@@ -80,8 +73,7 @@ const obtenerHistorialPorEjercicio = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener historial de 1RM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener historial de 1RM');
   }
 };
 
@@ -95,12 +87,10 @@ const obtenerListaEjercicios = async (req, res) => {
     const { username } = req.params;
 
     // Buscar el usuario
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
-    // Obtener lista única de ejercicios
+    // Obtener lista de ejercicios únicos
     const ejercicios = await OneRM.distinct('nombreEjercicio', { userId: user._id });
 
     res.status(200).json({
@@ -108,8 +98,7 @@ const obtenerListaEjercicios = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener lista de ejercicios:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener lista de ejercicios');
   }
 };
 
@@ -123,10 +112,8 @@ const obtenerTodosLosRegistros = async (req, res) => {
     const { username } = req.params;
 
     // Buscar el usuario
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+    const user = await buscarUsuario(username, res);
+    if (!user) return;
 
     // Buscar todos los registros de 1RM del usuario
     const registros = await OneRM.find({ userId: user._id }).sort({ fecha: -1 });
@@ -141,8 +128,7 @@ const obtenerTodosLosRegistros = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error al obtener registros de 1RM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al obtener registros de 1RM');
   }
 };
 
@@ -164,8 +150,7 @@ const eliminarOneRM = async (req, res) => {
     res.status(200).json({ message: 'Registro eliminado con éxito' });
 
   } catch (err) {
-    console.error('Error al eliminar registro de 1RM:', err);
-    res.status(500).json({ message: 'Error del servidor' });
+    manejarErrorServidor(res, err, 'al eliminar registro de 1RM');
   }
 };
 

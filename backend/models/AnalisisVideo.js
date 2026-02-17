@@ -36,12 +36,6 @@ const analisisVideoSchema = new mongoose.Schema(
     coordenadas: {
       type: mongoose.Schema.Types.Mixed,
     },
-    duracion: {
-      type: Number, // duración en segundos
-    },
-    repeticionesDetectadas: {
-      type: Number,
-    },
     fechaAnalisis: {
       type: Date,
       default: Date.now,

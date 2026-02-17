@@ -6,6 +6,7 @@ import {
   getOneRMExercises,
   deleteOneRM 
 } from "../api/api";
+import { getLoggedUser } from "../utils/auth";
 import Navbar from "../components/Navbar";
 import { Line } from "react-chartjs-2";
 import {
@@ -73,7 +74,7 @@ export default function Benchmarks() {
 
   useEffect(() => {
     // Verificar si el usuario está logueado
-    const loggedUser = JSON.parse(localStorage.getItem("user"));
+    const loggedUser = getLoggedUser();
     
     if (!loggedUser || !loggedUser.username) {
       navigate("/login");

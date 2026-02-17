@@ -54,7 +54,11 @@ exports.analizarVideo = async (req, res) => {
     let proveedorUsado = null;
     let huboFallback = false;
     
-    if (framesData && framesClaveParsed && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {
+    // Validar que tenemos los datos mínimos necesarios
+    // framesClave es obligatorio para todos, frames solo para press-hombros
+    const tieneFramesNecesarios = ejercicio === 'press-hombros' ? (framesData && framesClaveParsed) : framesClaveParsed;
+    
+    if (tieneFramesNecesarios && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {
       console.log(`🤖 Generando feedback con IA para ${ejercicio}...`);
       
       try {
@@ -83,16 +87,22 @@ exports.analizarVideo = async (req, res) => {
       } catch (llmErr) {
         console.error(`❌ Error al generar feedback con IA: ${llmErr.message}`);
         // En caso de error de IA, usar feedback del frontend como fallback
-        feedbackLLM = resultadoAnalisis.feedback;
+        feedbackLLM = resultadoAnalisis.feedback || [
+          "⚠️ Análisis completado sin IA.",
+          "El sistema detectó tu movimiento pero no pudo generar un análisis detallado.",
+          "Por favor, intenta de nuevo o contacta con soporte."
+        ];
       }
     } else {
       // Si faltan datos de IA, usar el feedback del análisis del frontend
       const missingItems = [];
-      if (!framesData) missingItems.push('frames');
       if (!framesClaveParsed) missingItems.push('framesClave');
+      if (ejercicio === 'press-hombros' && !framesData) missingItems.push('frames (requerido para press-hombros)');
       if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) missingItems.push('API_KEYS');
       
-      console.log(`⚠️ Análisis sin IA - faltan: ${missingItems.join(', ')}`);
+      if (missingItems.length > 0) {
+        console.log(`⚠️ Análisis sin IA - faltan: ${missingItems.join(', ')}`);
+      }
       feedbackLLM = resultadoAnalisis.feedback || [
         "❌ No se pudo analizar el video completamente.",
         "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
@@ -100,7 +110,11 @@ exports.analizarVideo = async (req, res) => {
     }
 
     // El feedback puede venir del LLM o del análisis básico
-    const feedbackFinal = feedbackLLM;
+    // Asegurar que siempre tengamos un feedback válido
+    const feedbackFinal = feedbackLLM || [
+      "❌ No se pudo generar análisis para este video.",
+      "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
+    ];
 
     // Guardar análisis en la base de datos (sin guardar el video)
     const analisis = new AnalisisVideo({
@@ -112,8 +126,6 @@ exports.analizarVideo = async (req, res) => {
       rompioParalelo: resultadoAnalisis.rompioParalelo !== undefined ? resultadoAnalisis.rompioParalelo : null,
       feedback: feedbackFinal,
       coordenadas: resultadoAnalisis.coordenadas || {},
-      duracion: resultadoAnalisis.duracion,
-      repeticionesDetectadas: resultadoAnalisis.repeticionesDetectadas,
     });
 
     await analisis.save();
@@ -126,8 +138,6 @@ exports.analizarVideo = async (req, res) => {
       angulos: analisis.angulos,
       rompioParalelo: analisis.rompioParalelo,
       feedback: analisis.feedback,
-      duracion: analisis.duracion,
-      repeticionesDetectadas: analisis.repeticionesDetectadas,
       fechaAnalisis: analisis.fechaAnalisis,
       usaIA: usaIA,
       tokensUsados: tokensUsados

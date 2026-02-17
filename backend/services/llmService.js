@@ -30,7 +30,7 @@ const openai = new OpenAI({
  */
 async function generarFeedbackEjercicio(ejercicio, frames, framesClave, metricas, preferencia = 'claude') {
   console.log(`🤖 Generando feedback con LLM para: ${ejercicio}`);
-  console.log(`📊 Frames analizados: ${frames.length}`);
+  console.log(`📊 Frames analizados: ${frames ? frames.length : 'N/A (solo framesClave)'}`);
   console.log(`⚙️  Preferencia del usuario: ${preferencia.toUpperCase()}`);
   
   // Construir prompt estructurado
@@ -51,7 +51,15 @@ Proporciona feedback constructivo, claro y específico centrado en:
 3. Explicaciones biomecánicas simples
 4. Retroalimentación positiva donde sea apropiado
 
-El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe en texto narrativo bien organizado, no en formato JSON.`;
+IMPORTANTE SOBRE EL FORMATO:
+- Usa formato de texto limpio y profesional, sin exceso de símbolos markdown
+- Usa encabezados claros con MAYÚSCULAS en lugar de múltiples #
+- Usa negritas (**texto**) solo para énfasis importante
+- Usa listas con guión simple (-) cuando sea necesario
+- Usa separadores de línea (---) para dividir secciones principales
+- Los emojis son opcionales y solo para énfasis clave
+
+El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe en texto narrativo bien organizado y FÁCIL DE LEER.`;
 
   // Determinar orden de intentos según preferencia
   const intentarPrimero = preferencia === 'openai' ? 'openai' : 'claude';
@@ -257,7 +265,16 @@ El plan debe incluir:
 4. Progresión planificada
 5. Consideraciones sobre recuperación y prevención de lesiones
 
-El plan debe ser profesional, motivador y realista. Escribe en formato markdown bien organizado.`;
+IMPORTANTE SOBRE EL FORMATO:
+- Usa encabezados claros pero sin exceso de símbolos (#, *, etc.)
+- Usa formato de texto limpio y profesional
+- Utiliza separadores visuales simples (líneas de guiones o espacios)
+- Estructura clara con secciones bien definidas
+- Usa MAYÚSCULAS para títulos principales en lugar de múltiples #
+- Usa negritas (**texto**) solo para énfasis importante, no para todo
+- Los emojis son opcionales y solo para secciones principales
+
+El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto plano.`;
 
   // Determinar orden de intentos según preferencia
   const intentarPrimero = preferencia === 'openai' ? 'openai' : 'claude';
