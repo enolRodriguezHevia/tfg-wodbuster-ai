@@ -248,4 +248,124 @@ describe('User Controller', () => {
       expect([404, 400]).toContain(res.status);
     });
   });
+  // Cobertura extra
+  describe('PUT /api/user/:username datos inválidos', () => {
+    test('Rechaza sexo inválido', async () => {
+      User.findOne = jest.fn().mockResolvedValue({ username: 'testuser', save: jest.fn(), set: jest.fn() });
+      const res = await request(app)
+        .put('/api/user/testuser')
+        .send({ sex: 'otro' });
+      expect(res.status).toBe(400);
+    });
+    test('Rechaza edad inválida', async () => {
+      User.findOne = jest.fn().mockResolvedValue({ username: 'testuser', save: jest.fn(), set: jest.fn() });
+      const res = await request(app)
+        .put('/api/user/testuser')
+        .send({ age: -5 });
+      expect(res.status).toBe(400);
+    });
+    test('Rechaza peso inválido', async () => {
+      User.findOne = jest.fn().mockResolvedValue({ username: 'testuser', save: jest.fn(), set: jest.fn() });
+      const res = await request(app)
+        .put('/api/user/testuser')
+        .send({ weight: 'noesnumero' });
+      expect(res.status).toBe(400);
+    });
+    test('Rechaza altura inválida', async () => {
+      User.findOne = jest.fn().mockResolvedValue({
+        username: 'testuser',
+        save: jest.fn().mockResolvedValue(),
+        set: jest.fn()
+      });
+      const res = await request(app)
+        .put('/api/user/testuser')
+        .send({ height: 'noesnumero' });
+      expect(res.status).toBe(400);
+    });
+    test('Rechaza email duplicado', async () => {
+      const mockUser = { username: 'testuser', email: 'old@example.com', save: jest.fn(), set: jest.fn() };
+      User.findOne = jest.fn()
+        .mockResolvedValueOnce(mockUser) // para buscar usuario
+        .mockResolvedValueOnce({ username: 'other', email: 'new@example.com' }); // para comprobar email duplicado
+      const res = await request(app)
+        .put('/api/user/testuser')
+        .send({ email: 'new@example.com' });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('DELETE /api/user/:username', () => {
+    test('404 si usuario no existe', async () => {
+      User.findOne = jest.fn().mockResolvedValue(null);
+      const res = await request(app)
+        .delete('/api/user/unknown')
+        .send({ password: '12345678' });
+      expect(res.status).toBe(404);
+    });
+    test('Rechaza si falta contraseña', async () => {
+      User.findOne = jest.fn().mockResolvedValue({ username: 'testuser', password: 'hash', save: jest.fn() });
+      const res = await request(app)
+        .delete('/api/user/testuser')
+        .send({ });
+      expect(res.status).toBe(400);
+    });
+    test('Rechaza si contraseña incorrecta', async () => {
+      const bcrypt = require('bcrypt');
+      User.findOne = jest.fn().mockResolvedValue({ username: 'testuser', password: 'hash', save: jest.fn() });
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(false);
+      const res = await request(app)
+        .delete('/api/user/testuser')
+        .send({ password: 'wrongpass' });
+      expect(res.status).toBe(400);
+      bcrypt.compare.mockRestore();
+    });
+  });
+
+  describe('LLM config y preferencia', () => {
+    beforeAll(() => {
+      app.get('/api/user/:username/llm/config', userController.obtenerConfiguracionLLM);
+      app.put('/api/user/:username/llm/preference', userController.actualizarPreferenciaLLM);
+    });
+    test('GET /api/user/:username/llm/config devuelve config si usuario existe', async () => {
+      // Mock que soporta .select()
+      User.findOne = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue({ username: 'testuser', llmPreference: 'claude' })
+      });
+      const res = await request(app).get('/api/user/testuser/llm/config');
+      expect(res.status).toBe(200);
+      expect(res.body.llmPreference).toBe('claude');
+    });
+    test('GET /api/user/:username/llm/config 404 si usuario no existe', async () => {
+      User.findOne = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
+      const res = await request(app).get('/api/user/unknown/llm/config');
+      expect(res.status).toBe(404);
+    });
+    test('PUT /api/user/:username/llm/preference actualiza preferencia válida', async () => {
+      const mockUser = { username: 'testuser', llmPreference: 'claude', save: jest.fn() };
+      User.findOne = jest.fn().mockResolvedValue(mockUser);
+      const res = await request(app)
+        .put('/api/user/testuser/llm/preference')
+        .send({ llmPreference: 'openai' });
+      expect(res.status).toBe(200);
+      expect(res.body.llmPreference).toBe('openai');
+    });
+    test('PUT /api/user/:username/llm/preference rechaza preferencia inválida', async () => {
+      const mockUser = { username: 'testuser', llmPreference: 'claude', save: jest.fn() };
+      User.findOne = jest.fn().mockResolvedValue(mockUser);
+      const res = await request(app)
+        .put('/api/user/testuser/llm/preference')
+        .send({ llmPreference: 'otro' });
+      expect(res.status).toBe(400);
+    });
+    test('PUT /api/user/:username/llm/preference 404 si usuario no existe', async () => {
+      User.findOne = jest.fn().mockResolvedValue(null);
+      const res = await request(app)
+        .put('/api/user/unknown/llm/preference')
+        .send({ llmPreference: 'openai' });
+      expect(res.status).toBe(404);
+    });
+  });
+
 });

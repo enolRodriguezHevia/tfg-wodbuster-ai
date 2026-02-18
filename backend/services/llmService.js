@@ -398,5 +398,8 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
 
 module.exports = {
   generarFeedbackEjercicio,
-  generarPlanEntrenamiento
+  generarPlanEntrenamiento,
+  construirPromptAnalisis,
+  generarFeedbackFallback,
+  calcularEstadisticas
 };

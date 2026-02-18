@@ -10,7 +10,7 @@
 const validateOneRMData = (data) => {
   const { username, nombreEjercicio, peso } = data;
 
-  if (!username || !nombreEjercicio || !peso) {
+  if (!username || nombreEjercicio === undefined || nombreEjercicio === null || peso === undefined || peso === null) {
     return { 
       valid: false, 
       error: 'Faltan campos obligatorios: username, nombreEjercicio y peso son requeridos' 
@@ -38,7 +38,11 @@ const validateOneRMData = (data) => {
  * @returns {boolean} - True si es válido
  */
 const validateUsername = (username) => {
-  return username && typeof username === 'string' && username.trim() !== '';
+  // Debe ser string, 4-20 caracteres, solo letras, números y guiones bajos
+  return (
+    typeof username === 'string' &&
+    /^[a-zA-Z0-9_]{4,20}$/.test(username)
+  );
 };
 
 /**
@@ -47,7 +51,11 @@ const validateUsername = (username) => {
  * @returns {boolean} - True si es válido
  */
 const validateNombreEjercicio = (nombreEjercicio) => {
-  return nombreEjercicio && typeof nombreEjercicio === 'string' && nombreEjercicio.trim() !== '';
+  // Debe ser string no vacío, solo letras y espacios
+  return (
+    typeof nombreEjercicio === 'string' &&
+    /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{3,40}$/.test(nombreEjercicio.trim())
+  );
 };
 
 /**

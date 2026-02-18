@@ -31,16 +31,5 @@ router.use(authMiddleware);
 // POST /api/analisis-video/analizar - Analizar video
 router.post("/analizar", upload.single("video"), analisisVideoController.analizarVideo);
 
-// GET /api/analisis-video/historial - Obtener historial de análisis
-router.get("/historial", analisisVideoController.obtenerHistorial);
-
-// GET /api/analisis-video/estadisticas - Obtener estadísticas
-router.get("/estadisticas", analisisVideoController.obtenerEstadisticas);
-
-// GET /api/analisis-video/:id - Obtener detalle de un análisis
-router.get("/:id", analisisVideoController.obtenerAnalisisDetalle);
-
-// DELETE /api/analisis-video/:id - Eliminar un análisis
-router.delete("/:id", analisisVideoController.eliminarAnalisis);
 
 module.exports = router;

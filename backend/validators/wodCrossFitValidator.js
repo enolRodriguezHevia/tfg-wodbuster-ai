@@ -51,7 +51,11 @@ const validateWodData = (data) => {
  * @returns {boolean} - True si es válido
  */
 const validateUsername = (username) => {
-  return username && typeof username === 'string' && username.trim() !== '';
+  // Debe ser string, 4-20 caracteres, solo letras, números y guiones bajos
+  return (
+    typeof username === 'string' &&
+    /^[a-zA-Z0-9_]{4,20}$/.test(username)
+  );
 };
 
 /**
