@@ -35,6 +35,7 @@ export default function Entrenamientos() {
   const [successMessage, setSuccessMessage] = useState("");
   const [entrenamientos, setEntrenamientos] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [selectedEntrenamiento, setSelectedEntrenamiento] = useState(null);
   
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0]
@@ -197,6 +198,18 @@ export default function Entrenamientos() {
     }, 0);
   };
 
+  const handleViewEntrenamiento = (entrenamiento) => {
+    setSelectedEntrenamiento(entrenamiento);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedEntrenamiento(null);
+  };
+
+  const calcularVolumenEjercicio = (ejercicio) => {
+    return ejercicio.series * ejercicio.repeticiones * ejercicio.peso;
+  };
+
   return (
     <>
       <Navbar />
@@ -341,51 +354,146 @@ export default function Entrenamientos() {
         )}
 
         {/* Lista de entrenamientos */}
-        <div className="entrenamientos-list">
-          <h2>Historial de Entrenamientos</h2>
-          
-          {entrenamientos.length === 0 ? (
-            <p className="no-data">Aún no has registrado ningún entrenamiento</p>
-          ) : (
-            <div className="entrenamientos-grid">
+        {!showForm && (
+          <div className="entrenamientos-list">
+            <h2>Historial de Entrenamientos</h2>
+            
+            {entrenamientos.length === 0 ? (
+              <p className="no-data">Aún no has registrado ningún entrenamiento</p>
+            ) : (
+              <div className="entrenamientos-grid">
               {entrenamientos.map((entrenamiento) => (
-                <div key={entrenamiento.id} className="entrenamiento-item">
-                  <div className="entrenamiento-info">
-                    <div className="entrenamiento-fecha">
-                      {new Date(entrenamiento.fecha).toLocaleDateString('es-ES', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                <div 
+                  key={entrenamiento.id} 
+                  className="entrenamiento-card"
+                  onClick={() => handleViewEntrenamiento(entrenamiento)}
+                >
+                  <button
+                    className="btn-delete-card"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteEntrenamiento(entrenamiento.id);
+                    }}
+                    title="Eliminar entrenamiento"
+                  >
+                    🗑️
+                  </button>
+                  
+                  <h3 className="card-titulo">
+                    {new Date(entrenamiento.fecha).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </h3>
+                  
+                  <div className="card-stats">
+                    <div className="stat-item">
+                      <span className="stat-icon">💪</span>
+                      <span className="stat-text">{entrenamiento.cantidadEjercicios} ejercicios</span>
                     </div>
-                    <div className="entrenamiento-stats">
-                      <span className="stat">
-                        <strong>{entrenamiento.cantidadEjercicios}</strong> ejercicios
-                      </span>
-                      <span className="stat">
-                        <strong>{entrenamiento.volumenTotal.toFixed(0)}</strong> kg totales
-                      </span>
-                    </div>
-                    <div className="entrenamiento-ejercicios">
-                      {entrenamiento.ejercicios.map((ej, idx) => (
-                        <span key={idx} className="ejercicio-badge">
-                          {ej.nombre}
-                        </span>
-                      ))}
+                    <div className="stat-item">
+                      <span className="stat-icon">⚡</span>
+                      <span className="stat-text">{entrenamiento.volumenTotal.toFixed(0)} kg</span>
                     </div>
                   </div>
-                  <button
-                    className="btn-delete"
-                    onClick={() => handleDeleteEntrenamiento(entrenamiento.id)}
-                  >
-                    Eliminar
-                  </button>
+                  
+                  <div className="card-ejercicios">
+                    {entrenamiento.ejercicios.slice(0, 3).map((ej, idx) => (
+                      <span key={idx} className="ejercicio-tag">
+                        {ej.nombre}
+                      </span>
+                    ))}
+                    {entrenamiento.ejercicios.length > 3 && (
+                      <span className="ejercicio-tag mas">+{entrenamiento.ejercicios.length - 3}</span>
+                    )}
+                  </div>
+                  
+                  <div className="card-footer">
+                    <span className="ver-detalles">👁️ Ver detalles</span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+        )}
+
+        {/* Modal de detalle del entrenamiento */}
+        {selectedEntrenamiento && (
+          <div className="modal-overlay" onClick={handleCloseModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Resumen del Entrenamiento</h2>
+                <button className="btn-close-modal" onClick={handleCloseModal}>
+                  ✕
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <div className="modal-fecha">
+                  <strong>Fecha:</strong> {new Date(selectedEntrenamiento.fecha).toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+
+                <div className="modal-stats-summary">
+                  <div className="stat-box">
+                    <div className="stat-label">Ejercicios</div>
+                    <div className="stat-value">{selectedEntrenamiento.cantidadEjercicios}</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-label">Volumen Total</div>
+                    <div className="stat-value">{selectedEntrenamiento.volumenTotal.toFixed(0)} kg</div>
+                  </div>
+                  <div className="stat-box">
+                    <div className="stat-label">Valoración Media</div>
+                    <div className="stat-value">
+                      {(selectedEntrenamiento.ejercicios.reduce((sum, ej) => sum + ej.valoracion, 0) / selectedEntrenamiento.cantidadEjercicios).toFixed(1)}/10
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-ejercicios">
+                  <h3>Ejercicios Realizados</h3>
+                  {selectedEntrenamiento.ejercicios.map((ejercicio, idx) => (
+                    <div key={idx} className="modal-ejercicio-card">
+                      <div className="modal-ejercicio-header">
+                        <h4>{ejercicio.nombre}</h4>
+                        <span className="valoracion-badge">
+                          ⭐ {ejercicio.valoracion}/10
+                        </span>
+                      </div>
+                      <div className="modal-ejercicio-datos">
+                        <div className="dato-item">
+                          <span className="dato-label">Series:</span>
+                          <span className="dato-valor">{ejercicio.series}</span>
+                        </div>
+                        <div className="dato-item">
+                          <span className="dato-label">Repeticiones:</span>
+                          <span className="dato-valor">{ejercicio.repeticiones}</span>
+                        </div>
+                        <div className="dato-item">
+                          <span className="dato-label">Peso:</span>
+                          <span className="dato-valor">{ejercicio.peso} kg</span>
+                        </div>
+                        <div className="dato-item">
+                          <span className="dato-label">Volumen:</span>
+                          <span className="dato-valor destacado">
+                            {calcularVolumenEjercicio(ejercicio).toFixed(0)} kg
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

@@ -112,7 +112,10 @@ export const getWodsCrossFit = (username) => request(`/wod-crossfit/${username}`
 export const deleteWodCrossFit = (id) => request(`/wod-crossfit/${id}`, "DELETE");
 
 // Plan de Entrenamiento
-export const generarPlanEntrenamiento = (username) => request(`/plan-entrenamiento/generar/${username}`, "POST");
+export const generarPlanEntrenamiento = (username, nombre) => {
+  const body = nombre ? { nombre } : {};
+  return request(`/plan-entrenamiento/generar/${username}`, "POST", body);
+};
 export const obtenerPlanesAnteriores = (username) => request(`/plan-entrenamiento/mis-planes/${username}`);
 export const obtenerPlanPorId = (username, planId) => request(`/plan-entrenamiento/${username}/${planId}`);
 export const eliminarPlan = (username, planId) => request(`/plan-entrenamiento/${username}/${planId}`, "DELETE");

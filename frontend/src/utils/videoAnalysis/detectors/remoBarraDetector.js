@@ -86,7 +86,6 @@ function detectarRepeticionesRemoBarra(frames) {
   }
   
   const posicionesMuneca = frames.map(f => f.posicionMuneca);
-  const minMunecaY = Math.min(...posicionesMuneca);
   const maxMunecaY = Math.max(...posicionesMuneca);
   
   const frameInicio = frames.find(f => f.posicionMuneca === maxMunecaY);

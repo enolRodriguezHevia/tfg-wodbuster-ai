@@ -10,9 +10,11 @@ const PlanEntrenamiento = () => {
   const [advertencia, setAdvertencia] = useState(null);
   const [error, setError] = useState(null);
   const [planesAnteriores, setPlanesAnteriores] = useState([]);
-  const [mostrarPlan, setMostrarPlan] = useState(false);
+  const [planGeneradoMostrado, setPlanGeneradoMostrado] = useState(false);
+  const [mostrarPlanGeneradoModal, setMostrarPlanGeneradoModal] = useState(false);
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
   const [mostrarPlanAnterior, setMostrarPlanAnterior] = useState(false);
+  const [nombrePlan, setNombrePlan] = useState('');
 
   useEffect(() => {
     cargarPlanesAnteriores();
@@ -46,12 +48,13 @@ const PlanEntrenamiento = () => {
         return;
       }
 
-      const response = await generarPlanEntrenamiento(user.username);
+      const response = await generarPlanEntrenamiento(user.username, nombrePlan.trim() || undefined);
 
       if (response.success) {
         setPlanGenerado(response.plan);
         setAdvertencia(response.advertencia);
-        setMostrarPlan(true);
+        setPlanGeneradoMostrado(true);
+        setNombrePlan(''); // Limpiar el campo después de generar
         cargarPlanesAnteriores();
       } else {
         setError(response.message);
@@ -206,6 +209,22 @@ const PlanEntrenamiento = () => {
         </div>
 
         <div className="generar-section">
+          <div className="nombre-plan-group">
+            <label htmlFor="nombrePlan">Nombre del Plan (opcional):</label>
+            <input
+              type="text"
+              id="nombrePlan"
+              value={nombrePlan}
+              onChange={(e) => setNombrePlan(e.target.value)}
+              placeholder="Ej: Semana 1 - Fuerza, Plan Verano 2024..."
+              maxLength={60}
+              className="input-nombre-plan"
+            />
+            <span className="input-hint">
+              {nombrePlan.length}/60 caracteres
+            </span>
+          </div>
+          
           <button 
             onClick={handleGenerarPlan} 
             disabled={loading}
@@ -229,27 +248,71 @@ const PlanEntrenamiento = () => {
           </div>
         )}
 
-        {mostrarPlan && planGenerado && (
-          <div className="prompt-generado">
-            <div className="prompt-header">
+        {planGeneradoMostrado && planGenerado && (
+          <div className="plan-generado-card">
+            <div className="card-header">
               <h3>✅ Plan de Entrenamiento Generado</h3>
-              <div className="prompt-actions">
-                <button onClick={copiarAlPortapapeles} className="btn-secondary">
-                  📋 Copiar
-                </button>
-                <button onClick={descargarPlan} className="btn-secondary">
-                  💾 Descargar
-                </button>
-                <button 
-                  onClick={() => setMostrarPlan(false)} 
-                  className="btn-secondary"
-                >
-                  ✕ Cerrar
-                </button>
-              </div>
+              <p className="card-fecha">
+                Generado el: {new Date().toLocaleDateString('es-ES', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
             </div>
-            <div className="prompt-content plan-content">
-              <div className="plan-text">{renderizarPlan(planGenerado)}</div>
+            <div className="card-actions">
+              <button 
+                onClick={() => setMostrarPlanGeneradoModal(true)} 
+                className="btn-ver-plan"
+              >
+                👁️ Ver Plan Completo
+              </button>
+              <button onClick={copiarAlPortapapeles} className="btn-action">
+                📋 Copiar
+              </button>
+              <button onClick={descargarPlan} className="btn-action">
+                💾 Descargar
+              </button>
+              <button 
+                onClick={() => {
+                  setPlanGeneradoMostrado(false);
+                  setPlanGenerado(null);
+                  setAdvertencia(null);
+                }} 
+                className="btn-eliminar"
+              >
+                🗑️ Borrar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para ver plan generado */}
+        {mostrarPlanGeneradoModal && planGenerado && (
+          <div className="modal-overlay" onClick={() => setMostrarPlanGeneradoModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-plan-container">
+                <div className="modal-header">
+                  <h3>📋 Plan de Entrenamiento Personalizado</h3>
+                  <button onClick={() => setMostrarPlanGeneradoModal(false)} className="btn-close-modal">
+                    ✕
+                  </button>
+                </div>
+                <p className="modal-fecha">
+                  Generado el: {new Date().toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+                <div className="modal-plan-content">
+                  <div className="plan-text">{renderizarPlan(planGenerado)}</div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -280,22 +343,14 @@ const PlanEntrenamiento = () => {
         {mostrarPlanAnterior && planSeleccionado && (
           <div className="modal-overlay" onClick={cerrarPlanAnterior}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="prompt-generado">
-                <div className="prompt-header">
+              <div className="modal-plan-container">
+                <div className="modal-header">
                   <h3>📋 {planSeleccionado.titulo}</h3>
-                  <div className="prompt-actions">
-                    <button onClick={copiarPlanAnterior} className="btn-secondary">
-                      📋 Copiar
-                    </button>
-                    <button onClick={descargarPlanAnterior} className="btn-secondary">
-                      💾 Descargar
-                    </button>
-                    <button onClick={cerrarPlanAnterior} className="btn-secondary">
-                      ✕ Cerrar
-                    </button>
-                  </div>
+                  <button onClick={cerrarPlanAnterior} className="btn-close-modal">
+                    ✕
+                  </button>
                 </div>
-                <p className="plan-fecha">
+                <p className="modal-fecha">
                   Generado el: {new Date(planSeleccionado.fechaGeneracion).toLocaleDateString('es-ES', { 
                     year: 'numeric', 
                     month: 'long', 
@@ -304,7 +359,15 @@ const PlanEntrenamiento = () => {
                     minute: '2-digit'
                   })}
                 </p>
-                <div className="prompt-content plan-content">
+                <div className="modal-actions">
+                  <button onClick={copiarPlanAnterior} className="btn-modal-action">
+                    📋 Copiar
+                  </button>
+                  <button onClick={descargarPlanAnterior} className="btn-modal-action">
+                    💾 Descargar
+                  </button>
+                </div>
+                <div className="modal-plan-content">
                   <div className="plan-text">{renderizarPlan(planSeleccionado.contenido)}</div>
                 </div>
               </div>

@@ -246,6 +246,7 @@ const generarPrompt = async (userId) => {
 exports.generarPlanEntrenamiento = async (req, res) => {
   try {
     const { username } = req.params;
+    const { nombre } = req.body; // Obtener el nombre del plan del body
     
     // Obtener el userId desde el username
     const user = await User.findOne({ username });
@@ -282,7 +283,7 @@ exports.generarPlanEntrenamiento = async (req, res) => {
     // Guardar el plan generado en la base de datos
     const nuevoPlan = new PlanEntrenamiento({
       userId: user._id,
-      titulo: 'Plan de Entrenamiento Personalizado',
+      titulo: nombre && nombre.trim() ? nombre.trim() : 'Plan de Entrenamiento Personalizado',
       contenido: resultadoLLM.plan,
       promptGenerado: resultado.prompt,
       modeloUsado: resultadoLLM.modelo,

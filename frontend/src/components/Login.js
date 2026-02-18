@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api/api"; // Módulo externo para las consultas
+import { loginUser } from "../api/api";
+import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -45,20 +46,98 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "0 auto", padding: "1rem", border: "1px solid #ccc", borderRadius: "8px" }}>
-      <h2>Login</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Usuario:</label>
-          <input type="text" name="username" value={formData.username} onChange={handleChange} required />
+    <div className="auth-page">
+      {/* Panel izquierdo de branding */}
+      <div className="auth-branding">
+        <div className="auth-branding-content">
+          <div className="auth-logo">
+            <img src={process.env.PUBLIC_URL + '/logo-nobg.png'} alt="WodBuster AI" />
+          </div>
+          <h1 className="auth-brand-title">WodBuster AI</h1>
+          <p className="auth-brand-subtitle">Tu compañero de entrenamiento inteligente</p>
+          <div className="auth-brand-features">
+            <div className="auth-feature">
+              <span className="auth-feature-icon">🏋️</span>
+              <span>Registra tus entrenamientos</span>
+            </div>
+            <div className="auth-feature">
+              <span className="auth-feature-icon">🤖</span>
+              <span>Planes personalizados con IA</span>
+            </div>
+            <div className="auth-feature">
+              <span className="auth-feature-icon">📊</span>
+              <span>Analiza tu progreso</span>
+            </div>
+            <div className="auth-feature">
+              <span className="auth-feature-icon">🎯</span>
+              <span>Análisis de vídeo en tiempo real</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Contraseña:</label>
-          <input type="password" name="password" value={formData.password} onChange={handleChange} required />
+        <div className="auth-branding-decoration">
+          <div className="auth-circle auth-circle-1"></div>
+          <div className="auth-circle auth-circle-2"></div>
+          <div className="auth-circle auth-circle-3"></div>
         </div>
-        <button type="submit" style={{ marginTop: "1rem" }}>Entrar</button>
-      </form>
+      </div>
+
+      {/* Panel derecho del formulario */}
+      <div className="auth-form-panel">
+        <div className="auth-form-wrapper">
+          <div className="auth-form-header">
+            <h2>Bienvenido de nuevo</h2>
+            <p>Introduce tus credenciales para acceder</p>
+          </div>
+
+          {message && (
+            <div className={`auth-message ${message.includes('✅') ? 'success' : 'error'}`}>
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-form-group">
+              <label>Usuario</label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon">👤</span>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Tu nombre de usuario"
+                  required
+                />
+              </div>
+            </div>
+            <div className="auth-form-group">
+              <label>Contraseña</label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon">🔒</span>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Tu contraseña"
+                  required
+                />
+              </div>
+            </div>
+            <button type="submit" className="auth-submit-btn">
+              Iniciar sesión
+              <span className="auth-btn-arrow">→</span>
+            </button>
+          </form>
+
+          <p className="auth-switch-text">
+            ¿No tienes cuenta?{" "}
+            <span className="auth-switch-link" onClick={() => navigate("/signup")}>
+              Regístrate aquí
+            </span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

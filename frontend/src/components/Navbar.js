@@ -35,6 +35,10 @@ export default function Navbar() {
     navigate("/analisis-videos");
   };
 
+  const goToEntrenamientos = () => {
+    navigate("/entrenamientos");
+  };
+
   const goToConfiguracionIA = () => {
     navigate("/configuracion-ia");
   };
@@ -42,12 +46,15 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <h2 className="navbar-title" onClick={goToDashboard} style={{ cursor: 'pointer' }}>
-          WodBuster AI
-        </h2>
+        <div className="navbar-brand" onClick={goToDashboard} style={{ cursor: 'pointer' }}>
+          <img src={process.env.PUBLIC_URL + '/logo-nobg.png'} alt="WodBuster AI" className="navbar-logo" />
+        </div>
         <div className="navbar-links">
           <button className="navbar-link-btn" onClick={goToBenchmarks}>
             Benchmarks
+          </button>
+          <button className="navbar-link-btn" onClick={goToEntrenamientos}>
+            Entrenamientos
           </button>
           <button className="navbar-link-btn" onClick={goToWodsCrossFit}>
             WODs CrossFit
@@ -59,7 +66,7 @@ export default function Navbar() {
             Análisis de Videos
           </button>
           <button className="navbar-link-btn" onClick={goToConfiguracionIA}>
-            ⚙️ Configuración IA
+            Configuración IA
           </button>
           <button className="navbar-link-btn" onClick={goToProfile}>
             Perfil

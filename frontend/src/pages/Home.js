@@ -14,6 +14,11 @@ export default function Home() {
         <button onClick={() => navigate("/login")}>Ir a Login</button>
       </div>
 
+      {/* Logo central */}
+      <div className="home-logo-center">
+        <img src={process.env.PUBLIC_URL + '/logo-nobg.png'} alt="WodBuster AI" />
+      </div>
+
       {/* Lado Sign Up */}
       <div className="home-half signup-side">
         <h2>Sign Up</h2>

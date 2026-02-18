@@ -84,13 +84,24 @@ export default function ConfiguracionIA() {
         <div className="config-ia-header">
           <h1>⚙️ Configuración de Inteligencia Artificial</h1>
           <p className="config-ia-description">
-            Elige el modelo de IA que analizará tus ejercicios. Si el modelo seleccionado
-            no está disponible, se usará el otro automáticamente como respaldo.
+            Elige el modelo de IA que analizará tus ejercicios.
           </p>
         </div>
 
         {error && <div className="error-message">{error}</div>}
         {successMessage && <div className="success-message">{successMessage}</div>}
+
+        {/* Notas informativas */}
+        <div className="llm-info-header">
+          <p>
+            <strong>💡 Nota:</strong> Ambos modelos proporcionan análisis de alta calidad.
+            La elección depende de tus preferencias personales entre velocidad y detalle.
+          </p>
+          <p className="llm-info-header-detail">
+            <strong>🔄 Sistema de Respaldo:</strong> Si tu modelo preferido no está disponible temporalmente,
+            el otro modelo tomará el control automáticamente para asegurar que siempre recibas feedback de calidad.
+          </p>
+        </div>
 
         <div className="llm-models-grid">
           {/* Claude */}
@@ -208,17 +219,6 @@ export default function ConfiguracionIA() {
               <button className="select-model-btn">Seleccionar GPT-4o</button>
             )}
           </div>
-        </div>
-
-        <div className="llm-info-footer">
-          <p>
-            <strong>💡 Nota:</strong> Ambos modelos proporcionan análisis de alta calidad.
-            La elección depende de tus preferencias personales entre velocidad y detalle.
-          </p>
-          <p className="llm-info-footer-detail">
-            <strong>🔄 Sistema de Respaldo:</strong> Si tu modelo preferido no está disponible temporalmente,
-            el otro modelo tomará el control automáticamente para asegurar que siempre recibas feedback de calidad.
-          </p>
         </div>
       </div>
     </>

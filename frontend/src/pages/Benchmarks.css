@@ -1,71 +1,108 @@
+/* ==========================================
+   BENCHMARKS - 1RM & RÉCORDS PERSONALES
+   ========================================== */
+
 .benchmarks-container {
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 30px;
+  max-width: 1400px;
+  margin: var(--spacing-md) auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  animation: fadeIn 0.6s ease;
 }
 
 .benchmarks-header {
-  margin-bottom: 30px;
+  margin-bottom: var(--spacing-lg);
   text-align: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-dark);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  border-bottom: 4px solid var(--primary-yellow);
 }
 
 .benchmarks-header h1 {
-  margin: 0;
-  color: #333;
-  font-size: 32px;
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--white);
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
 }
 
 .subtitle {
-  color: #666;
-  font-size: 16px;
-  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  margin-top: var(--spacing-xs);
+  font-weight: 600;
+}
+
+.error-message,
+.success-message {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 600;
+  animation: slideInUp 0.4s ease;
+  border-left: 5px solid;
 }
 
 .error-message {
-  padding: 15px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  background-color: #fdecea;
+  color: #c41c1c;
+  border-color: var(--primary-red);
 }
 
 .success-message {
-  padding: 15px;
-  background-color: #d4edda;
+  background-color: #d4f0e8;
   color: #155724;
-  border: 1px solid #c3e6cb;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  border-color: var(--secondary-green);
 }
 
 .card {
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 25px;
+  background: var(--white);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-md);
+  border-top: 4px solid var(--primary-yellow);
+  animation: slideInUp 0.5s ease;
 }
 
 .card h2 {
   margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 24px;
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-dark);
+  font-size: clamp(1.1rem, 2.8vw, 1.35rem);
+  text-transform: uppercase;
+  font-family: var(--font-display);
 }
 
 .card h3 {
-  margin-top: 25px;
-  margin-bottom: 15px;
-  color: #555;
-  font-size: 18px;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-red);
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+}
+
+/* Layout de dos columnas para formulario y gráfico */
+.benchmarks-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 900px) {
+  .benchmarks-two-columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Formulario */
 .onerm-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-lg);
 }
 
 .form-group {
@@ -74,28 +111,33 @@
 }
 
 .form-group label {
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #555;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
 }
 
 .form-group label .required {
-  color: #dc3545;
-  margin-left: 4px;
+  color: var(--primary-red);
+  margin-left: var(--spacing-xs);
 }
 
 .form-group input {
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
-  transition: border-color 0.3s;
+  padding: var(--spacing-md);
+  border: 2px solid var(--gray-medium);
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+  min-height: 48px;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-yellow);
+  box-shadow: 0 0 0 3px rgba(247, 184, 1, 0.2);
 }
 
 .form-row {
@@ -123,20 +165,61 @@
 }
 
 .back-btn {
-  padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: transparent;
+  border: 2px solid var(--gray-medium);
+  color: var(--gray-dark);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.3s;
-  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-md);
+  min-height: 44px;
 }
 
 .back-btn:hover {
-  background-color: #5a6268;
+  background: var(--primary-orange);
+  border-color: var(--primary-orange);
+  color: var(--white);
+  transform: translateX(-3px);
+}
+
+/* Layout 2 columnas para Vista Detalle */
+/* Cuando hay múltiples cards, las primeras 2 van lado a lado */
+.benchmarks-container > .card:nth-last-of-type(n+2):nth-of-type(2) {
+  display: inline-block;
+  width: calc(50% - var(--spacing-md) / 2);
+  margin-right: var(--spacing-md);
+  vertical-align: top;
+}
+
+.benchmarks-container > .card:nth-last-of-type(n+1):nth-of-type(3) {
+  display: inline-block;
+  width: calc(50% - var(--spacing-md) / 2);
+  vertical-align: top;
+}
+
+/* La cuarta card (historial) en ancho completo */
+.benchmarks-container > .card:nth-of-type(4) {
+  display: block;
+  width: 100%;
+  clear: both;
+}
+
+/* Tabla de registros ocupa todo el ancho */
+.records-table {
+  margin-top: 0;
+  width: 100%;
+}
+
+.records-table h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-dark);
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-family: var(--font-display);
+  text-transform: uppercase;
 }
 
 /* Grid de ejercicios */
@@ -333,6 +416,15 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* En móvil, todas las cards ocupan ancho completo */
+  .benchmarks-container > .card:nth-last-of-type(n+2):nth-of-type(2),
+  .benchmarks-container > .card:nth-last-of-type(n+1):nth-of-type(3) {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: var(--spacing-lg);
+  }
+
   .benchmarks-container {
     margin: 20px;
     padding: 20px;

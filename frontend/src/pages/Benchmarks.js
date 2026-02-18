@@ -291,53 +291,60 @@ export default function Benchmarks() {
             {error && <div className="error-message">{error}</div>}
             {successMessage && <div className="success-message">{successMessage}</div>}
 
-            {/* Formulario de registro */}
-            <div className="card">
-              <h2>Registrar Nuevo 1RM</h2>
-              <form onSubmit={handleSubmit} className="onerm-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Peso (kg): <span className="required">*</span></label>
-                    <input
-                      type="number"
-                      name="peso"
-                      value={formData.peso}
-                      onChange={handleChange}
-                      placeholder="Peso en kg"
-                      step="0.5"
-                      min="0"
-                      required
-                    />
+            {/* Contenedor de dos columnas: formulario y gráfico */}
+            <div className="benchmarks-two-columns">
+              {/* Formulario de registro */}
+              <div className="card">
+                <h2>Registrar Nuevo 1RM</h2>
+                <form onSubmit={handleSubmit} className="onerm-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Peso (kg): <span className="required">*</span></label>
+                      <input
+                        type="number"
+                        name="peso"
+                        value={formData.peso}
+                        onChange={handleChange}
+                        placeholder="Peso en kg"
+                        step="0.5"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Fecha: <span className="required">*</span></label>
+                      <input
+                        type="date"
+                        name="fecha"
+                        value={formData.fecha}
+                        onChange={handleChange}
+                        max={new Date().toISOString().split('T')[0]}
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-group">
-                    <label>Fecha: <span className="required">*</span></label>
-                    <input
-                      type="date"
-                      name="fecha"
-                      value={formData.fecha}
-                      onChange={handleChange}
-                      max={new Date().toISOString().split('T')[0]}
-                      required
-                    />
+                  <button type="submit" className="btn-primary">
+                    Registrar 1RM
+                  </button>
+                </form>
+              </div>
+
+              {/* Gráfico de evolución */}
+              {historyData.length > 0 && (
+                <div className="card">
+                  <h2>Evolución del Rendimiento</h2>
+                  <div className="chart-container">
+                    <Line data={chartData} options={chartOptions} />
                   </div>
                 </div>
-
-                <button type="submit" className="btn-primary">
-                  Registrar 1RM
-                </button>
-              </form>
+              )}
             </div>
 
-            {/* Gráfico de evolución */}
+            {/* Tabla de registros - Debajo en toda la anchura */}
             {historyData.length > 0 && (
               <div className="card">
-                <h2>Evolución del Rendimiento</h2>
-                <div className="chart-container">
-                  <Line data={chartData} options={chartOptions} />
-                </div>
-                
-                {/* Tabla de registros */}
                 <div className="records-table">
                   <h3>Historial de Registros</h3>
                   <table>

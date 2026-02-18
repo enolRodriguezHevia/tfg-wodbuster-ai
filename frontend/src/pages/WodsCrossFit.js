@@ -375,6 +375,7 @@ export default function WodsCrossFit() {
         )}
 
         {/* Historial de WODs */}
+        {!showForm && (
         <div className="wods-list">
           <h2>Historial de WODs</h2>
           
@@ -419,6 +420,7 @@ export default function WodsCrossFit() {
             </div>
           )}
         </div>
+        )}
       </div>
     </>
   );

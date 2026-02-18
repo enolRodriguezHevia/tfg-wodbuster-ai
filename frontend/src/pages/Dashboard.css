@@ -1,22 +1,51 @@
+/* ==========================================
+   DASHBOARD - CENTRO DE ENTRENAMIENTO
+   ========================================== */
+
 /* Contenedor del dashboard */
 .dashboard-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 70px);
   width: 100%;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40px 20px;
+  font-family: var(--font-primary);
+  background: var(--gradient-dark);
+  background-attachment: fixed;
+  padding: var(--spacing-lg) var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Patrón de fondo motivacional */
+.dashboard-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      rgba(230, 57, 70, 0.03) 20px,
+      rgba(230, 57, 70, 0.03) 40px
+    );
+  pointer-events: none;
 }
 
 /* Contenedor de botones de funcionalidades */
 .functionality-buttons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 250px));
-  gap: 30px;
-  max-width: 1000px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 1400px;
   width: 100%;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.6s ease;
 }
 
 /* Botón de funcionalidad */
@@ -25,64 +54,211 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 30px;
-  background-color: white;
-  border: none;
-  border-radius: 15px;
+  padding: var(--spacing-md);
+  background: var(--white);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-lg);
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  min-height: 200px;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  min-height: 170px;
+  position: relative;
+  overflow: hidden;
+  animation: slideInUp 0.6s ease backwards;
+}
+
+/* Efecto de gradiente en hover */
+.function-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: 0;
+}
+
+.function-button:hover::before {
+  opacity: 0.95;
 }
 
 .function-button:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(-12px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(230, 57, 70, 0.4);
+  border-color: var(--primary-red);
 }
 
 .function-button:active {
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
 }
 
+.function-button:focus {
+  outline: 3px solid var(--primary-red);
+  outline-offset: 4px;
+}
+
+/* Contenido del botón */
+.function-button > * {
+  position: relative;
+  z-index: 1;
+  transition: all var(--transition-normal);
+}
+
+.function-button:hover > * {
+  color: var(--white);
+}
+
+/* Animación escalonada para los botones */
+.function-button:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.function-button:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.function-button:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.function-button:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.function-button:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.function-button:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* Icono del botón */
 .button-icon {
-  font-size: 60px;
-  margin-bottom: 15px;
+  font-size: 72px;
+  margin-bottom: var(--spacing-lg);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
+/* Foto de perfil en el botón */
 .button-profile-photo {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 15px;
-  border: 3px solid #667eea;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: var(--spacing-lg);
+  border: 4px solid var(--primary-red);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
 }
 
+.function-button:hover .button-profile-photo {
+  border-color: var(--white);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.4);
+}
+
+/* Texto del botón */
 .button-text {
-  font-size: 20px;
-  font-weight: 600;
-  color: #667eea;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--primary-dark);
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.3;
+}
+
+.function-button:hover .button-text {
+  color: var(--white);
+  transform: scale(1.1);
 }
 
 /* Responsive para botones de funcionalidades */
+@media (max-width: 1200px) {
+  .functionality-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+  }
+  
+  .function-button {
+    min-height: 220px;
+    padding: var(--spacing-xl);
+  }
+  
+  .button-icon {
+    font-size: 64px;
+  }
+  
+  .button-text {
+    font-size: 20px;
+  }
+}
+
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding: var(--spacing-xl) var(--spacing-md);
+    min-height: calc(100vh - 90px);
+  }
+  
   .functionality-buttons {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: var(--spacing-lg);
+    max-width: 500px;
   }
 
   .function-button {
-    min-height: 150px;
-    padding: 30px 20px;
+    min-height: 180px;
+    padding: var(--spacing-lg);
   }
 
   .button-icon {
-    font-size: 50px;
+    font-size: 56px;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .button-profile-photo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--spacing-md);
   }
 
   .button-text {
     font-size: 18px;
+  }
+  
+  .function-button:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .functionality-buttons {
+    gap: var(--spacing-md);
+  }
+  
+  .function-button {
+    min-height: 160px;
+    padding: var(--spacing-md);
+  }
+  
+  .button-icon {
+    font-size: 48px;
+  }
+  
+  .button-profile-photo {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .button-text {
+    font-size: 16px;
   }
 }

@@ -78,12 +78,38 @@ export default function AnalisisVideos() {
   const cargarEjercicios = async () => {
     try {
       const ejerciciosDisponibles = [
-        { id: "sentadilla", nombre: "Sentadilla (Squat)" },
-        { id: "press-hombros", nombre: "Press de Hombros" },
-        { id: "peso-muerto", nombre: "Peso Muerto (Deadlift)" },
-        { id: "remo-barra", nombre: "Remo con Barra Inclinado" },
-        { id: "flexiones", nombre: "Flexiones (Push-ups)" },
-        { id: "dominadas", nombre: "Dominadas (Pull-ups)" }
+        {
+          id: "sentadilla",
+          nombre: "Sentadilla (Squat)",
+          icono: "🦵",
+          descripcion: "Ejercicio fundamental de fuerza para piernas y glúteos. La IA detectará el punto más bajo de la sentadilla y analizará la alineación de rodillas, caderas y columna.",
+          consejos: ["Mantén la espalda recta", "Rodillas alineadas con los pies", "Desciende hasta paralelo o más"],
+          disponible: true
+        },
+        {
+          id: "press-hombros",
+          nombre: "Press de Hombros",
+          icono: "💪",
+          descripcion: "Ejercicio de empuje vertical para deltoides y tríceps. Se analizará el lockout (extensión completa) para evaluar la alineación del torso y los codos.",
+          consejos: ["Core activado durante el movimiento", "Extiende completamente los brazos", "Evita hiperextender la espalda baja"],
+          disponible: true
+        },
+        {
+          id: "peso-muerto",
+          nombre: "Peso Muerto (Deadlift)",
+          icono: "🏋️",
+          descripcion: "Ejercicio de cadena posterior que trabaja espalda, glúteos e isquiotibiales. Se compararán el frame inicial y el lockout para evaluar la trayectoria de la cadera.",
+          consejos: ["Barra pegada al cuerpo", "Espalda neutra en todo momento", "Empuja el suelo con los pies"],
+          disponible: true
+        },
+        {
+          id: "remo-barra",
+          nombre: "Remo con Barra Inclinado",
+          icono: "🚣",
+          descripcion: "Ejercicio de tirón horizontal para dorsales y romboides. Se analizarán el inicio con brazos extendidos y el peak de contracción para evaluar el ángulo del torso.",
+          consejos: ["Torso inclinado entre 45° y 60°", "Lleva la barra hacia el ombligo", "Mantén los codos cerca del cuerpo"],
+          disponible: true
+        }
       ];
       setEjercicios(ejerciciosDisponibles);
     } catch (err) {
@@ -242,26 +268,80 @@ export default function AnalisisVideos() {
 
         <div className="analisis-content">
               <form onSubmit={handleSubmit} className="analisis-form">
-                {/* Selección de ejercicio */}
-                <div className="form-section">
-                  <h2 className="section-title">1. Selecciona el ejercicio</h2>
-                  <select
-                    value={ejercicioSeleccionado}
-                    onChange={handleEjercicioChange}
-                    className="ejercicio-select"
-                    disabled={isAnalyzing}
-                  >
-                    <option value="">-- Selecciona un ejercicio --</option>
-                    {ejercicios.map((ejercicio) => (
-                      <option key={ejercicio.id} value={ejercicio.id}>
-                        {ejercicio.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Contenedor de dos columnas */}
+                <div className="form-columns">
+                  {/* Selección de ejercicio */}
+                  <div className="form-section">
+                    <h2 className="section-title">1. Selecciona el ejercicio</h2>
+                    <select
+                      value={ejercicioSeleccionado}
+                      onChange={handleEjercicioChange}
+                      className="ejercicio-select"
+                      disabled={isAnalyzing}
+                    >
+                      <option value="">-- Selecciona un ejercicio --</option>
+                      {ejercicios.map((ejercicio) => (
+                        <option key={ejercicio.id} value={ejercicio.id}>
+                          {ejercicio.nombre}
+                        </option>
+                      ))}
+                    </select>
 
-                {/* Subida de video */}
-                <div className="form-section">
+                    {/* Descripción del ejercicio seleccionado */}
+                    {ejercicioSeleccionado && (() => {
+                      const info = ejercicios.find(e => e.id === ejercicioSeleccionado);
+                      if (!info) return null;
+                      return (
+                        <div className="ejercicio-info">
+                          <div className="ejercicio-info-header">
+                            <span className="ejercicio-icono">{info.icono}</span>
+                            <span className="ejercicio-info-nombre">{info.nombre}</span>
+                          </div>
+                          <p className="ejercicio-descripcion">{info.descripcion}</p>
+                          {info.consejos && info.consejos.length > 0 && (
+                            <ul className="ejercicio-consejos">
+                              {info.consejos.map((consejo, i) => (
+                                <li key={i}>✓ {consejo}</li>
+                              ))}
+                            </ul>
+                          )}
+                          {!info.disponible && (
+                            <span className="ejercicio-badge-proximamente">Próximamente</span>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Mensajes de error */}
+                    {error && (
+                      <div className="error-message">
+                        ⚠️ {error}
+                      </div>
+                    )}
+
+                    {/* Botones de acción */}
+                    <div className="form-actions">
+                      <button
+                        type="submit"
+                        className="btn-analizar"
+                        disabled={isAnalyzing || !ejercicioSeleccionado || !videoFile}
+                      >
+                        {isAnalyzing ? "Analizando..." : "Analizar Video"}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={handleReset}
+                        className="btn-reset"
+                        disabled={isAnalyzing}
+                      >
+                        Limpiar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Subida de video */}
+                  <div className="form-section">
                   <h2 className="section-title">2. Sube tu video</h2>
                   <p className="section-info">
                     Formatos aceptados: MP4, WebM | Tamaño máximo: 100MB
@@ -282,33 +362,7 @@ export default function AnalisisVideos() {
                       </video>
                     </div>
                   )}
-                </div>
-
-                {/* Mensajes de error */}
-                {error && (
-                  <div className="error-message">
-                    ⚠️ {error}
                   </div>
-                )}
-
-                {/* Botones de acción */}
-                <div className="form-actions">
-                  <button
-                    type="submit"
-                    className="btn-analizar"
-                    disabled={isAnalyzing || !ejercicioSeleccionado || !videoFile}
-                  >
-                    {isAnalyzing ? "Analizando..." : "Analizar Video"}
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="btn-reset"
-                    disabled={isAnalyzing}
-                  >
-                    Limpiar
-                  </button>
                 </div>
               </form>
 
@@ -402,23 +456,12 @@ export default function AnalisisVideos() {
                   {resultado.imagenVisualizada && (
                     <div className="visualizacion-section">
                       <h3>Detección de Pose (Punto más bajo)</h3>
-                      <div className="videos-comparison">
-                        {videoPreview && (
-                          <div className="video-column">
-                            <h4>Video Original</h4>
-                            <video controls width="100%">
-                              <source src={videoPreview} type={videoFile.type} />
-                            </video>
-                          </div>
-                        )}
-                        <div className="video-column">
-                          <h4>Detección de Puntos</h4>
-                          <img 
-                            src={resultado.imagenVisualizada} 
-                            alt="Pose detectada" 
-                            style={{width: '100%', borderRadius: '8px'}}
-                          />
-                        </div>
+                      <div className="video-column-single">
+                        <img 
+                          src={resultado.imagenVisualizada} 
+                          alt="Pose detectada" 
+                          className="pose-image-small"
+                        />
                       </div>
                     </div>
                   )}
@@ -433,30 +476,16 @@ export default function AnalisisVideos() {
                           <img 
                             src={resultado.imagenInicio} 
                             alt="Frame de inicio" 
-                            style={{width: '100%', borderRadius: '8px'}}
+                            className="pose-image-small"
                           />
-                          {resultado.detallesPrimeraRep && (
-                            <div className="frame-info">
-                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.inicio.tiempo}s</p>
-                              <p>📐 Rodilla: {resultado.detallesPrimeraRep.inicio.anguloRodilla}°</p>
-                              <p>📏 Torso: {resultado.detallesPrimeraRep.inicio.anguloTorso}°</p>
-                            </div>
-                          )}
                         </div>
                         <div className="video-column">
                           <h4>Lockout (Cadera más alta)</h4>
                           <img 
                             src={resultado.imagenLockout} 
                             alt="Frame de lockout" 
-                            style={{width: '100%', borderRadius: '8px'}}
+                            className="pose-image-small"
                           />
-                          {resultado.detallesPrimeraRep && (
-                            <div className="frame-info">
-                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.lockout.tiempo}s</p>
-                              <p>📐 Rodilla: {resultado.detallesPrimeraRep.lockout.anguloRodilla}°</p>
-                              <p>📏 Torso: {resultado.detallesPrimeraRep.lockout.anguloTorso}°</p>
-                            </div>
-                          )}
                         </div>
                       </div>
                       
@@ -467,20 +496,13 @@ export default function AnalisisVideos() {
                   {resultado.imagenLockout && !resultado.imagenInicio && !resultado.imagenPeak && (
                     <div className="visualizacion-section">
                       <h3>Detección de Pose - Lockout</h3>
-                      <div className="video-column" style={{maxWidth: '600px', margin: '0 auto'}}>
+                      <div className="video-column" style={{maxWidth: '500px', margin: '0 auto'}}>
                         <h4>Lockout (Brazos Extendidos)</h4>
                         <img 
                           src={resultado.imagenLockout} 
                           alt="Frame de lockout" 
-                          style={{width: '100%', borderRadius: '8px'}}
+                          className="pose-image-small"
                         />
-                        {resultado.detallesPrimeraRep && (
-                          <div className="frame-info">
-                            <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.lockout.tiempo}s</p>
-                            <p>💪 Codo: {resultado.detallesPrimeraRep.lockout.anguloCodo}°</p>
-                            <p>📏 Torso: {resultado.detallesPrimeraRep.lockout.anguloTorso}°</p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
@@ -495,30 +517,16 @@ export default function AnalisisVideos() {
                           <img 
                             src={resultado.imagenInicio} 
                             alt="Frame de inicio" 
-                            style={{width: '100%', borderRadius: '8px'}}
+                            className="pose-image-small"
                           />
-                          {resultado.detallesPrimeraRep && (
-                            <div className="frame-info">
-                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.inicio.tiempo}s</p>
-                              <p>💪 Codo: {resultado.detallesPrimeraRep.inicio.anguloCodo}°</p>
-                              <p>📏 Torso: {resultado.detallesPrimeraRep.inicio.anguloTorso}°</p>
-                            </div>
-                          )}
                         </div>
                         <div className="video-column">
                           <h4>Peak (Tirón Completo)</h4>
                           <img 
                             src={resultado.imagenPeak} 
                             alt="Frame de peak" 
-                            style={{width: '100%', borderRadius: '8px'}}
+                            className="pose-image-small"
                           />
-                          {resultado.detallesPrimeraRep && resultado.detallesPrimeraRep.peak && (
-                            <div className="frame-info">
-                              <p>⏱️ Tiempo: {resultado.detallesPrimeraRep.peak.tiempo}s</p>
-                              <p>💪 Codo: {resultado.detallesPrimeraRep.peak.anguloCodo}°</p>
-                              <p>📏 Torso: {resultado.detallesPrimeraRep.peak.anguloTorso}°</p>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>

@@ -75,7 +75,6 @@ function detectarRepeticionesPressHombro(frames) {
   
   const posicionesMuneca = frames.map(f => f.posicionMuneca);
   const minMunecaY = Math.min(...posicionesMuneca);
-  const maxMunecaY = Math.max(...posicionesMuneca);
   
   const frameLockout = frames.find(f => f.posicionMuneca === minMunecaY);
   const indiceLockout = frames.indexOf(frameLockout);
@@ -138,8 +137,6 @@ async function analizarResultadosPressHombro(frames, landmarksFrames, duracion, 
   } catch (error) {
     console.error("⚠️ Error al generar imágenes visualizadas:", error);
   }
-  
-  const cambioTorso = frameLockout.anguloTorso - frameInicio.anguloTorso;
   
   return {
     imagenLockout,

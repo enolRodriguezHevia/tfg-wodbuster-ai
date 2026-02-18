@@ -1,53 +1,73 @@
+/* ==========================================
+   PROFILE PAGE - PERFIL DE ATLETA
+   ========================================== */
+
 .profile-container {
-  max-width: 800px;
-  margin: 30px auto;
-  padding: 30px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: var(--spacing-md) auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  animation: slideInUp 0.6s ease;
+  border-top: 4px solid var(--primary-red);
 }
 
 .profile-header {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #ddd;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--primary-red);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .profile-header h1 {
   margin: 0;
-  color: #333;
+  color: var(--primary-dark);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .error-message {
-  padding: 15px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: #fdecea;
+  color: #c41c1c;
+  border: 2px solid var(--primary-red);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  font-size: 0.85rem;
+  animation: slideInUp 0.4s ease;
 }
 
 .success-message {
-  padding: 15px;
-  background-color: #d4edda;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: #d4f0e8;
   color: #155724;
-  border: 1px solid #c3e6cb;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  border: 2px solid var(--secondary-green);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  font-size: 0.85rem;
+  animation: slideInUp 0.4s ease;
 }
 
 /* Modo visualización */
 .profile-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-lg);
 }
 
 /* Foto de perfil en modo visualización */
 .profile-photo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
+  animation: fadeIn 0.8s ease;
 }
 
 .profile-photo {
@@ -55,102 +75,132 @@
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border: 4px solid #667eea;
+  box-shadow: var(--shadow-md);
+  border: 4px solid var(--primary-red);
+  transition: all var(--transition-normal);
+}
+
+.profile-photo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px rgba(230, 57, 70, 0.4);
 }
 
 .profile-photo-placeholder {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border: 4px solid #667eea;
+  box-shadow: var(--shadow-md);
+  border: 4px solid var(--primary-red);
 }
 
 .placeholder-icon {
   font-size: 70px;
-  color: white;
+  color: var(--white);
 }
 
 .profile-info {
-  background-color: white;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--gray-light);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary-red);
 }
 
 .info-row {
   display: flex;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 2px solid rgba(230, 57, 70, 0.1);
+  transition: all var(--transition-fast);
 }
 
 .info-row:last-child {
   border-bottom: none;
 }
 
+.info-row:hover {
+  background-color: rgba(230, 57, 70, 0.05);
+  padding-left: var(--spacing-sm);
+}
+
 .info-label {
-  font-weight: 600;
-  color: #555;
-  min-width: 150px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  min-width: 180px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
 }
 
 .info-value {
-  color: #333;
+  color: var(--gray-dark);
   flex: 1;
+  font-size: 1rem;
 }
 
 .edit-btn {
-  padding: 12px 30px;
-  background-color: #007bff;
-  color: white;
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--gradient-primary);
+  color: var(--white);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--border-radius-md);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
   align-self: flex-start;
-  transition: background-color 0.3s;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  min-height: 48px;
 }
 
 .edit-btn:hover {
-  background-color: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.edit-btn:active {
+  transform: translateY(-1px);
 }
 
 /* Modo edición */
 .profile-edit {
-  background-color: white;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--white);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #555;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .form-group label .required {
-  color: #dc3545;
-  font-weight: bold;
-  margin-left: 4px;
+  color: var(--primary-red);
+  font-weight: 900;
+  margin-left: var(--spacing-xs);
 }
 
 .form-group label .optional {
-  color: #6c757d;
-  font-weight: normal;
-  font-size: 12px;
+  color: var(--gray-medium);
+  font-weight: 400;
+  font-size: 0.8rem;
   font-style: italic;
-  margin-left: 4px;
+  margin-left: var(--spacing-xs);
+  text-transform: none;
 }
 
 .input-with-clear {
@@ -611,6 +661,19 @@
   .btn-danger,
   .btn-cancel {
     width: 100%;
+  }
+}
+
+.delete-modal .modal-content {
+  padding: 32px 28px 18px 28px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+}
+
+@media (max-width: 600px) {
+  .delete-modal .modal-content {
+    padding: 16px 4vw 10px 4vw;
   }
 }
 

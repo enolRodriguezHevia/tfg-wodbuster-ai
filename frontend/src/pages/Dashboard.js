@@ -53,7 +53,10 @@ export default function Dashboard() {
             <span className="button-icon">🎥</span>
             <span className="button-text">Análisis de Videos IA</span>
           </button>
-          {/* Aquí se añadirán más botones de funcionalidades */}
+          <button className="function-button" onClick={() => navigate("/configuracion-ia")}>
+            <span className="button-icon">⚙️</span>
+            <span className="button-text">Configuración IA</span>
+          </button>
         </div>
       </div>
     </>
