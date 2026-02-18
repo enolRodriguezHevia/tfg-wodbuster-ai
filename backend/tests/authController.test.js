@@ -201,7 +201,11 @@ describe('Auth Controller - Signup', () => {
 
   describe('POST /api/auth/signup - Manejo de errores', () => {
     test('Debería manejar errores del servidor', async () => {
-      User.findOne.mockRejectedValue(new Error('Database error'));
+      jest.clearAllMocks();
+      const User = require('../models/User');
+      const spy = jest.spyOn(User, 'findOne');
+      spy.mockRejectedValueOnce(new Error('Database error'));
+      spy.mockRejectedValueOnce(new Error('Database error'));
 
       const response = await request(app)
         .post('/api/auth/signup')
@@ -213,6 +217,7 @@ describe('Auth Controller - Signup', () => {
 
       expect(response.status).toBe(500);
       expect(response.body.message).toBe('Error del servidor');
+      spy.mockRestore();
     });
   });
 });

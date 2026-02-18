@@ -229,6 +229,7 @@ const subirFotoPerfil = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
+    let isNewPhoto = !user.profilePhoto;
     // Eliminar la foto anterior si existe
     if (user.profilePhoto) {
       const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
@@ -240,8 +241,8 @@ const subirFotoPerfil = async (req, res) => {
     // Guardar la ruta relativa de la nueva foto
     user.profilePhoto = req.file.path.replace(/\\/g, '/');
     await user.save();
-
-    res.status(200).json({
+    
+    res.status(isNewPhoto ? 201 : 200).json({
       message: 'Foto de perfil actualizada con éxito',
       profilePhoto: user.profilePhoto
     });
@@ -367,7 +368,8 @@ const obtenerConfiguracionLLM = async (req, res) => {
     res.status(200).json({
       success: true,
       llmActual: user.llmPreference || 'claude',
-      modelosDisponibles: modelosInfo
+      llmPreference: user.llmPreference || 'claude',
+      modelosInfo: modelosInfo
     });
 
   } catch (err) {
