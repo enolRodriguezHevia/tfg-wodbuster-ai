@@ -125,9 +125,6 @@ describe('User Controller', () => {
     afterAll(() => jest.clearAllMocks());
     test('Devuelve configuración LLM si usuario existe', async () => {
       const res = await request(app).get('/api/user/testuser/llm/config');
-      if (res.status !== 200) {
-        console.error('Respuesta inesperada:', res.body);
-      }
       expect(res.status).toBe(200);
       expect(res.body.llmPreference).toBe('claude');
       expect(res.body.modelosInfo).toBeDefined();

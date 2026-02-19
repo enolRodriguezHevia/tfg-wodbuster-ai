@@ -20,6 +20,8 @@ import {
   Legend
 } from 'chart.js';
 import "./Benchmarks.css";
+import ModalConfirmacion from "../components/ModalConfirmacion";
+
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -72,6 +74,10 @@ export default function Benchmarks() {
   const [exercisesWithData, setExercisesWithData] = useState([]);
   const [username, setUsername] = useState("");
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
+
   useEffect(() => {
     // Verificar si el usuario está logueado
     const loggedUser = getLoggedUser();
@@ -90,7 +96,7 @@ export default function Benchmarks() {
       const response = await getOneRMExercises(user);
       setExercisesWithData(response.ejercicios || []);
     } catch (err) {
-      console.error("Error al cargar ejercicios:", err);
+      setError(err.message || "Error al cargar ejercicios");
     }
   };
 
@@ -167,22 +173,31 @@ export default function Benchmarks() {
     }
   };
 
-  const handleDeleteRecord = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este registro?")) {
-      return;
-    }
+  // Abrir modal
+  const handleDeleteClick = (id) => {
+    setRecordToDelete(id);
+    setShowDeleteModal(true);
+  };
 
+  // Confirmar eliminación
+  const confirmDeleteRecord = async () => {
     try {
-      await deleteOneRM(id);
+      await deleteOneRM(recordToDelete);
+
       setSuccessMessage("Registro eliminado con éxito");
-      
-      // Recargar datos
+
+      setShowDeleteModal(false);
+      setRecordToDelete(null);
+
       await loadHistory(selectedExercise);
       await loadExercisesWithData(username);
+
     } catch (err) {
       setError("Error al eliminar el registro");
+      setShowDeleteModal(false);
     }
   };
+
 
   // Preparar datos para el gráfico
   const chartData = {
@@ -365,7 +380,7 @@ export default function Benchmarks() {
                           <td>
                             <button 
                               className="btn-delete-small"
-                              onClick={() => handleDeleteRecord(record.id)}
+                              onClick={() => handleDeleteClick(record.id)}
                             >
                               Eliminar
                             </button>
@@ -389,6 +404,19 @@ export default function Benchmarks() {
           </>
         )}
       </div>
+
+      <ModalConfirmacion
+        open={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setRecordToDelete(null);
+        }}
+        onConfirm={confirmDeleteRecord}
+        titulo="Eliminar registro"
+        mensaje="¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer."
+        textoBotonEliminar="Eliminar"
+        textoBotonCancelar="Cancelar"
+      />
     </>
   );
 }

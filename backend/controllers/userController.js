@@ -291,8 +291,7 @@ const eliminarCuenta = async (req, res) => {
         try {
           fs.unlinkSync(photoPath);
         } catch (err) {
-          console.error('Error al eliminar foto de perfil:', err);
-          // Continuar con la eliminación aunque falle borrar la foto
+          
         }
       }
     }

@@ -69,7 +69,6 @@ function procesarFramePressHombro(landmarks, tiempo, frameIndex) {
  */
 function detectarRepeticionesPressHombro(frames) {
   if (frames.length < 10) {
-    console.log('⚠️ Muy pocos frames para análisis:', frames.length);
     return [];
   }
   
@@ -135,7 +134,7 @@ async function analizarResultadosPressHombro(frames, landmarksFrames, duracion, 
       imagenLockout = await generarImagenConLandmarks(video, frameData, ctx, canvas, 'LOCKOUT');
     }
   } catch (error) {
-    console.error("⚠️ Error al generar imágenes visualizadas:", error);
+    throw error;
   }
   
   return {
@@ -189,7 +188,6 @@ async function analizarResultadosPressHombro(frames, landmarksFrames, duracion, 
  */
 export async function analizarPressHombroVideo(videoFile) {
   try {
-    console.log("🎬 Iniciando análisis de press de hombros...");
     
     const detector = await initializePoseLandmarker();
     const video = await prepararVideo(videoFile);
@@ -203,7 +201,6 @@ export async function analizarPressHombroVideo(videoFile) {
       300
     );
     
-    console.log(`✅ Analizados ${resultadosFrames.length} frames`);
     
     const resultado = await analizarResultadosPressHombro(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);
     
@@ -211,7 +208,6 @@ export async function analizarPressHombroVideo(videoFile) {
     
     return resultado;
   } catch (error) {
-    console.error("❌ Error en análisis de press de hombros:", error);
     throw error;
   }
 }

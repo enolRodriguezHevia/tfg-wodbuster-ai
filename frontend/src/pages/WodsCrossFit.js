@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { registerWodCrossFit, getWodsCrossFit, deleteWodCrossFit } from "../api/api";
 import Navbar from "../components/Navbar";
 import "./WodsCrossFit.css";
+import ModalConfirmacion from "../components/ModalConfirmacion";
 
 // Definición de WODs con sus niveles
 const WODS_CROSSFIT = {
@@ -115,6 +116,9 @@ export default function WodsCrossFit() {
     notas: ""
   });
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
   useEffect(() => {
     const loggedUser = JSON.parse(localStorage.getItem("user"));
     
@@ -132,7 +136,7 @@ export default function WodsCrossFit() {
       const response = await getWodsCrossFit(user);
       setWods(response.wods || []);
     } catch (err) {
-      console.error("Error al cargar WODs:", err);
+      setError(err.message || "Error al cargar los WODs");
     }
   };
 
@@ -193,19 +197,29 @@ export default function WodsCrossFit() {
     }
   };
 
-  const handleDeleteWod = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este WOD?")) {
-      return;
-    }
-
-    try {
-      await deleteWodCrossFit(id);
-      setSuccessMessage("WOD eliminado con éxito");
-      await loadWods(username);
-    } catch (err) {
-      setError("Error al eliminar el WOD");
-    }
-  };
+  // Abrir modal
+    const handleDeleteClick = (id) => {
+      setRecordToDelete(id);
+      setShowDeleteModal(true);
+    };
+    
+    // Confirmar eliminación
+      const confirmDeleteRecord = async () => {
+        try {
+          await deleteWodCrossFit(recordToDelete);
+    
+          setSuccessMessage("Registro eliminado con éxito");
+    
+          setShowDeleteModal(false);
+          setRecordToDelete(null);
+    
+          await loadWods(username);
+    
+        } catch (err) {
+          setError("Error al eliminar el registro");
+          setShowDeleteModal(false);
+        }
+      };
 
   const formatearTiempo = (segundosTotales) => {
     const minutos = Math.floor(segundosTotales / 60);
@@ -411,7 +425,7 @@ export default function WodsCrossFit() {
                   </div>
                   <button
                     className="btn-delete"
-                    onClick={() => handleDeleteWod(wod.id)}
+                    onClick={() => handleDeleteClick(wod.id)}
                   >
                     Eliminar
                   </button>
@@ -422,6 +436,19 @@ export default function WodsCrossFit() {
         </div>
         )}
       </div>
+
+      <ModalConfirmacion
+                    open={showDeleteModal}
+                    onClose={() => {
+                      setShowDeleteModal(false);
+                      setRecordToDelete(null);
+                    }}
+                    onConfirm={confirmDeleteRecord}
+                    titulo="Eliminar registro"
+                    mensaje="¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer."
+                    textoBotonEliminar="Eliminar"
+                    textoBotonCancelar="Cancelar"
+            />
     </>
   );
 }

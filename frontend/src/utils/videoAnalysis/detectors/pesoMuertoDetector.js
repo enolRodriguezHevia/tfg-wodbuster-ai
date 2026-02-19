@@ -74,7 +74,6 @@ function procesarFramePesoMuerto(landmarks, tiempo, frameIndex) {
  */
 function detectarRepeticionesPesoMuerto(frames) {
   if (frames.length < 10) {
-    console.log('⚠️ Muy pocos frames para análisis:', frames.length);
     return [];
   }
   
@@ -103,7 +102,6 @@ function detectarRepeticionesPesoMuerto(frames) {
   const amplitudHombros = frameInicio.posicionHombro - frameLockout.posicionHombro;
   
   if (amplitudHombros < 0.02) {
-    console.log('⚠️ Movimiento insuficiente de hombros');
     return [];
   }
   
@@ -166,7 +164,7 @@ async function analizarResultadosPesoMuerto(frames, landmarksFrames, duracion, v
       imagenLockout = await generarImagenConLandmarks(video, frameData, ctx, canvas, 'LOCKOUT');
     }
   } catch (error) {
-    console.error("⚠️ Error al generar imágenes visualizadas:", error);
+    throw error
   }
   
   return {
@@ -213,7 +211,6 @@ async function analizarResultadosPesoMuerto(frames, landmarksFrames, duracion, v
  */
 export async function analizarPesoMuertoVideo(videoFile) {
   try {
-    console.log("🎬 Iniciando análisis de peso muerto...");
     
     const detector = await initializePoseLandmarker();
     const video = await prepararVideo(videoFile);
@@ -226,16 +223,13 @@ export async function analizarPesoMuertoVideo(videoFile) {
       30,
       300
     );
-    
-    console.log(`✅ Analizados ${resultadosFrames.length} frames`);
-    
+        
     const resultado = await analizarResultadosPesoMuerto(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);
     
     URL.revokeObjectURL(video.src);
     
     return resultado;
   } catch (error) {
-    console.error("❌ Error en análisis de peso muerto:", error);
     throw error;
   }
 }

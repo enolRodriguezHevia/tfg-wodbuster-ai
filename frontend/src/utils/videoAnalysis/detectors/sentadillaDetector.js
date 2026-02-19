@@ -86,7 +86,6 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
   );
   
   if (framesValidos.length === 0) {
-    console.log(`⚠️ No hay frames válidos. Frames totales: ${frames.length}`);
     
     return {
       esCorrecta: false,
@@ -130,12 +129,9 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
   const anguloAlineacionBaja = frameMin.anguloAlineacion;
   const anguloFlexionCaderaBaja = frameMin.anguloFlexionCadera;
   const alturaRelativaBaja = frameMin.alturaRelativa;
-  const anguloTorsoBajo = frameMin.anguloTorso;
   
   const rompioParalelo = alturaRelativaBaja > -0.02;
-  
-  console.log(`📊 Punto más bajo (${framesValidos.length} frames): Rodilla=${anguloRodillaBaja}°, AlturaRel=${alturaRelativaBaja.toFixed(3)}, Torso=${anguloTorsoBajo.toFixed(1)}° (Paralelo: ${rompioParalelo})`);
-  
+    
   // Generar imagen visualizada
   let imagenVisualizada = null;
   try {
@@ -144,7 +140,7 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
       imagenVisualizada = await generarImagenConLandmarks(video, frameData, ctx, canvas, 'PUNTO MÁS BAJO');
     }
   } catch (error) {
-    console.error("⚠️ Error al generar imagen visualizada:", error);
+    throw error;
   }
   
   return {
@@ -203,7 +199,6 @@ async function analizarResultadosSentadilla(frames, landmarksFrames, duracion, v
  */
 export async function analizarSentadillaVideo(videoFile) {
   try {
-    console.log("🎬 Iniciando análisis de sentadilla...");
     
     const detector = await initializePoseLandmarker();
     const video = await prepararVideo(videoFile);
@@ -216,16 +211,13 @@ export async function analizarSentadillaVideo(videoFile) {
       30,
       90
     );
-    
-    console.log(`✅ Analizados ${resultadosFrames.length} frames`);
-    
+        
     const resultado = await analizarResultadosSentadilla(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);
     
     URL.revokeObjectURL(video.src);
     
     return resultado;
   } catch (error) {
-    console.error("❌ Error en análisis:", error);
     throw error;
   }
 }

@@ -63,7 +63,7 @@ export default function Navbar() {
             Plan de Entrenamiento
           </button>
           <button className="navbar-link-btn" onClick={goToAnalisisVideos}>
-            Análisis de Videos
+            Análisis de Videos IA
           </button>
           <button className="navbar-link-btn" onClick={goToConfiguracionIA}>
             Configuración IA

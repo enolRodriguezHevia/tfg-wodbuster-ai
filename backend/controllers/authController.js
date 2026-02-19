@@ -55,7 +55,6 @@ const signup = async (req, res) => {
     res.status(201).json({ message: 'Usuario creado con éxito' });
 
   } catch (err) {
-    console.error('Error en signup:', err);
     res.status(500).json({ message: 'Error del servidor' });
   }
 };
@@ -71,25 +70,25 @@ const login = async (req, res) => {
 
     // Validar datos de entrada
     if (!username || !password) {
-      console.log("DEBUG: Datos incompletos enviados", req.body);
+      // ...log de depuración eliminado...
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
     // Buscar usuario
     const user = await User.findOne({ username });
     if (!user) {
-      console.log(`DEBUG: Usuario no encontrado: ${username}`);
+      // ...log de depuración eliminado...
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
     // Verificar contraseña
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log(`DEBUG: Contraseña incorrecta para usuario: ${username}`);
+      // ...log de depuración eliminado...
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
-    console.log(`DEBUG: Login exitoso para usuario: ${username}`);
+    // ...log de depuración eliminado...
 
     // Generar token JWT
     const token = jwt.sign(
@@ -114,7 +113,6 @@ const login = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("DEBUG: Error en login:", err);
     res.status(500).json({ message: "Error del servidor" });
   }
 };

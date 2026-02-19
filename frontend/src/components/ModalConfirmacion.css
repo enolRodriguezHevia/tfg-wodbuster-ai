@@ -1,0 +1,80 @@
+/* Reutiliza estilos de los modales de PlanEntrenamiento y añade los necesarios para el modal de confirmación */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: var(--spacing-md);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-container.delete-modal {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  max-width: 340px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideInUp 0.4s ease;
+  position: relative;
+}
+
+.modal-content {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  overflow: hidden;
+}
+
+.btn-modal-action {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--secondary-blue);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-modal-action.btn-eliminar {
+  background: var(--primary-red);
+}
+
+.btn-modal-action:hover {
+  background: #3a6ea5;
+  transform: translateY(-2px);
+}
+
+.btn-modal-action.btn-eliminar:hover {
+  background: #c41c1c;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: 2px solid var(--white);
+  color: #888;
+  font-size: 1.2rem;
+  font-weight: 700;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close-modal:hover {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: var(--white);
+  transform: rotate(90deg);
+}

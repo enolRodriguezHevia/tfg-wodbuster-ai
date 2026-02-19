@@ -23,7 +23,7 @@ export default function Login() {
     try {
       const data = await loginUser(formData);
 
-      console.log("DEBUG: Login data recibida:", data); // Mensaje de depuración
+      // ...log de depuración eliminado...
       setMessage("¡Login exitoso! ✅");
 
       // Guardar token y usuario por separado en localStorage
@@ -39,9 +39,6 @@ export default function Login() {
     } catch (error) {
       // Mensaje genérico para el usuario
       setMessage("Usuario o contraseña incorrectos ❌");
-
-      // Mensaje de depuración visible solo en la consola
-      console.error("DEBUG: Error en login:", error);
     }
   };
 

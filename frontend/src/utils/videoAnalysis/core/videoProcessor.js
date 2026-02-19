@@ -66,9 +66,7 @@ export async function procesarFrames(video, detector, procesarFrame, fps = 30, m
     
     if (frameCount >= maxFrames) break;
   }
-  
-  console.log(`✅ Analizados ${frameCount} frames (${duracion.toFixed(2)}s de video)`);
-  
+    
   return { resultadosFrames, landmarksFrames, duracion };
 }
 

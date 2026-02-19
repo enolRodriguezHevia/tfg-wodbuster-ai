@@ -203,7 +203,6 @@ export default function Profile() {
       setShowCropper(false);
       setImageToCrop(null);
     } catch (error) {
-      console.error("Error al recortar la imagen:", error);
       setError("Error al procesar la imagen");
     }
   };

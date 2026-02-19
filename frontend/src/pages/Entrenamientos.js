@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { registerEntrenamiento, getEntrenamientos, deleteEntrenamiento } from "../api/api";
 import Navbar from "../components/Navbar";
 import "./Entrenamientos.css";
+import ModalConfirmacion from "../components/ModalConfirmacion";
+
 
 // Lista predefinida de ejercicios (misma que en Benchmarks)
 const EJERCICIOS_DISPONIBLES = [
@@ -36,6 +38,9 @@ export default function Entrenamientos() {
   const [entrenamientos, setEntrenamientos] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedEntrenamiento, setSelectedEntrenamiento] = useState(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
   
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0]
@@ -66,7 +71,7 @@ export default function Entrenamientos() {
       const response = await getEntrenamientos(user);
       setEntrenamientos(response.entrenamientos || []);
     } catch (err) {
-      console.error("Error al cargar entrenamientos:", err);
+      setError(err.message || "Error al cargar entrenamientos");
     }
   };
 
@@ -148,12 +153,6 @@ export default function Entrenamientos() {
         valoracion: parseInt(ej.valoracion)
       }));
 
-      console.log('Enviando datos:', {
-        username: username,
-        fecha: formData.fecha,
-        ejercicios: ejerciciosValidados
-      });
-
       await registerEntrenamiento({
         username: username,
         fecha: formData.fecha,
@@ -175,19 +174,29 @@ export default function Entrenamientos() {
     }
   };
 
-  const handleDeleteEntrenamiento = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este entrenamiento?")) {
-      return;
-    }
-
-    try {
-      await deleteEntrenamiento(id);
-      setSuccessMessage("Entrenamiento eliminado con éxito");
-      await loadEntrenamientos(username);
-    } catch (err) {
-      setError("Error al eliminar el entrenamiento");
-    }
+  // Abrir modal
+  const handleDeleteClick = (id) => {
+    setRecordToDelete(id);
+    setShowDeleteModal(true);
   };
+  
+  // Confirmar eliminación
+    const confirmDeleteRecord = async () => {
+      try {
+        await deleteEntrenamiento(recordToDelete);
+  
+        setSuccessMessage("Registro eliminado con éxito");
+  
+        setShowDeleteModal(false);
+        setRecordToDelete(null);
+  
+        await loadEntrenamientos(username);
+  
+      } catch (err) {
+        setError("Error al eliminar el registro");
+        setShowDeleteModal(false);
+      }
+    };
 
   const calcularVolumenTotal = () => {
     return ejercicios.reduce((total, ej) => {
@@ -372,7 +381,7 @@ export default function Entrenamientos() {
                     className="btn-delete-card"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteEntrenamiento(entrenamiento.id);
+                      handleDeleteClick(entrenamiento.id);
                     }}
                     title="Eliminar entrenamiento"
                   >
@@ -495,6 +504,19 @@ export default function Entrenamientos() {
           </div>
         )}
       </div>
+
+      <ModalConfirmacion
+              open={showDeleteModal}
+              onClose={() => {
+                setShowDeleteModal(false);
+                setRecordToDelete(null);
+              }}
+              onConfirm={confirmDeleteRecord}
+              titulo="Eliminar registro"
+              mensaje="¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer."
+              textoBotonEliminar="Eliminar"
+              textoBotonCancelar="Cancelar"
+      />
     </>
   );
 }

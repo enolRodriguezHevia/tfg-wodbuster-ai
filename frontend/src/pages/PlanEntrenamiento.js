@@ -4,6 +4,8 @@ import { getLoggedUser } from '../utils/auth';
 import { generarPlanEntrenamiento, obtenerPlanesAnteriores, eliminarPlan } from '../api/api';
 import Navbar from '../components/Navbar';
 import './PlanEntrenamiento.css';
+import ModalConfirmacion from '../components/ModalConfirmacion';
+
 
 const PlanEntrenamiento = () => {
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ const PlanEntrenamiento = () => {
   const [planSeleccionado, setPlanSeleccionado] = useState(null);
   const [mostrarPlanAnterior, setMostrarPlanAnterior] = useState(false);
   const [nombrePlan, setNombrePlan] = useState('');
+  const [planAEliminar, setPlanAEliminar] = useState(null);
+  const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
 
   useEffect(() => {
     const user = getLoggedUser();
@@ -37,7 +41,7 @@ const PlanEntrenamiento = () => {
         setPlanesAnteriores(response.planes);
       }
     } catch (err) {
-      console.error('Error al cargar planes anteriores:', err);
+      setError(err.message || "Error al cargar los planes anteriores");
     }
   };
 
@@ -72,7 +76,6 @@ const PlanEntrenamiento = () => {
         }
       }
     } catch (err) {
-      console.error('Error al generar plan:', err);
       setError(err.message || 'Error al generar el plan de entrenamiento');
     } finally {
       setLoading(false);
@@ -81,7 +84,6 @@ const PlanEntrenamiento = () => {
 
   const copiarAlPortapapeles = () => {
     navigator.clipboard.writeText(planGenerado);
-    alert('Plan copiado al portapapeles');
   };
 
   const descargarPlan = () => {
@@ -104,36 +106,39 @@ const PlanEntrenamiento = () => {
     setMostrarPlanAnterior(false);
   };
 
-  const handleEliminarPlan = async (e, planId) => {
+  const handleEliminarPlan = (e, planId) => {
     e.stopPropagation(); // Evitar que se abra el modal al hacer clic en eliminar
-    
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este plan?')) {
-      return;
-    }
+    setPlanAEliminar(planId);
+    setMostrarModalEliminar(true);
+  };
 
+  const confirmarEliminarPlan = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = getLoggedUser();
       if (!user || !user.username) return;
 
-      const response = await eliminarPlan(user.username, planId);
+      const response = await eliminarPlan(user.username, planAEliminar);
+
       if (response.success) {
-        // Recargar la lista de planes
         cargarPlanesAnteriores();
-        // Si el plan eliminado es el que está abierto en el modal, cerrarlo
-        if (planSeleccionado && planSeleccionado._id === planId) {
+
+        if (planSeleccionado && planSeleccionado._id === planAEliminar) {
           cerrarPlanAnterior();
         }
       }
+
     } catch (err) {
-      console.error('Error al eliminar plan:', err);
-      alert('Error al eliminar el plan');
+      setError(err.message || "Error al eliminar el plan");
+    } finally {
+      setMostrarModalEliminar(false);
+      setPlanAEliminar(null);
     }
   };
+
 
   const copiarPlanAnterior = () => {
     if (planSeleccionado) {
       navigator.clipboard.writeText(planSeleccionado.contenido);
-      alert('Plan copiado al portapapeles');
     }
   };
 
@@ -203,6 +208,27 @@ const PlanEntrenamiento = () => {
     <>
       <Navbar />
       <div className="plan-entrenamiento-container">
+                {/* Overlay de carga bloqueante */}
+                {loading && (
+                  <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    background: 'rgba(255,255,255,0.85)',
+                    zIndex: 3000,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'all',
+                  }}>
+                    <div className="loading-spinner" style={{marginBottom: 18}}></div>
+                    <h2 style={{color: '#e85d04', fontWeight: 700, fontSize: '1.2rem', marginBottom: 8}}>Generando tu plan...</h2>
+                    <p style={{color: '#333', fontSize: '1rem'}}>Esto puede tardar unos segundos.<br />Por favor, espera sin salir de la página.</p>
+                  </div>
+                )}
         <h1>Plan de Entrenamiento Personalizado</h1>
       
         <div className="info-section">
@@ -347,6 +373,7 @@ const PlanEntrenamiento = () => {
           </div>
         )}
 
+
         {mostrarPlanAnterior && planSeleccionado && (
           <div className="modal-overlay" onClick={cerrarPlanAnterior}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -382,6 +409,20 @@ const PlanEntrenamiento = () => {
           </div>
         )}
       </div>
+
+      <ModalConfirmacion
+        open={mostrarModalEliminar}
+        onClose={() => {
+          setMostrarModalEliminar(false);
+          setPlanAEliminar(null);
+        }}
+        onConfirm={confirmarEliminarPlan}
+        titulo="Eliminar plan"
+        mensaje="¿Seguro que quieres eliminar este plan? Esta acción no se puede deshacer."
+        textoBotonEliminar="Eliminar"
+        textoBotonCancelar="Cancelar"
+      />
+
     </>
   );
 };

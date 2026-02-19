@@ -25,10 +25,8 @@ export async function initializePoseLandmarker() {
       minTrackingConfidence: 0.5
     });
 
-    console.log("✅ PoseLandmarker inicializado");
     return poseLandmarker;
   } catch (error) {
-    console.error("❌ Error al inicializar PoseLandmarker:", error);
     throw error;
   }
 }

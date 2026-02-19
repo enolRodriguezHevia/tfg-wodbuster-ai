@@ -247,7 +247,7 @@ exports.generarPlanEntrenamiento = async (req, res) => {
   try {
     const { username } = req.params;
     const { nombre } = req.body; // Obtener el nombre del plan del body
-    
+
     // Obtener el userId desde el username
     const user = await User.findOne({ username });
     if (!user) {
@@ -256,9 +256,12 @@ exports.generarPlanEntrenamiento = async (req, res) => {
         message: 'Usuario no encontrado'
       });
     }
-    
+
+    // Obtener preferencia de LLM del usuario
+    const llmPreference = user.llmPreference || 'claude';
+
     const resultado = await generarPrompt(user._id);
-    
+
     if (resultado.error) {
       return res.status(400).json({
         success: false,
@@ -266,13 +269,11 @@ exports.generarPlanEntrenamiento = async (req, res) => {
         camposFaltantes: resultado.camposFaltantes
       });
     }
-    
-    // Generar el plan usando el LLM
-    console.log('📤 Enviando prompt al LLM para generar plan personalizado...');
-    const resultadoLLM = await generarConLLM(resultado.prompt);
+
+    // Generar el plan usando el LLM con la preferencia del usuario
+    const resultadoLLM = await generarConLLM(resultado.prompt, llmPreference);
     
     if (!resultadoLLM.success) {
-      console.error('❌ Error al generar plan con LLM:', resultadoLLM.error);
       return res.status(500).json({
         success: false,
         message: 'No se pudo generar el plan con el LLM. Por favor, inténtalo de nuevo.',
@@ -292,12 +293,6 @@ exports.generarPlanEntrenamiento = async (req, res) => {
     
     await nuevoPlan.save();
     
-    console.log(`✅ Plan generado y guardado correctamente (ID: ${nuevoPlan._id})`);
-    console.log(`🤖 Modelo usado: ${resultadoLLM.modelo} (${resultadoLLM.provider})`);
-    if (resultadoLLM.fallback) {
-      console.log(`⚠️  Se usó modelo de respaldo (${resultadoLLM.preferidoFallo} falló)`);
-    }
-    
     // Devolver el plan generado
     res.json({
       success: true,
@@ -313,7 +308,6 @@ exports.generarPlanEntrenamiento = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error al generar prompt:', error);
     res.status(500).json({
       success: false,
       message: 'Error al generar el plan de entrenamiento',
@@ -347,7 +341,6 @@ exports.obtenerPlanesAnteriores = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error al obtener planes anteriores:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener planes anteriores',
@@ -387,7 +380,6 @@ exports.obtenerPlanPorId = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error al obtener plan:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener el plan',
@@ -428,7 +420,6 @@ exports.eliminarPlan = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error al eliminar plan:', error);
     res.status(500).json({
       success: false,
       message: 'Error al eliminar el plan',

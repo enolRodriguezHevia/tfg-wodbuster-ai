@@ -81,7 +81,6 @@ function procesarFrameRemoBarra(landmarks, tiempo, frameIndex) {
  */
 function detectarRepeticionesRemoBarra(frames) {
   if (frames.length < 10) {
-    console.log('⚠️ Muy pocos frames para análisis:', frames.length);
     return [];
   }
   
@@ -155,7 +154,7 @@ async function analizarResultadosRemoBarra(frames, landmarksFrames, duracion, vi
       imagenPeak = await generarImagenConLandmarks(video, frameData, ctx, canvas, 'PEAK');
     }
   } catch (error) {
-    console.error("⚠️ Error al generar imágenes visualizadas:", error);
+    throw error;
   }
   
   return {
@@ -198,7 +197,6 @@ async function analizarResultadosRemoBarra(frames, landmarksFrames, duracion, vi
  */
 export async function analizarRemoBarraVideo(videoFile) {
   try {
-    console.log("🎬 Iniciando análisis de remo con barra...");
     
     const detector = await initializePoseLandmarker();
     const video = await prepararVideo(videoFile);
@@ -211,16 +209,13 @@ export async function analizarRemoBarraVideo(videoFile) {
       30,
       300
     );
-    
-    console.log(`✅ Analizados ${resultadosFrames.length} frames`);
-    
+        
     const resultado = await analizarResultadosRemoBarra(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);
     
     URL.revokeObjectURL(video.src);
     
     return resultado;
   } catch (error) {
-    console.error("❌ Error en análisis de remo con barra:", error);
     throw error;
   }
 }

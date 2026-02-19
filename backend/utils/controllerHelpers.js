@@ -23,11 +23,6 @@ const buscarUsuario = async (username, res) => {
  * @param {boolean} includeStack - Si se debe incluir stack trace en los logs
  */
 const manejarErrorServidor = (res, err, contexto = '', includeStack = false) => {
-  console.error(`Error ${contexto}:`, err);
-  if (includeStack) {
-    console.error('Stack trace:', err.stack);
-  }
-  
   res.status(500).json({ 
     message: 'Error del servidor',
     ...(process.env.NODE_ENV === 'development' && { error: err.message })

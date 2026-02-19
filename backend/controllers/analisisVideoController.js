@@ -1,6 +1,5 @@
 const AnalisisVideo = require("../models/AnalisisVideo");
 const User = require("../models/User");
-const mongoose = require("mongoose");
 const { generarFeedbackEjercicio } = require("../services/llmService");
 
 /**
@@ -23,8 +22,6 @@ exports.analizarVideo = async (req, res) => {
       return res.status(400).json({ message: "Ejercicio no válido" });
     }
 
-    console.log(`🎬 Recibiendo análisis del ejercicio: ${ejercicio}`);
-
     // Parsear datos del análisis
     let resultadoAnalisis, framesData, framesClaveParsed, metricasParsed;
     
@@ -44,7 +41,6 @@ exports.analizarVideo = async (req, res) => {
     // Obtener preferencia de LLM del usuario
     const user = await User.findById(userId).select('llmPreference');
     const llmPreference = user?.llmPreference || 'claude';
-    console.log(`⚙️  Preferencia de LLM del usuario: ${llmPreference.toUpperCase()}`);
 
     // NUEVA FUNCIONALIDAD: Generar feedback con LLM si hay datos disponibles
     let feedbackLLM = null;
@@ -58,9 +54,7 @@ exports.analizarVideo = async (req, res) => {
     // framesClave es obligatorio para todos, frames solo para press-hombros
     const tieneFramesNecesarios = ejercicio === 'press-hombros' ? (framesData && framesClaveParsed) : framesClaveParsed;
     
-    if (tieneFramesNecesarios && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {
-      console.log(`🤖 Generando feedback con IA para ${ejercicio}...`);
-      
+    if (tieneFramesNecesarios && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {      
       try {
         const llmResponse = await generarFeedbackEjercicio(
           ejercicio,
@@ -79,13 +73,10 @@ exports.analizarVideo = async (req, res) => {
           usaIA = true;
           
           const mensajeFallback = huboFallback ? ` (fallback desde ${llmResponse.preferidoFallo?.toUpperCase()})` : '';
-          console.log(`✅ Feedback IA generado exitosamente con ${proveedorUsado.toUpperCase()}${mensajeFallback} (${tokensUsados} tokens)`);
         } else {
-          console.log(`⚠️ Fallback a feedback básico: ${llmResponse.error}`);
           feedbackLLM = llmResponse.feedback;
         }
       } catch (llmErr) {
-        console.error(`❌ Error al generar feedback con IA: ${llmErr.message}`);
         // En caso de error de IA, usar feedback del frontend como fallback
         feedbackLLM = resultadoAnalisis.feedback || [
           "⚠️ Análisis completado sin IA.",
@@ -99,10 +90,7 @@ exports.analizarVideo = async (req, res) => {
       if (!framesClaveParsed) missingItems.push('framesClave');
       if (ejercicio === 'press-hombros' && !framesData) missingItems.push('frames (requerido para press-hombros)');
       if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) missingItems.push('API_KEYS');
-      
-      if (missingItems.length > 0) {
-        console.log(`⚠️ Análisis sin IA - faltan: ${missingItems.join(', ')}`);
-      }
+    
       feedbackLLM = resultadoAnalisis.feedback || [
         "❌ No se pudo analizar el video completamente.",
         "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
@@ -144,7 +132,6 @@ exports.analizarVideo = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Error al analizar video:", err);
 
     res.status(500).json({ 
       message: "Error al procesar el video",

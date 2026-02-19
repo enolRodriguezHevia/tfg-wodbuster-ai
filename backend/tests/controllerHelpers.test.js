@@ -25,15 +25,12 @@ describe('controllerHelpers', () => {
   });
 
   describe('manejarErrorServidor', () => {
-    it('responde 500 y loguea el error', () => {
+    it('responde 500 correctamente', () => {
       const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
       const err = new Error('fail');
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
       manejarErrorServidor(res, err, 'test', false);
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Error del servidor' }));
-      expect(spy).toHaveBeenCalled();
-      spy.mockRestore();
     });
   });
 });

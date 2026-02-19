@@ -28,8 +28,6 @@ async function request(endpoint, method = "GET", body) {
 
     return data;
   } catch (error) {
-    // Mensaje de depuración
-    console.error(`DEBUG: Error en request a ${endpoint}:`, error);
     throw error;
   }
 }
@@ -72,9 +70,7 @@ export const uploadProfilePhoto = async (username, file) => {
     }
 
     return data;
-  } catch (error) {
-    console.error('Error en uploadProfilePhoto:', error);
-    
+  } catch (error) {    
     // Si el error ya es un Error con mensaje, lanzarlo tal cual
     if (error instanceof Error) {
       throw error;

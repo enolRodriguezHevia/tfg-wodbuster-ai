@@ -29,18 +29,9 @@ const openai = new OpenAI({
  * @returns {Object} Feedback estructurado del LLM
  */
 async function generarFeedbackEjercicio(ejercicio, frames, framesClave, metricas, preferencia = 'claude') {
-  console.log(`🤖 Generando feedback con LLM para: ${ejercicio}`);
-  console.log(`📊 Frames analizados: ${frames ? frames.length : 'N/A (solo framesClave)'}`);
-  console.log(`⚙️  Preferencia del usuario: ${preferencia.toUpperCase()}`);
   
   // Construir prompt estructurado
   const prompt = construirPromptAnalisis(ejercicio, frames, framesClave, metricas);
-  
-  // Mostrar el prompt completo para debugging
-  console.log('\n📝 PROMPT ENVIADO AL LLM:');
-  console.log('='.repeat(80));
-  console.log(prompt);
-  console.log('='.repeat(80) + '\n');
   
   const systemPrompt = `Eres un fisioterapeuta y entrenador personal experto en biomecánica deportiva y prevención de lesiones. 
 Tu tarea es analizar la técnica de ejercicios de fuerza basándote en datos de tracking de pose (MediaPipe).
@@ -72,7 +63,6 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
   }
   
   // Segundo intento (fallback)
-  console.warn(`⚠️  ${intentarPrimero.toUpperCase()} falló, intentando con ${intentarDespues.toUpperCase()} como respaldo...`);
   const resultadoFallback = await intentarLLM(intentarDespues, systemPrompt, prompt);
   
   if (resultadoFallback.success) {
@@ -84,7 +74,6 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
   }
   
   // Ambos fallaron
-  console.error('❌ Error con ambos LLMs (Claude y OpenAI)');
   return {
     success: false,
     error: `${intentarPrimero}: ${resultadoPrimero.error} | ${intentarDespues}: ${resultadoFallback.error}`,
@@ -103,7 +92,6 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
 async function intentarLLM(modelo, systemPrompt, userPrompt) {
   if (modelo === 'claude') {
     try {
-      console.log('🔵 Intentando con Claude Sonnet 4.5...');
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1200,
@@ -119,9 +107,6 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
       
       const feedbackText = response.content[0].text;
       
-      console.log(`✅ Feedback generado exitosamente con Claude`);
-      console.log(`💰 Tokens usados: ${response.usage.input_tokens + response.usage.output_tokens} (entrada: ${response.usage.input_tokens}, salida: ${response.usage.output_tokens})`);
-      
       return {
         success: true,
         feedback: feedbackText,
@@ -130,7 +115,6 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
         provider: 'anthropic'
       };
     } catch (error) {
-      console.error(`❌ Error con Claude: ${error.message}`);
       return {
         success: false,
         error: error.message
@@ -138,7 +122,6 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
     }
   } else if (modelo === 'openai') {
     try {
-      console.log('🟢 Intentando con OpenAI GPT-4o...');
       const response = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -156,10 +139,7 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
       });
       
       const feedbackText = response.choices[0].message.content;
-      
-      console.log(`✅ Feedback generado exitosamente con OpenAI`);
-      console.log(`💰 Tokens usados: ${response.usage.total_tokens} (entrada: ${response.usage.prompt_tokens}, salida: ${response.usage.completion_tokens})`);
-      
+  
       return {
         success: true,
         feedback: feedbackText,
@@ -168,7 +148,6 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
         provider: 'openai'
       };
     } catch (error) {
-      console.error(`❌ Error con OpenAI: ${error.message}`);
       return {
         success: false,
         error: error.message
@@ -251,9 +230,7 @@ function calcularEstadisticas(frames) {
  * @returns {Object} Plan de entrenamiento estructurado
  */
 async function generarPlanEntrenamiento(promptPlan, preferencia = 'claude') {
-  console.log('🤖 Generando plan de entrenamiento con LLM...');
-  console.log(`⚙️  Preferencia del usuario: ${preferencia.toUpperCase()}`);
-  
+
   const systemPrompt = `Eres un entrenador personal profesional experto en diseño de programas de entrenamiento personalizados.
 
 Tu tarea es crear un plan de entrenamiento detallado basándote en la información del usuario proporcionada.
@@ -287,7 +264,6 @@ El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto pl
   }
   
   // Segundo intento (fallback)
-  console.warn(`⚠️  ${intentarPrimero.toUpperCase()} falló, intentando con ${intentarDespues.toUpperCase()} como respaldo...`);
   const resultadoFallback = await intentarLLMPlan(intentarDespues, systemPrompt, promptPlan);
   
   if (resultadoFallback.success) {
@@ -299,7 +275,6 @@ El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto pl
   }
   
   // Ambos fallaron
-  console.error('❌ Error con ambos LLMs (Claude y OpenAI)');
   return {
     success: false,
     error: `${intentarPrimero}: ${resultadoPrimero.error} | ${intentarDespues}: ${resultadoFallback.error}`,
@@ -317,7 +292,6 @@ El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto pl
 async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
   if (modelo === 'claude') {
     try {
-      console.log('🔵 Intentando con Claude Sonnet 4.5...');
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
@@ -333,9 +307,6 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
       
       const planText = response.content[0].text;
       
-      console.log(`✅ Plan generado exitosamente con Claude`);
-      console.log(`💰 Tokens usados: ${response.usage.input_tokens + response.usage.output_tokens} (entrada: ${response.usage.input_tokens}, salida: ${response.usage.output_tokens})`);
-      
       return {
         success: true,
         plan: planText,
@@ -344,7 +315,6 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
         provider: 'anthropic'
       };
     } catch (error) {
-      console.error(`❌ Error con Claude: ${error.message}`);
       return {
         success: false,
         error: error.message
@@ -352,7 +322,6 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
     }
   } else if (modelo === 'openai') {
     try {
-      console.log('🟢 Intentando con OpenAI GPT-4o...');
       const response = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -371,9 +340,6 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
       
       const planText = response.choices[0].message.content;
       
-      console.log(`✅ Plan generado exitosamente con OpenAI`);
-      console.log(`💰 Tokens usados: ${response.usage.total_tokens} (entrada: ${response.usage.prompt_tokens}, salida: ${response.usage.completion_tokens})`);
-      
       return {
         success: true,
         plan: planText,
@@ -382,7 +348,6 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
         provider: 'openai'
       };
     } catch (error) {
-      console.error(`❌ Error con OpenAI: ${error.message}`);
       return {
         success: false,
         error: error.message
