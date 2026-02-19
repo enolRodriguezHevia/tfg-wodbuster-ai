@@ -97,10 +97,11 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-form-group">
-              <label>Usuario</label>
+              <label htmlFor="username">Usuario</label>
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">👤</span>
                 <input
+                  id="username"
                   type="text"
                   name="username"
                   value={formData.username}
@@ -111,10 +112,11 @@ export default function Login() {
               </div>
             </div>
             <div className="auth-form-group">
-              <label>Contraseña</label>
+              <label htmlFor="password">Contraseña</label>
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">🔒</span>
                 <input
+                  id="password"
                   type="password"
                   name="password"
                   value={formData.password}

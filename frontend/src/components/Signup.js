@@ -108,24 +108,24 @@ export default function SignUp() {  const navigate = useNavigate();  const [form
           <form onSubmit={handleSubmit} className="auth-form">
             {/* Campos obligatorios */}
             <div className="auth-form-group">
-              <label>Email</label>
+              <label htmlFor="email">Email</label>
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">✉️</span>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="tu@email.com" required />
+                <input id="email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="tu@email.com" required />
               </div>
             </div>
             <div className="auth-form-group">
-              <label>Usuario</label>
+              <label htmlFor="username">Usuario</label>
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">👤</span>
-                <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Nombre de usuario" required />
+                <input id="username" type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Nombre de usuario" required />
               </div>
             </div>
             <div className="auth-form-group">
-              <label>Contraseña</label>
+              <label htmlFor="password">Contraseña</label>
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">🔒</span>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Mínimo 6 caracteres" required />
+                <input id="password" type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Mínimo 6 caracteres" required />
               </div>
             </div>
 

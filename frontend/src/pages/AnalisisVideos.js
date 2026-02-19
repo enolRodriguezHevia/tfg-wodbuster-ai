@@ -267,13 +267,14 @@ export default function AnalisisVideos() {
         </p>
 
         <div className="analisis-content">
-              <form onSubmit={handleSubmit} className="analisis-form">
+              <form onSubmit={handleSubmit} className="analisis-form" role="form">
                 {/* Contenedor de dos columnas */}
                 <div className="form-columns">
                   {/* Selección de ejercicio */}
                   <div className="form-section">
                     <h2 className="section-title">1. Selecciona el ejercicio</h2>
                     <select
+                      aria-label="Ejercicio"
                       value={ejercicioSeleccionado}
                       onChange={handleEjercicioChange}
                       className="ejercicio-select"
@@ -348,6 +349,7 @@ export default function AnalisisVideos() {
                   </p>
                   <input
                     type="file"
+                    aria-label="Sube un video"
                     accept="video/mp4,video/webm"
                     onChange={handleVideoChange}
                     className="video-input"

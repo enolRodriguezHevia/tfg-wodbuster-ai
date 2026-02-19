@@ -296,11 +296,12 @@ export default function Benchmarks() {
               {/* Formulario de registro */}
               <div className="card">
                 <h2>Registrar Nuevo 1RM</h2>
-                <form onSubmit={handleSubmit} className="onerm-form">
+                <form onSubmit={handleSubmit} className="onerm-form" role="form">
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Peso (kg): <span className="required">*</span></label>
+                      <label htmlFor="input-peso">Peso (kg): <span className="required">*</span></label>
                       <input
+                        id="input-peso"
                         type="number"
                         name="peso"
                         value={formData.peso}
@@ -313,8 +314,9 @@ export default function Benchmarks() {
                     </div>
 
                     <div className="form-group">
-                      <label>Fecha: <span className="required">*</span></label>
+                      <label htmlFor="input-fecha">Fecha: <span className="required">*</span></label>
                       <input
+                        id="input-fecha"
                         type="date"
                         name="fecha"
                         value={formData.fecha}

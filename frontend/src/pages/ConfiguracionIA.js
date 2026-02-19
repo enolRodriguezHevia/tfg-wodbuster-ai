@@ -11,7 +11,7 @@ export default function ConfiguracionIA() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [llmActual, setLlmActual] = useState("claude");
-  const [modelosInfo, setModelosInfo] = useState({});
+  const [modelosInfo, setModelosInfo] = useState({ claude: {}, openai: {} });
   const [saving, setSaving] = useState(false);
   const [username, setUsername] = useState("");
 
@@ -33,7 +33,11 @@ export default function ConfiguracionIA() {
       setLoading(true);
       const response = await obtenerConfiguracionLLM(user);
       setLlmActual(response.llmActual);
-      setModelosInfo(response.modelosDisponibles);
+      // Usar la clave correcta según la API real
+      setModelosInfo({
+        claude: response.modelosInfo?.claude || {},
+        openai: response.modelosInfo?.openai || {}
+      });
       setLoading(false);
     } catch (err) {
       setError("Error al cargar configuración de IA");

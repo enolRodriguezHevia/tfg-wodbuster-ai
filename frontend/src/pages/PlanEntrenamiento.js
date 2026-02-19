@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getLoggedUser } from '../utils/auth';
 import { generarPlanEntrenamiento, obtenerPlanesAnteriores, eliminarPlan } from '../api/api';
 import Navbar from '../components/Navbar';
 import './PlanEntrenamiento.css';
 
 const PlanEntrenamiento = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [planGenerado, setPlanGenerado] = useState(null);
   const [advertencia, setAdvertencia] = useState(null);
@@ -17,8 +19,13 @@ const PlanEntrenamiento = () => {
   const [nombrePlan, setNombrePlan] = useState('');
 
   useEffect(() => {
+    const user = getLoggedUser();
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
     cargarPlanesAnteriores();
-  }, []);
+  }, [navigate]);
 
   const cargarPlanesAnteriores = async () => {
     try {

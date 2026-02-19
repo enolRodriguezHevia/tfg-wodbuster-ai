@@ -9,12 +9,15 @@ export default function Dashboard() {
   const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
-    // Obtener la foto del usuario del localStorage
     const user = getLoggedUser();
-    if (user && user.profilePhoto) {
+    if (!user) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (user.profilePhoto) {
       setUserPhoto(user.profilePhoto);
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <>

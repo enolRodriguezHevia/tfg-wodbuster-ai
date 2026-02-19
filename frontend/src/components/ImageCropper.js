@@ -34,8 +34,9 @@ const ImageCropper = ({ image, onComplete, onCancel }) => {
         </div>
         <div className="cropper-controls">
           <div className="zoom-control">
-            <label>Zoom:</label>
+            <label htmlFor="zoom-range">Zoom:</label>
             <input
+              id="zoom-range"
               type="range"
               value={zoom}
               min={1}
