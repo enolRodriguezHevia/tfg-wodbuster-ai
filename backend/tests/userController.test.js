@@ -1,5 +1,8 @@
 const request = require('supertest');
 const express = require('express');
+jest.mock('../services/s3Service', () => ({
+  uploadProfilePhotoToS3: jest.fn().mockResolvedValue('https://fake-s3-url.com/foto.png')
+}));
 const userController = require('../controllers/userController');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -191,9 +194,9 @@ describe('User Controller', () => {
       localApp.use(express.json());
       const fakeUpload = (req, res, next) => {
         req.file = {
-          path: 'uploads/profiles/profile-123.png',
+          buffer: Buffer.from('fake image data'),
           originalname: 'foto.png',
-          mimetype: 'image/png',
+          mimetype: 'image/png'
         };
         next();
       };
@@ -204,10 +207,8 @@ describe('User Controller', () => {
         save: jest.fn().mockResolvedValue(),
       };
       User.findOne = jest.fn().mockResolvedValue(mockUser);
-      const logoPath = path.resolve(__dirname, '../../frontend/public/logo-nobg.png');
       const res = await request(localApp)
-        .post('/api/user/testuser/photo')
-        .attach('profilePhoto', logoPath);
+        .post('/api/user/testuser/photo');
       expect([200, 201]).toContain(res.status);
       expect(res.body.message).toMatch(/actualizad[oa]/i);
     });

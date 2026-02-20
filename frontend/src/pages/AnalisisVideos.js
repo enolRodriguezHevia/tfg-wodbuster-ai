@@ -237,6 +237,30 @@ export default function AnalisisVideos() {
         <h1 className="page-title">Análisis de Técnica con IA</h1>
         <p className="page-subtitle">Sube un video de tu ejercicio y recibe feedback personalizado sobre tu técnica</p>
 
+        {/* Información sobre cómo grabar el video */}
+        <div className="video-instructions" style={{
+          background: '#f8f9fa',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          padding: '18px 22px',
+          margin: '18px 0',
+          color: '#333',
+          fontSize: '1.05rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+        }}>
+          <strong>¿Cómo grabar el video para un análisis correcto?</strong>
+          <ul style={{marginTop: 10, marginBottom: 0, paddingLeft: 22}}>
+            <li>Graba el video <b>de perfil</b> (lateral al movimiento).</li>
+            <li>Asegúrate de que haya <b>buena iluminación</b> y que la imagen sea clara.</li>
+            <li><b>Todas las articulaciones del cuerpo</b> deben ser visibles en todo momento (no pueden estar ocultas por discos, bancos, objetos o por el propio cuerpo).</li>
+            <li>Evita ropa muy holgada que dificulte ver la postura.</li>
+            <li>Coloca la cámara a una distancia suficiente para captar el cuerpo entero durante el ejercicio.</li>
+          </ul>
+          <span style={{fontSize: '0.98rem', color: '#e85d04', display: 'block', marginTop: 8}}>
+            Si alguna articulación queda oculta o la imagen es oscura, el análisis podría no funcionar correctamente.
+          </span>
+        </div>
+
         <div className="analisis-content">
           <form onSubmit={handleSubmit} className="analisis-form" role="form">
             <div className="form-columns">
