@@ -3,8 +3,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const AnalisisVideo = require('../models/AnalisisVideo');
-const User = require('../models/User');
+const AnalisisVideo = require('../../models/AnalisisVideo');
+const User = require('../../models/User');
 
 // Middleware fake para simular autenticación y archivo subido
 function fakeAuth(req, res, next) {
@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json());
 app.use(fakeAuth);
 app.use(fakeFile);
-app.post('/api/analisis-video/analizar', require('../controllers/analisisVideoController').analizarVideo);
+app.post('/api/analisis-video/analizar', require('../../controllers/analisisVideoController').analizarVideo);
 
 // Solo ejecuta si hay API KEY real
 (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY) && describe('AnalisisVideo Controller (integración LLM real)', () => {
