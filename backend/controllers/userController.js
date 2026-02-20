@@ -13,30 +13,14 @@ const {
 } = require('../validators/authValidator');
 const { buscarUsuario, manejarErrorServidor } = require('../utils/controllerHelpers');
 
-// Configurar multer para subir fotos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = 'uploads/profiles/';
-    // Crear directorio si no existe
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configurar multer para subir fotos a memoria (para S3)
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    
     if (mimetype && extname) {
       return cb(null, true);
     }
@@ -213,6 +197,8 @@ const actualizarPerfil = async (req, res) => {
  * @param {Object} req - Objeto de petición con username en params y archivo
  * @param {Object} res - Objeto de respuesta
  */
+const { uploadProfilePhotoToS3 } = require('../services/s3Service');
+
 const subirFotoPerfil = async (req, res) => {
   try {
     const { username } = req.params;
@@ -222,36 +208,27 @@ const subirFotoPerfil = async (req, res) => {
     }
 
     const user = await User.findOne({ username });
-
     if (!user) {
-      // Eliminar el archivo subido si el usuario no existe
-      fs.unlinkSync(req.file.path);
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    let isNewPhoto = !user.profilePhoto;
-    // Eliminar la foto anterior si existe
-    if (user.profilePhoto) {
-      const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
-      if (fs.existsSync(oldPhotoPath)) {
-        fs.unlinkSync(oldPhotoPath);
-      }
-    }
+    // Eliminar la foto anterior de S3 (opcional, si guardas el nombre)
+    // if (user.profilePhoto) { ... }
 
-    // Guardar la ruta relativa de la nueva foto
-    user.profilePhoto = req.file.path.replace(/\\/g, '/');
+    // Subir nueva foto a S3
+    const file = req.file;
+    const fileName = `profiles/${username}-${Date.now()}${path.extname(file.originalname)}`;
+    const url = await uploadProfilePhotoToS3(file.buffer, fileName, file.mimetype);
+
+    user.profilePhoto = url;
     await user.save();
-    
-    res.status(isNewPhoto ? 201 : 200).json({
+
+    res.status(201).json({
       message: 'Foto de perfil actualizada con éxito',
       profilePhoto: user.profilePhoto
     });
-
   } catch (err) {
-    // Eliminar el archivo si hubo un error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
+    console.error('Error al subir foto de perfil:', err);
     manejarErrorServidor(res, err, 'al subir foto de perfil');
   }
 };

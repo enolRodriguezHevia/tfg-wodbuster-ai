@@ -26,10 +26,14 @@ export default function Dashboard() {
         <div className="functionality-buttons">
           <button className="function-button" onClick={() => navigate("/profile")}>
             {userPhoto ? (
-              <img 
-                src={`http://localhost:3000/${userPhoto}`} 
-                alt="Perfil" 
-                className="button-profile-photo"
+               <img 
+                src={
+                  userPhoto && userPhoto.startsWith('http')
+                    ? userPhoto
+                    : userPhoto
+                }
+                alt="Foto de perfil" 
+                className="profile-photo"
               />
             ) : (
               <span className="button-icon">👤</span>

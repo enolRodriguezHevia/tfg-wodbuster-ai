@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/api"; // Cambia el puerto si tu backend es otro
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000/api"; // Usa variable de entorno para la URL del backend
 
 // Función genérica para manejar fetch
 async function request(endpoint, method = "GET", body) {

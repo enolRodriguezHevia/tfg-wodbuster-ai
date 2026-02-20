@@ -380,7 +380,11 @@ export default function Profile() {
           <div className="profile-photo-container">
             {userData.profilePhoto ? (
               <img 
-                src={`http://localhost:3000/${userData.profilePhoto}`} 
+                src={
+                  userData.profilePhoto && userData.profilePhoto.startsWith('http')
+                    ? userData.profilePhoto
+                    : userData.profilePhoto
+                }
                 alt="Foto de perfil" 
                 className="profile-photo"
               />
@@ -435,7 +439,11 @@ export default function Profile() {
                   <img src={previewImage} alt="Preview" className="profile-photo-preview" />
                 ) : userData.profilePhoto ? (
                   <img 
-                    src={`http://localhost:3000/${userData.profilePhoto}`} 
+                    src={
+                      userData.profilePhoto && userData.profilePhoto.startsWith('http')
+                        ? userData.profilePhoto
+                        : `${process.env.REACT_APP_API_URL?.replace(/\/api$/, '')}/${userData.profilePhoto}`
+                    }
                     alt="Foto actual" 
                     className="profile-photo-preview"
                   />

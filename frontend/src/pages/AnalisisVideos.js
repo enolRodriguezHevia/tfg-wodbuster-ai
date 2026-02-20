@@ -189,7 +189,8 @@ export default function AnalisisVideos() {
       if (resultadoAnalisis.metricas) formData.append("metricas", JSON.stringify(resultadoAnalisis.metricas));
 
       const token = getAuthToken();
-      const response = await fetch("http://localhost:3000/api/analisis-video/analizar", {
+      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+      const response = await fetch(`${API_URL}/analisis-video/analizar`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
