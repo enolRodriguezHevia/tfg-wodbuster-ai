@@ -6,8 +6,16 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Middlewares - CORS configurado para permitir frontend en producción
+const corsOptions = {
+  origin: [
+    'http://localhost:3001', // Desarrollo local
+    'https://wodbuster-ai.online' // Producción (CloudFront)
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Servir archivos estáticos (fotos de perfil)

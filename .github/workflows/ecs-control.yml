@@ -1,0 +1,129 @@
+name: ECS Service Control (Start/Stop)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - start
+          - stop
+
+jobs:
+  control-ecs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Stop ECS Service
+        if: ${{ github.event.inputs.action == 'stop' }}
+        run: |
+          echo "🛑 Stopping ECS service..."
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE }} \
+            --desired-count 0 \
+            --region ${{ secrets.AWS_REGION }}
+          echo "✅ Service stopped (desired count set to 0)"
+          echo "💰 Cost savings: ~$0.05/hour"
+
+      - name: Start ECS Service
+        if: ${{ github.event.inputs.action == 'start' }}
+        run: |
+          echo "🚀 Starting ECS service..."
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE }} \
+            --desired-count 1 \
+            --region ${{ secrets.AWS_REGION }}
+          echo "⏳ Waiting for service to be stable..."
+
+      - name: Wait for service to be stable (Start only)
+        if: ${{ github.event.inputs.action == 'start' }}
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services ${{ secrets.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }}
+          echo "✅ Service is running"
+
+      - name: Get new task public IP (Start only)
+        if: ${{ github.event.inputs.action == 'start' }}
+        id: get-ip
+        run: |
+          # Get the task ARN
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service-name ${{ secrets.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'taskArns[0]' \
+            --output text)
+          
+          echo "Task ARN: $TASK_ARN"
+          
+          # Get the ENI ID from the task
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --tasks $TASK_ARN \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text)
+          
+          echo "ENI ID: $ENI_ID"
+          
+          # Get the public IP from the ENI
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text)
+          
+          echo "New Public IP: $PUBLIC_IP"
+          echo "public_ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+
+      - name: Update Route 53 DNS record (Start only)
+        if: ${{ github.event.inputs.action == 'start' }}
+        run: |
+          # Create JSON for Route 53 change batch
+          cat > change-batch.json <<EOF
+          {
+            "Changes": [{
+              "Action": "UPSERT",
+              "ResourceRecordSet": {
+                "Name": "api.wodbuster-ai.online",
+                "Type": "A",
+                "TTL": 60,
+                "ResourceRecords": [{
+                  "Value": "${{ steps.get-ip.outputs.public_ip }}"
+                }]
+              }
+            }]
+          }
+          EOF
+          
+          # Update Route 53
+          aws route53 change-resource-record-sets \
+            --hosted-zone-id ${{ secrets.ROUTE53_HOSTED_ZONE_ID }} \
+            --change-batch file://change-batch.json
+          
+          echo "✅ Route 53 updated with new IP: ${{ steps.get-ip.outputs.public_ip }}"
+          echo "🌐 API URL: https://api.wodbuster-ai.online:3000"
+
+      - name: Summary
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "stop" ]; then
+            echo "🛑 ECS service stopped successfully"
+            echo "💰 Saving approximately $0.05/hour (~$1.20/day)"
+          else
+            echo "✅ ECS service started successfully"
+            echo "🌐 Backend is now accessible at: https://api.wodbuster-ai.online:3000"
+            echo "📍 New IP: ${{ steps.get-ip.outputs.public_ip }}"
+          fi

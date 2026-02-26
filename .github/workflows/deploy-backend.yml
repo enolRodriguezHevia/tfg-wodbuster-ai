@@ -1,0 +1,124 @@
+name: Deploy Backend to ECS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        working-directory: backend
+        run: |
+          docker build -t ${{ secrets.ECR_REPOSITORY }} .
+
+      - name: Tag Docker image
+        run: |
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Push image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Force new deployment in ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Wait for service to be stable
+        run: |
+          echo "⏳ Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services ${{ secrets.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }}
+          echo "✅ Service is stable"
+
+      - name: Get new task public IP
+        id: get-ip
+        run: |
+          # Get the task ARN
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service-name ${{ secrets.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'taskArns[0]' \
+            --output text)
+          
+          echo "Task ARN: $TASK_ARN"
+          
+          # Get the ENI ID from the task
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --tasks $TASK_ARN \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text)
+          
+          echo "ENI ID: $ENI_ID"
+          
+          # Get the public IP from the ENI
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text)
+          
+          echo "New Public IP: $PUBLIC_IP"
+          echo "public_ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+
+      - name: Update Route 53 DNS record
+        run: |
+          # Create JSON for Route 53 change batch
+          cat > change-batch.json <<EOF
+          {
+            "Changes": [{
+              "Action": "UPSERT",
+              "ResourceRecordSet": {
+                "Name": "api.wodbuster-ai.online",
+                "Type": "A",
+                "TTL": 60,
+                "ResourceRecords": [{
+                  "Value": "${{ steps.get-ip.outputs.public_ip }}"
+                }]
+              }
+            }]
+          }
+          EOF
+          
+          # Update Route 53
+          aws route53 change-resource-record-sets \
+            --hosted-zone-id ${{ secrets.ROUTE53_HOSTED_ZONE_ID }} \
+            --change-batch file://change-batch.json
+          
+          echo "✅ Route 53 updated with new IP: ${{ steps.get-ip.outputs.public_ip }}"
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Backend deployed successfully"
+          echo "🌐 API URL: https://api.wodbuster-ai.online:3000"
+          echo "📍 New IP: ${{ steps.get-ip.outputs.public_ip }}"
