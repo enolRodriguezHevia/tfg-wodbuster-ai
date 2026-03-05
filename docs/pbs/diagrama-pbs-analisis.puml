@@ -1,0 +1,28 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Análisis del Sistema\nProduct Breakdown Structure
+
+* Análisis del Sistema
+** Informe de investigación
+*** Estudio de aplicaciones similares
+*** Análisis de TFGs de IA
+*** Informe técnico MediaPipe
+*** Informe técnico LLMs
+** Documento de stakeholders
+** Documento de requisitos de usuario
+** Documento de requisitos funcionales
+** Documento de requisitos no funcionales
+
+@endmindmap

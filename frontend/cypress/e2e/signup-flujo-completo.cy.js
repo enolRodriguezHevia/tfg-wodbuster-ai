@@ -2,12 +2,19 @@
 
 describe('Signup E2E', () => {
   it('flujo completo: signup, login y navegación', () => {
-    // Ir a signup
-    cy.visit('http://localhost:3001/signup');
+    // Ir a la página raíz
+    cy.visit('/');
 
-    // Rellenar datos de usuario
-    cy.get('input[name="username"]').type('e2etestuser_signup_6');
-    cy.get('input[name="email"]').type('e2etestuser_signup6@example.com');
+    // Ir a Sign Up desde la página raíz
+    cy.contains('Ir a Sign Up').click();
+    cy.url().should('include', '/signup');
+
+    // Rellenar datos de usuario con timestamp corto para evitar conflictos
+    const timestamp = Date.now().toString().slice(-6); // Solo últimos 6 dígitos
+    const username = `e2e${timestamp}`; // Ejemplo: e2e123456 (9 caracteres)
+    
+    cy.get('input[name="username"]').type(username);
+    cy.get('input[name="email"]').type(`${username}@example.com`);
     cy.get('input[name="password"]').type('testpassword');
     cy.get('button[type="submit"]').click();
 

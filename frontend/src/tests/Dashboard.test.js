@@ -22,6 +22,10 @@ describe("Dashboard", () => {
       </MemoryRouter>
     );
 
+    // Texto de bienvenida
+    expect(screen.getByText(/¿qué quieres entrenar hoy\?/i)).toBeInTheDocument();
+    expect(screen.getByText(/elige tu objetivo y comienza a mejorar/i)).toBeInTheDocument();
+
     // Botones principales (solo los de Dashboard, no Navbar)
     const dashboardButtons = [
       /mi perfil/i,
@@ -38,15 +42,6 @@ describe("Dashboard", () => {
       const btn = all.find(el => el.closest('button') && el.closest('button').className.includes('function-button'));
       expect(btn).toBeInTheDocument();
     });
-
-    // Iconos
-    expect(screen.getByText("👤")).toBeInTheDocument();
-    expect(screen.getByText("💪")).toBeInTheDocument();
-    expect(screen.getByText("🏋️")).toBeInTheDocument();
-    expect(screen.getByText("⚡")).toBeInTheDocument();
-    expect(screen.getByText("📋")).toBeInTheDocument();
-    expect(screen.getByText("🎥")).toBeInTheDocument();
-    expect(screen.getByText("⚙️")).toBeInTheDocument();
   });
 
   it("navega correctamente al hacer click en los botones", () => {

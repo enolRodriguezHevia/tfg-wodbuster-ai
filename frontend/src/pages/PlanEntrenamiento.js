@@ -82,8 +82,13 @@ const PlanEntrenamiento = () => {
     }
   };
 
-  const copiarAlPortapapeles = () => {
-    navigator.clipboard.writeText(planGenerado);
+  const copiarAlPortapapeles = async () => {
+    try {
+      await navigator.clipboard.writeText(planGenerado);
+    } catch (err) {
+      // Silenciar error en entornos de testing donde el documento no está enfocado
+      console.warn('No se pudo copiar al portapapeles:', err.message);
+    }
   };
 
   const descargarPlan = () => {

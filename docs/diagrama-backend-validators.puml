@@ -1,0 +1,59 @@
+@startuml Backend - Validators
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Backend Nivel 3 (Validadores)
+
+package "Routes" {
+    [authRoutes]
+    [entrenamientoRoutes]
+    [oneRMRoutes]
+    [wodCrossFitRoutes]
+}
+
+package "Validators" {
+    component [authValidator] {
+        [validateEmail()]
+        [validateUsername()]
+        [validatePassword()]
+        [validateProfile()]
+    }
+    component [entrenamientoValidator] {
+        [validateEntrenamiento()]
+        [validateEjercicio()]
+    }
+    component [oneRMValidator] {
+        [validateOneRM()]
+    }
+    component [wodCrossFitValidator] {
+        [validateWod()]
+    }
+}
+
+package "Controllers" {
+    [authController]
+    [entrenamientoController]
+    [oneRMController]
+    [wodCrossFitController]
+}
+
+' Relaciones
+authRoutes --> authValidator : Valida antes
+entrenamientoRoutes --> entrenamientoValidator : Valida antes
+oneRMRoutes --> oneRMValidator : Valida antes
+wodCrossFitRoutes --> wodCrossFitValidator : Valida antes
+
+authValidator --> authController : Datos válidos
+entrenamientoValidator --> entrenamientoController : Datos válidos
+oneRMValidator --> oneRMController : Datos válidos
+wodCrossFitValidator --> wodCrossFitController : Datos válidos
+
+note bottom of Validators
+  Validación de datos de entrada
+  Prevención de datos inválidos
+  Funciones reutilizables
+end note
+
+@enduml

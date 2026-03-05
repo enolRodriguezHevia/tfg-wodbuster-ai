@@ -1,0 +1,84 @@
+@startuml Backend - Services y Models
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Backend Nivel 3 (Services y Models)
+
+package "Controllers" {
+    [userController]
+    [analisisVideoController]
+    [planEntrenamientoController]
+    [authController]
+    [entrenamientoController]
+    [oneRMController]
+    [wodCrossFitController]
+}
+
+package "Services" {
+    component [llmService] {
+        [generarFeedback()]
+        [generarPlan()]
+    }
+    component [s3Service] {
+        [uploadPhoto()]
+    }
+}
+
+package "Prompts" {
+    [sentadilla.js]
+    [pesoMuerto.js]
+    [pressHombros.js]
+    [remoBarra.js]
+}
+
+package "Models" {
+    [User]
+    [AnalisisVideo]
+    [Entrenamiento]
+    [Ejercicio]
+    [OneRM]
+    [WodCrossFit]
+    [PlanEntrenamiento]
+}
+
+cloud "Claude API" as Claude
+cloud "OpenAI API" as OpenAI
+storage "AWS S3" as S3
+database "MongoDB Atlas" as MongoDB
+
+' Relaciones Controllers -> Services
+userController --> s3Service
+analisisVideoController --> llmService
+planEntrenamientoController --> llmService
+
+' Relaciones Services -> External
+llmService --> sentadilla.js
+llmService --> pesoMuerto.js
+llmService --> pressHombros.js
+llmService --> remoBarra.js
+llmService --> Claude : Primario
+llmService --> OpenAI : Fallback
+s3Service --> S3
+
+' Relaciones Controllers -> Models
+authController --> User
+userController --> User
+analisisVideoController --> AnalisisVideo
+entrenamientoController --> Entrenamiento
+entrenamientoController --> Ejercicio
+oneRMController --> OneRM
+wodCrossFitController --> WodCrossFit
+planEntrenamientoController --> PlanEntrenamiento
+
+' Relaciones Models -> DB
+User --> MongoDB
+AnalisisVideo --> MongoDB
+Entrenamiento --> MongoDB
+Ejercicio --> MongoDB
+OneRM --> MongoDB
+WodCrossFit --> MongoDB
+PlanEntrenamiento --> MongoDB
+
+@enduml

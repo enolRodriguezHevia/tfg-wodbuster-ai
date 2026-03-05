@@ -28,7 +28,7 @@ export function crearCanvas(video) {
 /**
  * Procesar frames de video genéricamente
  */
-export async function procesarFrames(video, detector, procesarFrame, fps = 30, maxFrames = 300) {
+export async function procesarFrames(video, detector, procesarFrame, fps = 10, maxFrames = 300) {
   const duracion = video.duration;
   const frameInterval = 1 / fps;
   const resultadosFrames = [];

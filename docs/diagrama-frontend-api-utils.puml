@@ -1,0 +1,59 @@
+@startuml Frontend - API Layer y Utils
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Frontend Nivel 3 (API Layer y Utils)
+
+package "Pages" {
+    [Dashboard]
+    [Profile]
+    [AnalisisVideos]
+    [PlanEntrenamiento]
+}
+
+package "API Layer" {
+    component "api.js\nFacade REST" as apiJS {
+      
+    }
+}
+
+package "Utils" {
+    component [auth.js] {
+        
+    }
+    
+    package "videoAnalysis" {
+        [videoAnalysis.js\nCoordinador]
+        [sentadillaAnalysis]
+        [pesoMuertoAnalysis]
+        [pressHombrosAnalysis]
+        [remoBarraAnalysis]
+    }
+}
+
+cloud "Backend\nExpress API" as Backend
+component "MediaPipe\nPose Landmarker" as MediaPipe
+
+' Relaciones
+Dashboard --> apiJS
+Profile --> apiJS
+AnalisisVideos --> apiJS
+PlanEntrenamiento --> apiJS
+
+apiJS --> auth.js : Gestión tokens
+apiJS --> Backend : REST API\n(HTTPS)
+
+AnalisisVideos --> videoAnalysis.js
+videoAnalysis.js --> sentadillaAnalysis
+videoAnalysis.js --> pesoMuertoAnalysis
+videoAnalysis.js --> pressHombrosAnalysis
+videoAnalysis.js --> remoBarraAnalysis
+
+sentadillaAnalysis --> MediaPipe
+pesoMuertoAnalysis --> MediaPipe
+pressHombrosAnalysis --> MediaPipe
+remoBarraAnalysis --> MediaPipe
+
+@enduml

@@ -1,0 +1,32 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    BorderThickness 2
+}
+
+skinparam arrow {
+    Color #000000
+    Thickness 2
+}
+
+title Flujo de Navegación - Entrenamientos
+
+rectangle "Dashboard" as Dashboard
+rectangle "Historial Entrenamientos" as Historial
+rectangle "Formulario Nuevo" as Form
+rectangle "Modal Detalle" as Modal
+
+Dashboard --> Historial
+Historial --> Dashboard
+Historial --> Form
+Form --> Historial
+Historial --> Modal
+Modal --> Historial
+
+@enduml

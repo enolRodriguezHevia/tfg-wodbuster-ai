@@ -1,0 +1,63 @@
+@startuml Plan Entrenamiento
+!theme plain
+skinparam defaultTextAlignment center
+skinparam activityBackgroundColor #E3F2FD
+skinparam activityBorderColor #1976D2
+skinparam activityStartColor #4CAF50
+skinparam activityEndColor #F44336
+
+title Flujo de Generación de Plan de Entrenamiento Personalizado - WodBuster
+
+start
+
+:Usuario solicita generar plan personalizado\nPOST /api/plan-entrenamiento/:username/generar;
+
+:Validar autenticación del usuario;
+
+if (¿Usuario autenticado?) then (no)
+  :Retornar error 401;
+  stop
+else (sí)
+endif
+
+:Obtener información del usuario desde BD;
+
+if (¿Usuario existe?) then (no)
+  :Retornar error 404;
+  stop
+else (sí)
+endif
+
+:Recopilar datos del usuario:\n- Información básica (edad, peso, altura, sexo)\n- Historial de entrenamientos\n- Registros de 1RM\n- WODs de CrossFit;
+
+:Validar información disponible;
+
+if (¿Tiene datos suficientes?) then (no)
+  :Retornar error 400\n"Información insuficiente";
+  stop
+else (sí)
+endif
+
+:Formatear datos para el prompt:\n- Info usuario\n- Últimos 10 entrenamientos\n- Mejores marcas 1RM\n- Benchmarks CrossFit;
+
+:Cargar template de prompt\ny reemplazar placeholders;
+
+:Obtener preferencia LLM del usuario\n(Claude o OpenAI);
+
+:Llamar a LLM preferido con prompt completo\n(con fallback al alternativo);
+
+if (¿LLM generó plan?) then (no)
+  :Retornar error 500\n"No se pudo generar el plan";
+  stop
+else (sí)
+endif
+
+:Guardar plan en MongoDB:\n- Título\n- Contenido generado\n- Prompt usado\n- Modelo y provider;
+
+:Retornar plan personalizado\ncon metadata al frontend;
+
+:Mostrar plan al usuario;
+
+stop
+
+@enduml

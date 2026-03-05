@@ -1,0 +1,23 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Pruebas\nWork Breakdown Structure
+
+* Pruebas
+** Pruebas unitarias y de integración
+*** Pruebas unitarias backend - Autenticación
+*** Pruebas unitarias backend - Entrenamientos y 1RM
+*** Pruebas backend unitarias WODs CrossFit
+*** Pruebas backend unitarias Planes Personalizados
+*** Pruebas unitarias análisis de IA
+*** Pruebas unitarias configuración de IA
+*** Pruebas unitarias frontend
+*** Pruebas de integración
+** Pruebas de usabilidad y accesibilidad
+*** Pruebas de usabilidad
+*** Pruebas de accesibilidad
+
+@endwbs

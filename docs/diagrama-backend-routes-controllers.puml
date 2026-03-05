@@ -1,0 +1,79 @@
+@startuml Backend - Routes y Controllers
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Backend Nivel 3 (Routes y Controllers)
+
+package "Routes" {
+    [authRoutes]
+    [userRoutes]
+    [analisisVideoRoutes]
+    [entrenamientoRoutes]
+    [oneRMRoutes]
+    [wodCrossFitRoutes]
+    [planEntrenamientoRoutes]
+}
+
+component [authMiddleware\n(JWT)] as Auth
+
+package "Controllers" {
+    [authController]
+    [userController]
+    [analisisVideoController]
+    [entrenamientoController]
+    [oneRMController]
+    [wodCrossFitController]
+    [planEntrenamientoController]
+}
+
+package "Utils" {
+    component [controllerHelpers] {
+        [buscarUsuario()]
+        [manejarErrorServidor()]
+        [validarDatos()]
+        [asyncHandler()]
+    }
+}
+
+' Relaciones
+authRoutes --> Auth
+userRoutes --> Auth
+analisisVideoRoutes --> Auth
+entrenamientoRoutes --> Auth
+oneRMRoutes --> Auth
+wodCrossFitRoutes --> Auth
+planEntrenamientoRoutes --> Auth
+
+authRoutes --> authController
+userRoutes --> userController
+analisisVideoRoutes --> analisisVideoController
+entrenamientoRoutes --> entrenamientoController
+oneRMRoutes --> oneRMController
+wodCrossFitRoutes --> wodCrossFitController
+planEntrenamientoRoutes --> planEntrenamientoController
+
+authController --> controllerHelpers
+userController --> controllerHelpers
+analisisVideoController --> controllerHelpers
+entrenamientoController --> controllerHelpers
+oneRMController --> controllerHelpers
+wodCrossFitController --> controllerHelpers
+planEntrenamientoController --> controllerHelpers
+
+note right of Auth
+  Verifica tokens JWT
+  Protege rutas privadas
+  Inyecta req.user
+end note
+
+note bottom of controllerHelpers
+  Funciones auxiliares reutilizables:
+  - Búsqueda de usuarios
+  - Manejo de errores
+  - Validación genérica
+  - Wrapper async
+end note
+
+@enduml

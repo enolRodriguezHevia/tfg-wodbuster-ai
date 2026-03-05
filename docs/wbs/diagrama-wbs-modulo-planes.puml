@@ -1,0 +1,20 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Módulo de Planes Personalizados\nWork Breakdown Structure
+
+* Módulo de Planes Personalizados
+** Backend
+*** Modelo PlanEntrenamiento
+*** Integración con API LLM
+*** Prompt engineering para planes personalizados
+*** Endpoints generación y obtención de planes
+** Frontend
+*** Página PlanEntrenamiento
+*** Visualización del plan generado
+*** Descarga de plan
+
+@endwbs

@@ -1,0 +1,28 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Módulo de Planes Personalizados\nProduct Breakdown Structure
+
+* Módulo de Planes Personalizados
+** API de planes
+*** Modelo PlanEntrenamiento
+*** Integración con LLM
+*** Prompts personalizados
+*** Endpoints de generación
+** Interfaz de planes
+*** Página de plan de entrenamiento
+*** Visualización del plan
+*** Funcionalidad de descarga
+
+@endmindmap

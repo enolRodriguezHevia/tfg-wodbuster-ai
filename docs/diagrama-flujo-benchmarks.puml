@@ -1,0 +1,29 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    BorderThickness 2
+}
+
+skinparam arrow {
+    Color #000000
+    Thickness 2
+}
+
+title Flujo de Navegación - Benchmarks
+
+rectangle "Dashboard" as Dashboard
+rectangle "Lista de Ejercicios" as Lista
+rectangle "Detalle de Ejercicio" as Detalle
+
+Dashboard --> Lista
+Lista --> Dashboard
+Lista --> Detalle
+Detalle --> Lista
+
+@enduml

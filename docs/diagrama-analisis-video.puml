@@ -1,0 +1,51 @@
+@startuml
+!theme plain
+skinparam defaultTextAlignment center
+skinparam activityBackgroundColor #E3F2FD
+skinparam activityBorderColor #1976D2
+skinparam activityStartColor #4CAF50
+skinparam activityEndColor #F44336
+
+title Flujo de Análisis de Video - WodBuster
+
+start
+
+:Usuario graba video del ejercicio;
+
+:Frontend procesa video con MediaPipe\n(extrae pose, frames clave y métricas);
+
+:Enviar video + datos al backend\nPOST /api/analisis-video/analizar;
+
+:Validar autenticación, video y datos;
+
+if (¿Datos válidos?) then (no)
+  :Retornar error 400/401;
+  stop
+else (sí)
+endif
+
+:Obtener preferencia LLM del usuario\n(Claude o OpenAI);
+
+if (¿Tiene datos completos para IA?) then (sí)
+  :Construir prompt específico del ejercicio;
+  
+  :Llamar a LLM preferido\n(con fallback al alternativo);
+  
+  if (¿LLM generó feedback?) then (sí)
+    :Usar feedback de IA;
+  else (no)
+    :Usar feedback básico del frontend;
+  endif
+else (no)
+  :Usar feedback básico del frontend;
+endif
+
+:Guardar análisis en MongoDB\n(sin guardar video físicamente);
+
+:Retornar respuesta con feedback\ny métricas al frontend;
+
+:Mostrar feedback al usuario;
+
+stop
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml Arquitectura WodBuster AI
+
+skinparam shadowing false
+skinparam linetype ortho
+
+title Arquitectura WodBuster AI
+
+' === APLICACIÓN ===
+rectangle "WodBuster AI" {
+    component [Frontend\nReact App] as Frontend #E3F2FD
+    component [Backend\nExpress API] as Backend #E8F5E9
+}
+
+' === INFRAESTRUCTURA AWS ===
+cloud "Infraestructura AWS" as AWS #FF9800 {
+    [S3 (Web + Fotos)]
+    [CloudFront + WAF]
+    [Route 53]
+    [ECR]
+    [ECS + Fargate]
+}
+
+' === SERVICIOS EXTERNOS ===
+database "MongoDB\nAtlas" as MongoDB #E1BEE7
+cloud "APIs IA\n(Claude/OpenAI)" as IA #FFE082
+
+' === RELACIONES ===
+Frontend --> Backend : API REST\n(HTTPS)
+Frontend --> AWS : Hosting
+Backend --> AWS : Despliegue
+Backend --> MongoDB : Persistencia
+Backend --> IA : Generación IA
+
+@enduml

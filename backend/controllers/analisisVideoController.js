@@ -1,6 +1,7 @@
 const AnalisisVideo = require("../models/AnalisisVideo");
 const User = require("../models/User");
 const { generarFeedbackEjercicio } = require("../services/llmService");
+const { validarEjercicioConHeuristica } = require("../utils/ejercicioValidator");
 
 /**
  * Analizar un video de ejercicio con IA (LLM)
@@ -36,6 +37,23 @@ exports.analizarVideo = async (req, res) => {
 
     if (!resultadoAnalisis) {
       return res.status(400).json({ message: "No se recibió el resultado del análisis" });
+    }
+
+    // VALIDACIÓN: Verificar que el ejercicio del video coincide con el seleccionado
+    const validacion = validarEjercicioConHeuristica(
+      ejercicio,
+      framesClaveParsed,
+      metricasParsed,
+      framesData
+    );
+
+    if (!validacion.valido) {
+      return res.status(400).json({
+        message: "El movimiento detectado no coincide con el ejercicio seleccionado",
+        ejercicioSeleccionado: ejercicio,
+        posibleEjercicio: validacion.sugerencia,
+        razon: validacion.razon
+      });
     }
 
     // Obtener preferencia de LLM del usuario

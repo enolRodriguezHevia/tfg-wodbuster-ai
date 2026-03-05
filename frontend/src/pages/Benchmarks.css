@@ -58,7 +58,7 @@
 
 .card {
   background: var(--white);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
   margin-bottom: var(--spacing-md);
@@ -102,7 +102,7 @@
 .onerm-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .form-group {
@@ -143,7 +143,7 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 15px;
 }
 
 /* Botones */
@@ -166,9 +166,9 @@
 
 .back-btn {
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: transparent;
-  border: 2px solid var(--gray-medium);
-  color: var(--gray-dark);
+  background: var(--white);
+  border: 2px solid var(--primary-yellow);
+  color: var(--primary-dark);
   border-radius: var(--border-radius-md);
   cursor: pointer;
   font-size: 0.9rem;
@@ -176,13 +176,15 @@
   transition: all var(--transition-fast);
   margin-bottom: var(--spacing-md);
   min-height: 44px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .back-btn:hover {
-  background: var(--primary-orange);
-  border-color: var(--primary-orange);
-  color: var(--white);
+  background: var(--primary-yellow);
+  border-color: var(--primary-yellow);
+  color: var(--primary-dark);
   transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(247, 184, 1, 0.3);
 }
 
 /* Layout 2 columnas para Vista Detalle */
@@ -325,6 +327,7 @@
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
+  min-height: 350px;
 }
 
 /* Tabla de registros */

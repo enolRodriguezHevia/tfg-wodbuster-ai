@@ -1,0 +1,18 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Módulo de Gestión de 1RM\nWork Breakdown Structure
+
+* Módulo de Gestión de 1RM
+** Backend
+*** Modelo OneRM
+*** Endpoints CRUD 1RM
+*** Endpoint de evolución por ejercicio
+** Frontend
+*** Página Benchmarks con selección de WOD
+*** Gráficos de evolución de 1RM
+
+@endwbs

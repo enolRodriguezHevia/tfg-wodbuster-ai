@@ -1,0 +1,31 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Desarrollo\nProduct Breakdown Structure
+
+* Desarrollo
+** Entorno de desarrollo configurado
+*** Repositorio Git inicializado
+*** Backend configurado
+*** Frontend configurado
+*** Variables de entorno
+** Módulo de Gestión de Usuarios
+** Módulo de Gestión de Entrenamientos
+** Módulo de Gestión de 1RM
+** Módulo de Gestión de WODs CrossFit
+** Módulo de Análisis de Vídeos con IA
+** Módulo de Planes Personalizados
+** Módulo de Configuración de IA
+
+@endmindmap

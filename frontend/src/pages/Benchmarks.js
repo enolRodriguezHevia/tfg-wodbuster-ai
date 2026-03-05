@@ -55,7 +55,11 @@ const EJERCICIOS_DISPONIBLES = [
   "Cable Row",
   "Lat Pulldown",
   "Leg Curl",
-  "Leg Extension"
+  "Leg Extension",
+  "Pull Up",
+  "Dips",
+  "Push Press",
+  "Box Jump"
 ];
 
 export default function Benchmarks() {

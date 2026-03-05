@@ -8,6 +8,20 @@ const { generarPlanEntrenamiento: generarConLLM } = require('../services/llmServ
 const fs = require('fs').promises;
 const path = require('path');
 
+// Cache para el template del prompt
+let templateCache = null;
+
+/**
+ * Obtener template del prompt (con cache)
+ */
+const getTemplate = async () => {
+  if (!templateCache) {
+    const templatePath = path.join(__dirname, '../config/promptTemplate.txt');
+    templateCache = await fs.readFile(templatePath, 'utf8');
+  }
+  return templateCache;
+};
+
 /**
  * Valida que el usuario tenga información suficiente para generar un plan
  */
@@ -82,11 +96,26 @@ const formatearHistorialEntrenamientos = async (entrenamientos) => {
     return 'El usuario no ha registrado entrenamientos previos.';
   }
   
-  // Ordenar por fecha más reciente
-  const entrenamientosOrdenados = entrenamientos.sort((a, b) => b.fecha - a.fecha);
+  // Obtener últimos 10 entrenamientos
+  const ultimos = entrenamientos.slice(0, 10);
   
-  // Mostrar últimos 10 entrenamientos con ejercicios detallados
-  const ultimos = entrenamientosOrdenados.slice(0, 10);
+  // Obtener todos los ejercicios de estos entrenamientos en una sola consulta
+  const entrenamientoIds = ultimos.map(e => e._id);
+  const todosEjercicios = await Ejercicio.find({ 
+    entrenamientoId: { $in: entrenamientoIds } 
+  }).sort({ createdAt: 1 });
+  
+  // Agrupar ejercicios por entrenamientoId
+  const ejerciciosPorEntrenamiento = {};
+  todosEjercicios.forEach(ej => {
+    const id = ej.entrenamientoId.toString();
+    if (!ejerciciosPorEntrenamiento[id]) {
+      ejerciciosPorEntrenamiento[id] = [];
+    }
+    ejerciciosPorEntrenamiento[id].push(ej);
+  });
+  
+  // Formatear texto
   let texto = 'Últimos entrenamientos:\n\n';
   
   for (let i = 0; i < ultimos.length; i++) {
@@ -95,8 +124,7 @@ const formatearHistorialEntrenamientos = async (entrenamientos) => {
     texto += `${i + 1}. Fecha: ${fecha} - Volumen total: ${entrenamiento.volumenTotal || 0} kg\n`;
     
     // Obtener ejercicios de este entrenamiento
-    const ejercicios = await Ejercicio.find({ entrenamientoId: entrenamiento._id })
-      .sort({ createdAt: 1 });
+    const ejercicios = ejerciciosPorEntrenamiento[entrenamiento._id.toString()] || [];
     
     if (ejercicios.length > 0) {
       texto += '   Ejercicios realizados:\n';
@@ -193,20 +221,17 @@ const formatearWodsCrossFit = (wods) => {
  * Genera el prompt completo para el LLM
  */
 const generarPrompt = async (userId) => {
-  // Obtener información del usuario
-  const user = await User.findById(userId);
+  // Obtener información del usuario y datos en paralelo
+  const [user, entrenamientos, registros1RM, wodsCrossFit] = await Promise.all([
+    User.findById(userId),
+    Entrenamiento.find({ userId }).sort({ fecha: -1 }),
+    OneRM.find({ userId }).sort({ fecha: -1 }),
+    WodCrossFit.find({ userId }).sort({ fecha: -1 })
+  ]);
+  
   if (!user) {
     throw new Error('Usuario no encontrado');
   }
-  
-  // Obtener historial de entrenamientos
-  const entrenamientos = await Entrenamiento.find({ userId }).sort({ fecha: -1 });
-  
-  // Obtener registros de 1RM
-  const registros1RM = await OneRM.find({ userId }).sort({ fecha: -1 });
-  
-  // Obtener WODs de CrossFit
-  const wodsCrossFit = await WodCrossFit.find({ userId }).sort({ fecha: -1 });
   
   // Validar información
   const validacion = validarInformacionUsuario(user, entrenamientos, registros1RM);
@@ -218,9 +243,8 @@ const generarPrompt = async (userId) => {
     };
   }
   
-  // Leer template del prompt
-  const templatePath = path.join(__dirname, '../config/promptTemplate.txt');
-  let template = await fs.readFile(templatePath, 'utf8');
+  // Leer template del prompt (con cache)
+  let template = await getTemplate();
   
   // Formatear datos
   const infoUsuario = formatearInfoUsuario(user);

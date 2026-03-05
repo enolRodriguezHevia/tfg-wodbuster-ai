@@ -1,0 +1,21 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Análisis del Sistema\nWork Breakdown Structure
+
+* Análisis del sistema
+** Investigación
+*** Analizar aplicaciones similares
+*** Análisis de TFGs anteriores de IA
+*** Investigación de MediaPipe y análisis de pose
+*** Investigación de LLMs para planes personalizados
+** Análisis de requisitos
+*** Identificación de stakeholders
+*** Definición de requisitos de usuario
+*** Definición de requisitos funcionales
+*** Definición de requisitos no funcionales
+
+@endwbs

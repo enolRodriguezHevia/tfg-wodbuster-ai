@@ -1,0 +1,56 @@
+@startuml
+skinparam shadowing false
+skinparam linetype ortho
+
+title Diagrama de Despliegue - WodBuster AI
+
+' === USUARIO ===
+actor "Usuario\n(Navegador Web)" as Usuario
+
+' === FRONTEND ===
+node "AWS S3\n(Bucket Web)" as S3Web {
+    artifact "React App\n(build estático)" as ReactApp
+}
+
+node "AWS CloudFront + WAF" as CloudFront {
+    component "Distribución CDN\n(HTTPS)" as CDN
+}
+
+node "AWS Route 53" as Route53 {
+    component "wodbuster-ai.online\napi.wodbuster-ai.online" as DNS
+}
+
+' === BACKEND ===
+node "AWS ECS/Fargate\n(Backend)" as ECS {
+    artifact "Contenedor Docker\n(Express API)" as Backend
+}
+
+node "AWS ECR" as ECR {
+    artifact "Imagen Docker" as DockerImage
+}
+
+' === ALMACENAMIENTO ===
+node "AWS S3\n(Bucket Fotos Perfil)" as S3Fotos {
+    artifact "Fotos de usuario" as Fotos
+}
+
+database "MongoDB\nAtlas" as MongoDB
+
+' === SERVICIOS IA ===
+cloud "Claude API\n(Anthropic)" as Claude
+cloud "OpenAI API\n(GPT-4)" as OpenAI
+
+' === RELACIONES ===
+Usuario --> DNS : Acceso HTTPS
+DNS --> CloudFront : Resuelve dominio
+CloudFront --> S3Web : Sirve frontend
+CloudFront --> ECS : Proxy /api/*
+DNS --> ECS
+
+ECS --> S3Fotos : Fotos perfil
+ECS --> MongoDB : Datos
+ECS --> Claude : Prompts IA
+ECS --> OpenAI : Prompts IA
+
+ECS ..> ECR : Pull imagen
+@enduml

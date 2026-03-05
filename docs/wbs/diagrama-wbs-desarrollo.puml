@@ -1,0 +1,23 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 10
+
+title WBS - Desarrollo\nWork Breakdown Structure
+
+* Desarrollo
+** Configuración del entorno de desarrollo
+*** Configuración de Git y repositorio
+*** Setup del backend (Node.js, Express, MongoDB)
+*** Setup del frontend (React)
+*** Configuración de variables de entorno
+** Desarrollo de los módulos
+*** Módulo de Gestión de Usuarios
+*** Módulo de Gestión de Entrenamientos
+*** Módulo de Gestión de 1RM
+*** Módulo de Gestión de WODs CrossFit
+*** Módulo de Análisis de Vídeos con IA
+*** Módulo de Planes Personalizados
+
+@endwbs

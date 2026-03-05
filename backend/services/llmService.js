@@ -294,7 +294,7 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
     try {
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
+        max_tokens: 2000,
         temperature: 0.7,
         system: systemPrompt,
         messages: [
@@ -335,7 +335,7 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 4000
+        max_tokens: 2000
       });
       
       const planText = response.choices[0].message.content;

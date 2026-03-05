@@ -1,0 +1,19 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Módulo de Gestión de WODs CrossFit\nWork Breakdown Structure
+
+* Módulo de Gestión de WODs CrossFit
+** Backend
+*** Modelo WodCrossFit
+*** Lista predefinida de WODs clásicos
+*** Endpoints CRUD WODs
+*** Validaciones de WODs
+** Frontend
+*** Formulario de registro de WOD
+*** Visualización de historial de WODs
+
+@endwbs

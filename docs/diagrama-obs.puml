@@ -1,0 +1,39 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 13
+
+skinparam rectangle {
+    BackgroundColor<<director>> #E8F4F8
+    BackgroundColor<<manager>> #FFF4E6
+    BackgroundColor<<technical>> #F0F8E8
+    BackgroundColor<<support>> #F5F5F5
+    BorderColor #000000
+    BorderThickness 2
+    FontSize 12
+}
+
+skinparam arrow {
+    Color #000000
+    Thickness 2
+}
+
+title OBS - TFG WodBuster AI\nOrganizational Breakdown Structure
+
+rectangle "**Tutor**" <<director>> as Tutor
+
+rectangle "**Arquitecto/Analista**" <<manager>> as Architect
+
+rectangle "**Ingeniero Software**" <<technical>> as Engineer
+
+rectangle "**Desarrollador Junior**" <<technical>> as DevJunior
+
+rectangle "**Soporte Informático**" <<support>> as Support
+
+Tutor --> Architect
+Architect --> Engineer
+Architect --> DevJunior
+Architect --> Support
+
+@enduml

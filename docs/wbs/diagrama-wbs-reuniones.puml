@@ -1,0 +1,17 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Reuniones Periódicas con Tutor\nWork Breakdown Structure
+
+* Reuniones periódicas con tutor
+** Reunión 1
+** Reunión 2
+** Reunión 3
+** Reunión 4
+** Reunión 5
+** Reunión 6
+
+@endwbs

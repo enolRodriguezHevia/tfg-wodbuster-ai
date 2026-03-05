@@ -1,0 +1,15 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Documentación Técnica\nWork Breakdown Structure
+
+* Documentación técnica
+** Manual de usuario
+** Manual técnico
+** Documentación de arquitectura
+** README y guía de despliegue
+
+@endwbs

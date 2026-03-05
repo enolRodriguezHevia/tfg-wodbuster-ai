@@ -1,12 +1,38 @@
 /// <reference types="cypress" />
 
 describe('AnalisisVideos E2E', () => {
+  before(() => {
+    // Crear usuario de prueba si no existe
+    cy.visit('/');
+    cy.contains('Ir a Sign Up').click();
+    cy.url().should('include', '/signup');
+    
+    cy.get('input[name="username"]').type('e2etestuser');
+    cy.get('input[name="email"]').type('e2etestuser@example.com');
+    cy.get('input[name="password"]').type('testpassword');
+    cy.get('button[type="submit"]').click();
+    
+    // Si el usuario ya existe, ignorar el error y continuar
+    cy.url().then((url) => {
+      if (url.includes('/dashboard')) {
+        // Usuario creado exitosamente, hacer logout
+        cy.contains('Logout').click();
+      } else if (url.includes('/signup')) {
+        // Usuario ya existe, volver a home
+        cy.visit('/');
+      }
+    });
+  });
+
   beforeEach(() => {
-    // Asume que la app corre en localhost:3001 (ajusta si es necesario)
-    cy.visit('http://localhost:3001/login');
+    cy.visit('/');
   });
 
   it('flujo completo: login, navegar y analizar video', () => {
+    // Ir a Login desde la página raíz
+    cy.contains('Ir a Login').click();
+    cy.url().should('include', '/login');
+
     // Login
     cy.get('input[name="username"]').type('e2etestuser');
     cy.get('input[name="password"]').type('testpassword');
@@ -15,7 +41,7 @@ describe('AnalisisVideos E2E', () => {
     // Esperar redirección al dashboard o home
     cy.url().should('not.include', '/login');
 
-    // Ir a Análisis de Videos (ajusta el selector si es un link o botón diferente)
+    // Ir a Análisis de Videos
     cy.contains('Análisis de Videos').click();
     cy.url().should('include', '/analisis-videos');
 
@@ -34,7 +60,7 @@ describe('AnalisisVideos E2E', () => {
     });
     // Analizar
     cy.get('button[type="submit"]').click();
-    // Esperar feedback
-    cy.contains('feedback', { matchCase: false, timeout: 20000 }).should('exist');
+    // Esperar feedback (timeout aumentado para operaciones con IA)
+    cy.contains('feedback', { matchCase: false, timeout: 30000 }).should('exist');
   });
 });

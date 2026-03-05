@@ -1,0 +1,29 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    BorderThickness 2
+}
+
+skinparam arrow {
+    Color #000000
+    Thickness 2
+}
+
+title Flujo de Navegación - Análisis de Videos IA
+
+rectangle "Dashboard" as Dashboard
+rectangle "Análisis Videos" as Main
+rectangle "Modal Resultados" as Results
+
+Dashboard --> Main
+Main --> Dashboard
+Main --> Results
+Results --> Main
+
+@enduml

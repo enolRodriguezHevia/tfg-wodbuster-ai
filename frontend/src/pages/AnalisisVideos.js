@@ -197,7 +197,13 @@ export default function AnalisisVideos() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Error al guardar el análisis");
+      if (!response.ok) {
+        // Manejar error de validación de ejercicio
+        if (data.razon) {
+          throw new Error(`${data.message}\n\n💡 ${data.razon}`);
+        }
+        throw new Error(data.message || "Error al guardar el análisis");
+      }
 
       if (data.usaIA && data.feedback) {
         resultadoAnalisis.feedback = data.feedback;

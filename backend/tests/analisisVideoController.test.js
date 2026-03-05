@@ -55,9 +55,16 @@ describe('AnalisisVideo Controller (unitarios)', () => {
       .send({
         ejercicio: 'sentadilla',
         analisisResultado: JSON.stringify({ angulos: {}, feedback: ['Feedback IA'] }),
-        framesClave: JSON.stringify({}),
+        framesClave: JSON.stringify({
+          peak: {
+            anguloRodilla: 85,
+            caderaY: 0.6,
+            rodillaY: 0.4,
+            hombroY: 0.3
+          }
+        }),
         frames: JSON.stringify([]),
-        metricas: JSON.stringify({})
+        metricas: JSON.stringify({ rompioParalelo: true })
       });
     // Mostrar la respuesta real para depuración si el test falla
     expect(res.status).toBe(200);
@@ -113,7 +120,15 @@ describe('AnalisisVideo Controller (unitarios)', () => {
       .send({
         ejercicio: 'sentadilla',
         analisisResultado: JSON.stringify({ angulos: {}, feedback: ['Feedback sin IA'] }),
-        framesClave: JSON.stringify({})
+        framesClave: JSON.stringify({
+          peak: {
+            anguloRodilla: 85,
+            caderaY: 0.6,
+            rodillaY: 0.4,
+            hombroY: 0.3
+          }
+        }),
+        metricas: JSON.stringify({ rompioParalelo: true })
       });
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.feedback)).toBe(true);
@@ -137,7 +152,14 @@ describe('AnalisisVideo Controller (unitarios)', () => {
       .send({
         ejercicio: 'sentadilla',
         analisisResultado: JSON.stringify({ angulos: {}, feedback: ['Feedback'] }),
-        framesClave: JSON.stringify({})
+        framesClave: JSON.stringify({
+          peak: {
+            anguloRodilla: 90,
+            caderaY: 0.5,
+            rodillaY: 0.4
+          }
+        }),
+        metricas: JSON.stringify({ rompioParalelo: true })
       });
     expect(res.status).toBe(500);
     expect(res.body.message).toMatch(/error al procesar/i);

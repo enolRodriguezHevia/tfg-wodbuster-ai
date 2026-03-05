@@ -1,0 +1,55 @@
+@startuml Backend Nivel 2 - Visión General
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Backend Nivel 2 (Visión General)
+
+package "Backend Express API" {
+    
+    component [app.js\nPunto de entrada] as App
+    
+    package "Routes\n(Capa de Rutas)" as Routes {
+    }
+    
+    package "Middleware\n(Autenticación)" as Middleware {
+    }
+    
+    package "Controllers\n(Lógica de Negocio)" as Controllers {
+    }
+    
+    package "Utils\n(Utilidades)" as Utils {
+    }
+    
+    package "Services\n(Integración Externa)" as Services {
+    }
+    
+    package "Models\n(Acceso a Datos)" as Models {
+    }
+    
+    package "Validators\n(Validación)" as Validators {
+    }
+    
+    package "Prompts\n(Construcción IA)" as Prompts {
+    }
+}
+
+database "MongoDB\nAtlas" as MongoDB
+cloud "APIs de IA\n(Claude/OpenAI)" as IA
+storage "AWS S3\n(Fotos Perfil)" as S3
+
+' Flujo principal
+App --> Routes : Define endpoints
+Routes --> Middleware : Autenticación JWT
+Routes --> Validators : Validación datos
+Routes --> Controllers : Procesa peticiones
+Controllers --> Utils : Funciones auxiliares
+Controllers --> Services : Integración externa
+Controllers --> Models : Persistencia
+Services --> Prompts : Construye prompts
+Services --> IA : Genera feedback/planes
+Services --> S3 : Sube fotos
+Models --> MongoDB : CRUD
+
+@enduml
