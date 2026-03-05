@@ -1,0 +1,66 @@
+@startuml Frontend - Pages y Components
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Frontend Nivel 3 (Pages y Components)
+
+component [App.js\nRouter] as App
+
+package "Pages" {
+    [Home]
+    [Dashboard]
+    [Profile]
+    [Benchmarks]
+    [Entrenamientos]
+    [WodsCrossFit]
+    [PlanEntrenamiento]
+    [AnalisisVideos]
+    [ConfiguracionIA]
+}
+
+package "Components" {
+    [Login]
+    [Signup]
+    [Navbar]
+    [ImageCropper]
+    [ModalConfirmacion]
+}
+
+' Relaciones App -> Pages
+App --> Home
+App --> Dashboard
+App --> Profile
+App --> Benchmarks
+App --> Entrenamientos
+App --> WodsCrossFit
+App --> PlanEntrenamiento
+App --> AnalisisVideos
+App --> ConfiguracionIA
+
+' Relaciones Pages -> Components
+Home --> Login
+Home --> Signup
+Dashboard --> Navbar
+Profile --> Navbar
+Profile --> ImageCropper
+Benchmarks --> Navbar
+Entrenamientos --> Navbar
+WodsCrossFit --> Navbar
+PlanEntrenamiento --> Navbar
+AnalisisVideos --> Navbar
+
+note right of Pages
+  Vistas completas
+  Gestión de estado local
+  Lógica de página
+end note
+
+note right of Components
+  Elementos reutilizables
+  Sin lógica de negocio
+  Widgets compartidos
+end note
+
+@enduml

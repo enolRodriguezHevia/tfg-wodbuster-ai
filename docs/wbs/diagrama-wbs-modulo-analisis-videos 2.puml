@@ -1,0 +1,24 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 10
+
+title WBS - Módulo de Análisis de Vídeos con IA\nWork Breakdown Structure
+
+* Módulo de Análisis de Vídeos con IA
+** Backend
+*** Configuración para uploads
+*** Modelo AnalisisVideo
+*** Endpoints análisis de vídeo
+*** Integración con API LLM
+*** Validación del módulo
+** Frontend
+*** Investigación e integración de MediaPipe
+*** Implementación de detección de pose
+*** Algoritmo de análisis de sentadilla
+*** Página AnalisisVideos con pestañas
+*** Formulario de subida de vídeo
+*** Visualización de resultados y feedback
+
+@endwbs

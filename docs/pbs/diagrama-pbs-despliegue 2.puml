@@ -1,0 +1,28 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Despliegue y Configuración\nProduct Breakdown Structure
+
+* Despliegue y Configuración
+** Contenedores Docker
+*** Dockerfile backend
+** Aplicación desplegada en cloud
+*** Backend desplegado
+*** Frontend desplegado
+*** Base de datos configurada
+** Sistema de monitorización
+*** Logs configurados
+*** Métricas de rendimiento
+
+@endmindmap

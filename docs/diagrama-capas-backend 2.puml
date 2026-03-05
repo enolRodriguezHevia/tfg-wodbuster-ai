@@ -1,0 +1,62 @@
+@startuml Arquitectura en Capas - Backend
+
+skinparam shadowing false
+
+title Arquitectura en Capas - Backend (Patrón MVC)
+
+package "Capa de Presentación" #E3F2FD {
+    [app.js]
+    [CORS]
+    [Body Parser]
+}
+
+package "Capa de Rutas" #E8F5E9 {
+    [Routes]
+    note right: Define endpoints REST\nAplica middlewares
+}
+
+package "Capa de Middleware" #FFF9C4 {
+    [authMiddleware]
+    [errorHandler]
+    note right: Autenticación JWT\nManejo de errores
+}
+
+package "Capa de Validación" #FFE0B2 {
+    [Validators]
+    note right: Validación de datos\nde entrada
+}
+
+package "Capa de Controladores" #F3E5F5 {
+    [Controllers]
+    [controllerHelpers]
+    note right: Lógica de negocio\nOrquestación\nUtilidades compartidas
+}
+
+package "Capa de Servicios" #E1BEE7 {
+    [llmService]
+    [s3Service]
+    note right: Integración con\nservicios externos
+}
+
+package "Capa de Modelos" #C5CAE9 {
+    [Models (Mongoose)]
+    note right: Esquemas de datos\nValidaciones\nAcceso a BD
+}
+
+database "MongoDB Atlas" as DB
+cloud "APIs Externas" as External
+
+app.js -down-> Routes
+Routes -down-> authMiddleware
+Routes -down-> Validators
+authMiddleware -down-> Controllers
+Validators -down-> Controllers
+Controllers -down-> controllerHelpers
+Controllers -down-> llmService
+Controllers -down-> s3Service
+Controllers -down-> Models
+llmService -right-> External
+s3Service -right-> External
+Models -down-> DB
+
+@enduml

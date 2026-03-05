@@ -1,0 +1,34 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Diseño del Sistema\nProduct Breakdown Structure
+
+* Diseño del Sistema
+** Documento de arquitectura del sistema
+*** Diagrama de arquitectura general
+*** Diagrama de componentes
+*** Diagrama de despliegue
+** Especificación del modelo de datos
+*** Esquemas MongoDB
+*** Diagrama de relaciones
+** Diseño de interfaces de usuario
+*** Wireframes
+*** Mockups de páginas
+*** Flujos de navegación
+** Especificación de API REST
+*** Documentación de endpoints
+*** Contratos de API
+*** Esquemas de petición/respuesta
+
+@endmindmap

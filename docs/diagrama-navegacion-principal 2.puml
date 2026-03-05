@@ -1,0 +1,53 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    BorderThickness 2
+}
+
+skinparam arrow {
+    Color #000000
+    Thickness 2
+}
+
+title Diagrama de Navegación Principal
+
+rectangle "Home" as Home
+rectangle "Login" as Login
+rectangle "Signup" as Signup
+rectangle "Dashboard" as Dashboard
+rectangle "Mi Perfil" as Profile
+rectangle "Benchmarks" as Benchmarks
+rectangle "Entrenamientos" as Entrenamientos
+rectangle "WODs CrossFit" as Wods
+rectangle "Plan Entrenamiento" as Plan
+rectangle "Análisis Videos IA" as Videos
+rectangle "Configuración IA" as Config
+
+Home --> Login
+Home --> Signup
+Login --> Dashboard
+Signup --> Dashboard
+
+Dashboard --> Profile
+Dashboard --> Benchmarks
+Dashboard --> Entrenamientos
+Dashboard --> Wods
+Dashboard --> Plan
+Dashboard --> Videos
+Dashboard --> Config
+
+Profile --> Dashboard
+Benchmarks --> Dashboard
+Entrenamientos --> Dashboard
+Wods --> Dashboard
+Plan --> Dashboard
+Videos --> Dashboard
+Config --> Dashboard
+
+@enduml

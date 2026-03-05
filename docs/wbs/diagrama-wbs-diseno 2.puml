@@ -1,0 +1,15 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Diseño del Sistema\nWork Breakdown Structure
+
+* Diseño del sistema
+** Diseño de arquitectura
+** Diseño del modelo de datos
+** Diseño de interfaces de usuario
+** Diseño de API REST
+
+@endwbs

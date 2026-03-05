@@ -1,0 +1,19 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS General - TFG WodBuster AI\nWork Breakdown Structure
+
+* TFG WodBuster AI
+** Planificación
+** Análisis del sistema
+** Diseño del sistema
+** Desarrollo
+** Pruebas
+** Despliegue y configuración
+** Documentación técnica
+** Reuniones periódicas con tutor
+
+@endwbs

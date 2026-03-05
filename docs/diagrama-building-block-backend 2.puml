@@ -1,0 +1,133 @@
+@startuml Building Block View - Backend
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Backend (Nivel 2)
+
+package "Backend Express API" {
+    
+    [app.js\nPunto de entrada] as App
+    
+    package "Routes" {
+        [authRoutes]
+        [userRoutes]
+        [analisisVideoRoutes]
+        [entrenamientoRoutes]
+        [oneRMRoutes]
+        [wodCrossFitRoutes]
+        [planEntrenamientoRoutes]
+    }
+    
+    package "Middleware" {
+        [authMiddleware\n(JWT)]
+    }
+    
+    package "Controllers" {
+        [authController]
+        [userController]
+        [analisisVideoController]
+        [entrenamientoController]
+        [oneRMController]
+        [wodCrossFitController]
+        [planEntrenamientoController]
+    }
+    
+    package "Validators" {
+        [authValidator]
+        [entrenamientoValidator]
+        [oneRMValidator]
+        [wodCrossFitValidator]
+    }
+    
+    package "Services" {
+        [llmService\n(Claude/OpenAI)]
+        [s3Service\n(Fotos perfil)]
+    }
+    
+    package "Models" {
+        [User]
+        [AnalisisVideo]
+        [Entrenamiento]
+        [Ejercicio]
+        [OneRM]
+        [WodCrossFit]
+        [PlanEntrenamiento]
+    }
+    
+    package "Prompts" {
+        [sentadilla.js]
+        [pesoMuerto.js]
+        [pressHombros.js]
+        [remoBarra.js]
+    }
+}
+
+database "MongoDB\nAtlas" as MongoDB
+cloud "Claude API" as Claude
+cloud "OpenAI API" as OpenAI
+storage "AWS S3\nFotos Perfil" as S3
+
+' Relaciones
+App --> authRoutes
+App --> userRoutes
+App --> analisisVideoRoutes
+App --> entrenamientoRoutes
+App --> oneRMRoutes
+App --> wodCrossFitRoutes
+App --> planEntrenamientoRoutes
+
+authRoutes --> authMiddleware
+userRoutes --> authMiddleware
+analisisVideoRoutes --> authMiddleware
+entrenamientoRoutes --> authMiddleware
+oneRMRoutes --> authMiddleware
+wodCrossFitRoutes --> authMiddleware
+planEntrenamientoRoutes --> authMiddleware
+
+authRoutes --> authValidator
+entrenamientoRoutes --> entrenamientoValidator
+oneRMRoutes --> oneRMValidator
+wodCrossFitRoutes --> wodCrossFitValidator
+
+authRoutes --> authController
+userRoutes --> userController
+analisisVideoRoutes --> analisisVideoController
+entrenamientoRoutes --> entrenamientoController
+oneRMRoutes --> oneRMController
+wodCrossFitRoutes --> wodCrossFitController
+planEntrenamientoRoutes --> planEntrenamientoController
+
+userController --> s3Service
+analisisVideoController --> llmService
+planEntrenamientoController --> llmService
+
+llmService --> sentadilla.js
+llmService --> pesoMuerto.js
+llmService --> pressHombros.js
+llmService --> remoBarra.js
+
+llmService --> Claude
+llmService --> OpenAI
+
+s3Service --> S3
+
+authController --> User
+userController --> User
+analisisVideoController --> AnalisisVideo
+entrenamientoController --> Entrenamiento
+entrenamientoController --> Ejercicio
+oneRMController --> OneRM
+wodCrossFitController --> WodCrossFit
+planEntrenamientoController --> PlanEntrenamiento
+
+User --> MongoDB
+AnalisisVideo --> MongoDB
+Entrenamiento --> MongoDB
+Ejercicio --> MongoDB
+OneRM --> MongoDB
+WodCrossFit --> MongoDB
+PlanEntrenamiento --> MongoDB
+
+@enduml

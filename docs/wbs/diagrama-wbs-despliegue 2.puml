@@ -1,0 +1,14 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Despliegue y Configuración\nWork Breakdown Structure
+
+* Despliegue y configuración
+** Configuración de contenedores Docker
+** Despliegue en cloud
+** Monitorización básica y logs
+
+@endwbs

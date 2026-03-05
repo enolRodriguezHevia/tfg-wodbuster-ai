@@ -1,0 +1,22 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Módulo de Gestión de Entrenamientos\nWork Breakdown Structure
+
+* Módulo de Gestión de Entrenamientos
+** Backend
+*** Modelo Entrenamiento
+*** Modelo Ejercicio
+*** Endpoints CRUD entrenamientos
+*** Validaciones de entrenamientos
+*** Cálculo de volumen total
+*** Estadísticas de entrenamientos
+** Frontend
+*** Página Entrenamientos
+*** Visualización de historial
+*** Entrenamientos con detalles
+
+@endwbs

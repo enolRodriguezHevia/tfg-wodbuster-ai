@@ -22,7 +22,7 @@ function validarEjercicioConHeuristica(ejercicioSeleccionado, framesClave, metri
     };
   }
 
-  // Ejecutar validación según el ejercicio seleccionado
+  // Ejecutar validación segun el ejercicio seleccionado
   switch (ejercicioSeleccionado) {
     case 'sentadilla':
       return validarSentadilla(framesClave, metricas);

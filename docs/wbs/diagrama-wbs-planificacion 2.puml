@@ -1,0 +1,13 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Planificación\nWork Breakdown Structure
+
+* Planificación
+** Definición del alcance del proyecto
+** Configuración de herramientas de gestión
+
+@endwbs

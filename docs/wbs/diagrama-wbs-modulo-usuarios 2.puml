@@ -1,0 +1,22 @@
+@startwbs
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+
+title WBS - Módulo de Gestión de Usuarios\nWork Breakdown Structure
+
+* Módulo de Gestión de Usuarios
+** Backend
+*** Modelo de datos User (Mongoose)
+*** Sistema de autenticación
+*** Endpoints registro y login
+*** Endpoints perfil
+*** Middleware de autenticación
+*** Validaciones
+** Frontend
+*** Componentes Login y Signup
+*** Navbar con autenticación
+*** Página de perfil con edición
+
+@endwbs

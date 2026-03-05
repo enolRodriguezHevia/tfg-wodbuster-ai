@@ -1,0 +1,26 @@
+@startmindmap
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam mindmapDiagram {
+  node {
+    BackgroundColor lightGray
+  }
+  rootNode {
+    BackgroundColor white
+  }
+}
+
+title PBS - Módulo de Gestión de 1RM\nProduct Breakdown Structure
+
+* Módulo de Gestión de 1RM
+** API de 1RM
+*** Modelo OneRM
+*** Endpoints CRUD
+*** Servicio de evolución
+** Interfaz de benchmarks
+*** Página de benchmarks
+*** Gráficos de evolución
+
+@endmindmap

@@ -1,0 +1,39 @@
+@startuml Frontend Nivel 2 - Visión General
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+title Building Block View - Frontend Nivel 2 (Visión General)
+
+package "Frontend React App" {
+    
+    component [App.js\nRouter Principal] as App
+    
+    package "Pages\n(Vistas Completas)" as Pages {
+    }
+    
+    package "Components\n(Elementos Reutilizables)" as Components {
+    }
+    
+    package "API Layer\n(Comunicación Backend)" as API {
+    }
+    
+    package "Utils\n(Utilidades)" as Utils {
+    }
+}
+
+cloud "Backend\nExpress API" as Backend
+component "MediaPipe\nPose Landmarker" as MediaPipe
+
+' Flujo principal
+App --> Pages : Rutas
+Pages --> Components : Composición
+Pages --> API : Peticiones HTTP
+Components --> API : Peticiones HTTP
+API --> Utils : Gestión tokens
+API --> Backend : REST API (HTTPS)
+Pages --> Utils : Análisis video
+Utils --> MediaPipe : Extracción landmarks
+
+@enduml
