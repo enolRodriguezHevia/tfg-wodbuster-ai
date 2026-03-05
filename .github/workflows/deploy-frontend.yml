@@ -46,6 +46,45 @@ jobs:
         run: |
           aws s3 sync build/ s3://${{ secrets.S3_BUCKET }} --delete
 
+      - name: Configure CloudFront Error Pages for SPA
+        continue-on-error: true
+        run: |
+          echo "Configuring CloudFront error pages for React Router..."
+          
+          # Get current distribution config
+          ETAG=$(aws cloudfront get-distribution-config \
+            --id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --query 'ETag' \
+            --output text)
+          
+          aws cloudfront get-distribution-config \
+            --id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --query 'DistributionConfig' > dist-config.json
+          
+          # Update error pages configuration
+          cat dist-config.json | jq '.CustomErrorResponses.Items = [
+            {
+              "ErrorCode": 403,
+              "ResponsePagePath": "/index.html",
+              "ResponseCode": "200",
+              "ErrorCachingMinTTL": 300
+            },
+            {
+              "ErrorCode": 404,
+              "ResponsePagePath": "/index.html",
+              "ResponseCode": "200",
+              "ErrorCachingMinTTL": 300
+            }
+          ] | .CustomErrorResponses.Quantity = 2' > dist-config-updated.json
+          
+          # Update distribution
+          aws cloudfront update-distribution \
+            --id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-config file://dist-config-updated.json \
+            --if-match "$ETAG"
+          
+          echo "✅ CloudFront error pages configured for SPA routing"
+
       - name: Invalidate CloudFront cache
         continue-on-error: true
         run: |
