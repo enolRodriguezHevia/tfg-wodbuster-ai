@@ -315,7 +315,7 @@ export default function Benchmarks() {
               {/* Formulario de registro */}
               <div className="card">
                 <h2>Registrar Nuevo 1RM</h2>
-                <form onSubmit={handleSubmit} className="onerm-form" role="form">
+                <form onSubmit={handleSubmit} className="onerm-form">
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="input-peso">Peso (kg): <span className="required">*</span></label>

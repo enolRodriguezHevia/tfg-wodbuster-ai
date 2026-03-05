@@ -268,7 +268,7 @@ export default function AnalisisVideos() {
         </div>
 
         <div className="analisis-content">
-          <form onSubmit={handleSubmit} className="analisis-form" role="form">
+          <form onSubmit={handleSubmit} className="analisis-form">
             <div className="form-columns">
               {/* Selección de ejercicio */}
               <div className="form-section">
