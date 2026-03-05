@@ -47,11 +47,17 @@ jobs:
           aws s3 sync build/ s3://${{ secrets.S3_BUCKET }} --delete
 
       - name: Invalidate CloudFront cache
+        continue-on-error: true
         run: |
+          echo "Distribution ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "Attempting to invalidate CloudFront cache..."
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
+          echo "✅ CloudFront cache invalidated"
 
       - name: Deployment complete
         run: |
           echo "✅ Frontend deployed successfully to https://wodbuster-ai.online"
+          echo "📦 Files uploaded to S3 bucket: ${{ secrets.S3_BUCKET }}"
+          echo "💡 If CloudFront invalidation failed, cache will update automatically in ~24h or invalidate manually"
