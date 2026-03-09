@@ -21,9 +21,6 @@ title PBS - Módulo de Gestión de Usuarios\nProduct Breakdown Structure
 *** Endpoints de perfil
 *** Middleware de autenticación
 *** Validadores de usuario
-** Servicio de almacenamiento S3
-*** Configuración de buckets
-*** Servicio de subida de fotos
 ** Interfaz de usuario
 *** Componentes Login y Signup
 *** Navbar con autenticación

@@ -34,8 +34,8 @@ describe("Benchmarks (componente)", () => {
   });
 
   it("muestra error si se intenta registrar un 1RM sin peso", async () => {
-    await act(async () => {
-      render(
+    const { container } = await act(async () => {
+      return render(
         <BrowserRouter>
           <Benchmarks />
         </BrowserRouter>
@@ -44,13 +44,14 @@ describe("Benchmarks (componente)", () => {
     const snatchButton2 = (await screen.findByText(/snatch/i)).closest('button');
     fireEvent.click(snatchButton2);
     fireEvent.change(screen.getByLabelText(/peso/i), { target: { value: "" } });
-    fireEvent.submit(screen.getByRole("form") || document.querySelector("form"));
+    const form = container.querySelector("form");
+    fireEvent.submit(form);
     expect(await screen.findByText(/el peso debe ser mayor que 0/i)).toBeInTheDocument();
   });
 
   it("registra un 1RM correctamente", async () => {
-    await act(async () => {
-      render(
+    const { container } = await act(async () => {
+      return render(
         <BrowserRouter>
           <Benchmarks />
         </BrowserRouter>
@@ -59,7 +60,8 @@ describe("Benchmarks (componente)", () => {
     const snatchButton3 = (await screen.findByText(/snatch/i)).closest('button');
     fireEvent.click(snatchButton3);
     fireEvent.change(screen.getByLabelText(/peso/i), { target: { value: "120" } });
-    fireEvent.submit(screen.getByRole("form") || document.querySelector("form"));
+    const form = container.querySelector("form");
+    fireEvent.submit(form);
     await waitFor(() => expect(screen.getByText(/1rm registrado con éxito/i)).toBeInTheDocument());
   });
 });

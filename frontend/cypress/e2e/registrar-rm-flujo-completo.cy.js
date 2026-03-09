@@ -42,11 +42,11 @@ describe('Benchmarks (1RM) E2E', () => {
     cy.url().should('not.include', '/login');
 
     // Ir a Benchmarks
-    cy.contains('Benchmarks').click();
+    cy.get('.navbar-link-btn').contains('Benchmarks').click();
     cy.url().should('include', '/benchmarks');
 
-    // Seleccionar ejercicio
-    cy.contains('Snatch').click();
+    // Seleccionar ejercicio (usar el botón de la tarjeta)
+    cy.get('.exercise-card').contains('Snatch').click();
     cy.url().should('include', '/benchmarks');
 
     // Registrar nuevo 1RM (usar fecha actual)
@@ -59,19 +59,26 @@ describe('Benchmarks (1RM) E2E', () => {
     cy.contains('1RM registrado con éxito').should('be.visible');
 
     // Verificar que aparece en el historial
-    cy.contains('Historial de Registros').should('be.visible');
-    cy.contains('120').should('be.visible');
-    // Verificar que existe una fecha sin hardcodear el formato específico
-    cy.get('.onerm-item, .registro-item, tr').contains('120').should('exist');
+    cy.get('table').should('be.visible');
+    cy.get('table tbody tr').should('contain', '120');
 
     // Borrar la marca registrada
-    cy.contains('120').parent().parent().within(() => {
-      cy.get('button').contains('Eliminar').click();
+    cy.get('table tbody tr').contains('120').parent().scrollIntoView().within(() => {
+      cy.get('button.btn-delete-small').click({ force: true });
     });
     // Confirmar en el modal
-    cy.get('.btn-modal-action.btn-eliminar').should('be.visible').click();
+    cy.get('button.btn-modal-action.btn-eliminar').should('be.visible').click();
 
-    // Verificar que desaparece el registro
-    cy.contains('120').should('not.exist');
+    // Verificar que desaparece el registro (puede mostrar mensaje de "no hay registros" si era el único)
+    cy.get('body').should(($body) => {
+      const hasTable = $body.find('table tbody tr').length > 0;
+      const hasNoDataMessage = $body.text().includes('Aún no hay registros');
+      
+      if (hasTable) {
+        expect($body.find('table tbody tr').text()).not.to.contain('120');
+      } else {
+        expect(hasNoDataMessage).to.be.true;
+      }
+    });
   });
 });

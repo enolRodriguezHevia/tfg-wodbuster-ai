@@ -23,9 +23,6 @@ title PBS - Módulo de Análisis de Vídeos con IA\nProduct Breakdown Structure
 ** Sistema de análisis de pose
 *** Integración MediaPipe
 *** Algoritmo de sentadilla
-*** Algoritmo de peso muerto
-*** Algoritmo de press de hombros
-*** Algoritmo de remo con barra
 ** Interfaz de análisis
 *** Página de análisis con pestañas
 *** Formulario de subida

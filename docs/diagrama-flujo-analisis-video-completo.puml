@@ -1,0 +1,58 @@
+@startuml Flujo Análisis de Video
+
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor #E3F2FD
+skinparam ActivityBorderColor #1976D2
+
+title Flujo Completo - Análisis de Video con IA
+
+start
+
+:Usuario sube video del ejercicio;
+
+:Frontend procesa video con MediaPipe;
+
+:Enviar video + datos al backend;
+
+:Validar autenticación, video y datos;
+
+if (¿Datos válidos?) then (no)
+  :Retornar error 400/401;
+  stop
+else (sí)
+endif
+
+:Validar ejercicio con heurísticas biomecánicas\n(ejercicioValidator);
+
+if (¿Movimiento coincide con ejercicio seleccionado?) then (no)
+  :Retornar error 400\n(ejercicio no coincide);
+  stop
+else (sí)
+endif
+
+:Obtener preferencia LLM del usuario\n(Claude o OpenAI);
+
+if (¿Tiene datos completos para IA?) then (no)
+  :Usar feedback básico del frontend (avisar de error);
+else (sí)
+  :Construir prompt específico del ejercicio;
+  
+  :Llamar a LLM preferido\n(con fallback al alternativo);
+  
+  if (¿LLM generó feedback?) then (sí)
+    :Usar feedback de IA;
+  else (no)
+    :Usar feedback básico del frontend (avisar de error);
+  endif
+endif
+
+:Guardar análisis en MongoDB;
+
+:Retornar respuesta con feedback;
+
+:Mostrar feedback al usuario;
+
+stop
+
+@enduml

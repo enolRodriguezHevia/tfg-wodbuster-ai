@@ -45,7 +45,7 @@ describe('PlanEntrenamiento E2E', () => {
     cy.url().should('not.include', '/login');
 
     // --- Registrar un entrenamiento primero para tener datos históricos ---
-    cy.contains('Entrenamientos').click();
+    cy.get('.navbar-link-btn').contains('Entrenamientos').click();
     cy.url().should('include', '/entrenamientos');
 
     // Abrir formulario de entrenamiento
@@ -66,7 +66,7 @@ describe('PlanEntrenamiento E2E', () => {
     cy.contains('Entrenamiento registrado con éxito').should('be.visible');
 
     // --- Ir a Plan de Entrenamiento ---
-    cy.contains('Plan de Entrenamiento').click();
+    cy.get('.navbar-link-btn').contains('Plan de Entrenamiento').click();
     cy.url().should('include', '/plan-entrenamiento');
 
     // --- Completar el nombre del plan (opcional) ---
@@ -101,7 +101,7 @@ describe('PlanEntrenamiento E2E', () => {
     cy.get('h2').contains('📚 Planes Anteriores').should('exist');
 
     // --- Limpiar: borrar el entrenamiento registrado ---
-    cy.contains('Entrenamientos').click();
+    cy.get('.navbar-link-btn').contains('Entrenamientos').click();
     cy.url().should('include', '/entrenamientos');
     
     // Borrar el entrenamiento si existe

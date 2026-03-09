@@ -25,6 +25,9 @@
   --gradient-primary: linear-gradient(135deg, #E63946 0%, #FF6B35 100%);
   --gradient-dark: linear-gradient(135deg, #1D1D1D 0%, #2B2D42 100%);
   --gradient-energy: linear-gradient(135deg, #FF6B35 0%, #F7B801 100%);
+  --gradient-blue: linear-gradient(135deg, #457B9D 0%, #2A9D8F 100%);
+  --gradient-purple: linear-gradient(135deg, #764BA2 0%, #457B9D 100%);
+  --gradient-teal: linear-gradient(135deg, #2A9D8F 0%, #264653 100%);
   
   /* Sombras */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);

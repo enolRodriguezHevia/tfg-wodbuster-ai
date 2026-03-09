@@ -28,8 +28,13 @@ package "Capa de Validación" #FFE0B2 {
 
 package "Capa de Controladores" #F3E5F5 {
     [Controllers]
+    note right: Lógica de negocio\nOrquestación
+}
+
+package "Capa de Utilidades" #FFCCBC {
     [controllerHelpers]
-    note right: Lógica de negocio\nOrquestación\nUtilidades compartidas
+    [ejercicioValidator]
+    note right: Utilidades compartidas\nValidación biomecánica
 }
 
 package "Capa de Servicios" #E1BEE7 {
@@ -52,6 +57,7 @@ Routes -down-> Validators
 authMiddleware -down-> Controllers
 Validators -down-> Controllers
 Controllers -down-> controllerHelpers
+Controllers -down-> ejercicioValidator
 Controllers -down-> llmService
 Controllers -down-> s3Service
 Controllers -down-> Models

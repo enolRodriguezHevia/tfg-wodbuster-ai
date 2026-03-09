@@ -240,8 +240,10 @@ export default function AnalisisVideos() {
     <>
       <Navbar />
       <div className="analisis-videos-container">
-        <h1 className="page-title">Análisis de Técnica con IA</h1>
-        <p className="page-subtitle">Sube un video de tu ejercicio y recibe feedback personalizado sobre tu técnica</p>
+        <div className="analisis-header">
+          <h1>Análisis de Técnica con IA</h1>
+          <p className="subtitle">Sube un video de tu ejercicio y recibe feedback personalizado sobre tu técnica</p>
+        </div>
 
         {/* Información sobre cómo grabar el video */}
         <div className="video-instructions" style={{

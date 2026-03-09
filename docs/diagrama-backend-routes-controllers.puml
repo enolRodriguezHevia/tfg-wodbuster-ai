@@ -35,6 +35,9 @@ package "Utils" {
         [validarDatos()]
         [asyncHandler()]
     }
+    component [ejercicioValidator] {
+        [validarEjercicioConHeuristica()]
+    }
 }
 
 ' Relaciones
@@ -57,6 +60,7 @@ planEntrenamientoRoutes --> planEntrenamientoController
 authController --> controllerHelpers
 userController --> controllerHelpers
 analisisVideoController --> controllerHelpers
+analisisVideoController --> ejercicioValidator
 entrenamientoController --> controllerHelpers
 oneRMController --> controllerHelpers
 wodCrossFitController --> controllerHelpers
@@ -74,6 +78,13 @@ note bottom of controllerHelpers
   - Manejo de errores
   - Validación genérica
   - Wrapper async
+end note
+
+note bottom of ejercicioValidator
+  Validación biomecánica:
+  - Verifica movimientos con heurísticas
+  - Detecta ejercicio incorrecto
+  - Previene análisis inválidos
 end note
 
 @enduml

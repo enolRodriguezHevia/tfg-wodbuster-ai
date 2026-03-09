@@ -1,0 +1,100 @@
+classDiagram
+    class authController {
+        +signup()
+        +login()
+        +getProfile()
+        +updateProfile()
+        +deleteAccount()
+    }
+
+    class planEntrenamientoController {
+        +generarPlanEntrenamiento()
+        +obtenerPlanes()
+        +eliminarPlan()
+    }
+
+    class analisisVideoController {
+        +analizarVideo()
+    }
+
+    class entrenamientoController {
+        +registrarEntrenamiento()
+        +obtenerEntrenamientos()
+        +obtenerEntrenamientoPorId()
+        +actualizarEntrenamiento()
+        +eliminarEntrenamiento()
+    }
+
+    class oneRMController {
+        +registrarOneRM()
+        +obtenerHistorialPorEjercicio()
+        +obtenerTodosOneRM()
+        +eliminarOneRM()
+    }
+
+    class wodCrossFitController {
+        +registrarWod()
+        +obtenerWods()
+        +eliminarWod()
+    }
+
+    class userController {
+        +obtenerPerfil()
+        +actualizarPerfil()
+        +subirFotoPerfil()
+        +eliminarCuenta()
+        +obtenerConfiguracionLLM()
+    }
+
+    class llmService {
+        +generarFeedbackEjercicio()
+        +generarPlanEntrenamiento()
+    }
+
+    class s3Service {
+        +uploadProfilePhotoToS3()
+    }
+
+    class controllerHelpers {
+        +buscarUsuario()
+        +manejarErrorServidor()
+        +validarDatos()
+        +asyncHandler()
+    }
+
+    class ejercicioValidator {
+        +validarEjercicioConHeuristica()
+    }
+
+    class authMiddleware {
+        +use(req, res, next)
+    }
+
+    %% Relaciones
+    planEntrenamientoController --> llmService
+    planEntrenamientoController --> controllerHelpers
+    
+    analisisVideoController --> llmService
+    analisisVideoController --> controllerHelpers
+    analisisVideoController --> ejercicioValidator
+    
+    entrenamientoController --> controllerHelpers
+    
+    oneRMController --> controllerHelpers
+    
+    wodCrossFitController --> controllerHelpers
+    
+    userController --> s3Service
+    userController --> controllerHelpers
+    
+    authController --> controllerHelpers
+    
+    authMiddleware --> authController
+    authMiddleware --> planEntrenamientoController
+    authMiddleware --> analisisVideoController
+    authMiddleware --> entrenamientoController
+    authMiddleware --> oneRMController
+    authMiddleware --> wodCrossFitController
+    authMiddleware --> userController
+
+    note for authMiddleware "Middleware de autenticación JWT"

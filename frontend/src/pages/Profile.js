@@ -369,6 +369,7 @@ export default function Profile() {
       <div className="profile-container">
         <div className="profile-header">
           <h1>Mi Perfil</h1>
+          <p className="subtitle">Gestiona tu información personal y configuración de cuenta</p>
         </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -377,55 +378,95 @@ export default function Profile() {
       {!isEditing ? (
         // Modo visualización
         <div className="profile-view">
-          <div className="profile-photo-container">
-            {userData.profilePhoto ? (
-              <img 
-                src={
-                  userData.profilePhoto && userData.profilePhoto.startsWith('http')
-                    ? userData.profilePhoto
-                    : userData.profilePhoto
-                }
-                alt="Foto de perfil" 
-                className="profile-photo"
-              />
+          {/* Tarjeta principal con foto y datos básicos */}
+          <div className="profile-main-card">
+            <div className="profile-photo-wrapper">
+              {userData.profilePhoto ? (
+                <img 
+                  src={
+                    userData.profilePhoto && userData.profilePhoto.startsWith('http')
+                      ? userData.profilePhoto
+                      : userData.profilePhoto
+                  }
+                  alt="Foto de perfil" 
+                  className="profile-photo"
+                />
+              ) : (
+                <div className="profile-photo-placeholder">
+                  <span className="placeholder-icon">👤</span>
+                </div>
+              )}
+              <div className="profile-badge">Atleta</div>
+            </div>
+            
+            <div className="profile-main-info">
+              <h2 className="profile-name">{userData.username}</h2>
+              <p className="profile-email">
+                <span className="email-icon">✉️</span>
+                {userData.email}
+              </p>
+            </div>
+          </div>
+
+          {/* Grid de estadísticas mejorado o mensaje de sin datos */}
+          <div className="stats-section">
+            <h3 className="section-title">📋 Datos Personales</h3>
+            
+            {/* Verificar si el usuario tiene datos registrados */}
+            {(!userData.age && !userData.weight && !userData.height && userData.sex === "N/D") ? (
+              <div className="no-data-message">
+                <div className="no-data-icon">📝</div>
+                <h4>No hay datos personales registrados</h4>
+                <p>Completa tu perfil para llevar un mejor seguimiento de tu progreso</p>
+              </div>
             ) : (
-              <div className="profile-photo-placeholder">
-                <span className="placeholder-icon">👤</span>
+              <div className="profile-stats-grid">
+                <div className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon">⚧️</div>
+                    <span className="stat-label">Sexo</span>
+                  </div>
+                  <span className="stat-value">{userData.sex}</span>
+                </div>
+                
+                <div className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon">🎂</div>
+                    <span className="stat-label">Edad</span>
+                  </div>
+                  <span className="stat-value">{userData.age ? `${userData.age} años` : "N/D"}</span>
+                </div>
+                
+                <div className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon">⚖️</div>
+                    <span className="stat-label">Peso</span>
+                  </div>
+                  <span className="stat-value">{userData.weight ? `${userData.weight} kg` : "N/D"}</span>
+                </div>
+                
+                <div className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon">📏</div>
+                    <span className="stat-label">Altura</span>
+                  </div>
+                  <span className="stat-value">{userData.height ? `${userData.height} cm` : "N/D"}</span>
+                </div>
               </div>
             )}
           </div>
-          <div className="profile-info">
-            <div className="info-row">
-              <span className="info-label">Usuario:</span>
-              <span className="info-value">{userData.username}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Email:</span>
-              <span className="info-value">{userData.email}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Sexo:</span>
-              <span className="info-value">{userData.sex}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Edad:</span>
-              <span className="info-value">{userData.age || "No especificado"}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Peso (kg):</span>
-              <span className="info-value">{userData.weight || "No especificado"}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Altura (cm):</span>
-              <span className="info-value">{userData.height || "No especificado"}</span>
-            </div>
+
+          {/* Botones de acción */}
+          <div className="profile-actions">
+            <button className="edit-btn" onClick={() => setIsEditing(true)}>
+              <span className="btn-icon">✏️</span>
+              Modificar Perfil
+            </button>
+            <button className="delete-account-btn" onClick={handleDeleteAccount}>
+              <span className="btn-icon">🗑️</span>
+              Eliminar Cuenta
+            </button>
           </div>
-          <button className="edit-btn" onClick={() => setIsEditing(true)}>
-            Modificar datos
-          </button>
-          <button className="delete-account-btn" onClick={handleDeleteAccount}>
-            Eliminar Cuenta
-          </button>
         </div>
       ) : (
         // Modo edición

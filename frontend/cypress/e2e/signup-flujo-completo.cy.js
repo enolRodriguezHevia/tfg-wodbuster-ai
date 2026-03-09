@@ -26,7 +26,6 @@ describe('Signup E2E', () => {
     cy.get('.navbar-link-btn').contains('WODs CrossFit').should('be.visible');
     cy.get('.navbar-link-btn').contains('Plan de Entrenamiento').should('be.visible');
     cy.get('.navbar-link-btn').contains('Análisis de Videos IA').should('be.visible');
-    cy.get('.navbar-link-btn').contains('Configuración IA').should('be.visible');
 
     // Navegar a Benchmarks
     cy.get('.navbar-link-btn').contains('Benchmarks').click();

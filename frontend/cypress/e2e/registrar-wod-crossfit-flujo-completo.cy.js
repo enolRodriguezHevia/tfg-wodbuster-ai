@@ -40,7 +40,7 @@ describe('WODs CrossFit E2E', () => {
     cy.url().should('not.include', '/login');
 
     // Ir a WODs CrossFit
-    cy.contains('WODs CrossFit').click();
+    cy.get('.navbar-link-btn').contains('WODs CrossFit').click();
     cy.url().should('include', '/wods-crossfit');
 
     // Abrir formulario

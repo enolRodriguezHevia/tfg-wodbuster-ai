@@ -13,7 +13,7 @@
   text-align: center;
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--gradient-dark);
+  background: var(--gradient-teal);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
 }

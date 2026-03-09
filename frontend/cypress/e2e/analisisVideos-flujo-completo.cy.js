@@ -42,7 +42,7 @@ describe('AnalisisVideos E2E', () => {
     cy.url().should('not.include', '/login');
 
     // Ir a Análisis de Videos
-    cy.contains('Análisis de Videos').click();
+    cy.get('.navbar-link-btn').contains('Análisis de Videos').click();
     cy.url().should('include', '/analisis-videos');
 
     // Seleccionar ejercicio

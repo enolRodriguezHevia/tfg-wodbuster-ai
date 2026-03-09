@@ -14,50 +14,60 @@ describe("Navbar", () => {
   });
 
   it("renderiza todos los botones principales", () => {
-    render(
+    const { container } = render(
       <MemoryRouter>
         <Navbar />
       </MemoryRouter>
     );
-    expect(screen.getByText(/benchmarks/i)).toBeInTheDocument();
-    expect(screen.getByText(/entrenamientos/i)).toBeInTheDocument();
-    expect(screen.getByText(/wods crossfit/i)).toBeInTheDocument();
-    expect(screen.getByText(/plan de entrenamiento/i)).toBeInTheDocument();
-    expect(screen.getByText(/análisis de videos/i)).toBeInTheDocument();
-    expect(screen.getByText(/configuración ia/i)).toBeInTheDocument();
-    expect(screen.getByText(/perfil/i)).toBeInTheDocument();
-    expect(screen.getByText(/cerrar sesión/i)).toBeInTheDocument();
+    // Buscar solo en el menú desktop
+    const desktopMenu = container.querySelector('.desktop-menu');
+    expect(desktopMenu).toBeInTheDocument();
+    expect(desktopMenu.textContent).toMatch(/perfil/i);
+    expect(desktopMenu.textContent).toMatch(/benchmarks/i);
+    expect(desktopMenu.textContent).toMatch(/entrenamientos/i);
+    expect(desktopMenu.textContent).toMatch(/wods crossfit/i);
+    expect(desktopMenu.textContent).toMatch(/plan de entrenamiento/i);
+    expect(desktopMenu.textContent).toMatch(/análisis de videos/i);
+    expect(desktopMenu.textContent).toMatch(/configuración ia/i);
+    expect(desktopMenu.textContent).toMatch(/cerrar sesión/i);
   });
 
   it("navega correctamente al hacer click en los botones", () => {
-    render(
+    const { container } = render(
       <MemoryRouter initialEntries={["/dashboard"]}>
         <Navbar />
       </MemoryRouter>
     );
+    // Buscar solo en el menú desktop
+    const desktopMenu = container.querySelector('.desktop-menu');
     const buttons = [
+      /perfil/i,
       /benchmarks/i,
       /entrenamientos/i,
       /wods crossfit/i,
       /plan de entrenamiento/i,
       /análisis de videos/i,
       /configuración ia/i,
-      /perfil/i,
     ];
     buttons.forEach((text) => {
-      const btn = screen.getByText(text).closest("button");
+      const allButtons = Array.from(desktopMenu.querySelectorAll('button'));
+      const btn = allButtons.find(b => text.test(b.textContent));
       expect(btn).toBeInTheDocument();
       fireEvent.click(btn);
     });
   });
 
   it("el botón de logout limpia el localStorage", () => {
-    render(
+    const { container } = render(
       <MemoryRouter>
         <Navbar />
       </MemoryRouter>
     );
-    const logoutBtn = screen.getByText(/cerrar sesión/i).closest("button");
+    // Buscar solo en el menú desktop
+    const desktopMenu = container.querySelector('.desktop-menu');
+    const logoutBtn = Array.from(desktopMenu.querySelectorAll('button')).find(
+      btn => /cerrar sesión/i.test(btn.textContent)
+    );
     expect(logoutBtn).toBeInTheDocument();
     fireEvent.click(logoutBtn);
     expect(localStorage.getItem("user")).toBeNull();

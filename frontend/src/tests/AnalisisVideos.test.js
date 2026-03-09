@@ -27,13 +27,13 @@ describe("AnalisisVideos (componente)", () => {
   });
 
   it("muestra error si se intenta analizar sin seleccionar ejercicio", async () => {
-    render(
+    const { container } = render(
       <BrowserRouter>
         <AnalisisVideos />
       </BrowserRouter>
     );
     // El botón está deshabilitado si no hay ejercicio ni video, así que forzamos el submit
-    const form = screen.getByRole('form') || document.querySelector('form');
+    const form = container.querySelector('form');
     fireEvent.submit(form);
     // Buscar el mensaje de error específico en el div de error
     const errorDiv = await screen.findByText(
@@ -46,14 +46,14 @@ describe("AnalisisVideos (componente)", () => {
   });
 
   it("muestra error si se intenta analizar sin subir video", async () => {
-    render(
+    const { container } = render(
       <BrowserRouter>
         <AnalisisVideos />
       </BrowserRouter>
     );
     fireEvent.change(screen.getByLabelText(/ejercicio/i), { target: { value: "sentadilla" } });
     // El botón sigue deshabilitado, así que forzamos el submit del formulario
-    const form = screen.getByRole('form') || document.querySelector('form');
+    const form = container.querySelector('form');
     fireEvent.submit(form);
     // Buscar el mensaje de error específico en el div de error
     const errorDiv = await screen.findByText(
@@ -78,13 +78,13 @@ describe("AnalisisVideos (componente)", () => {
   });
 
   it("muestra error si se intenta analizar sin seleccionar ejercicio", async () => {
-    render(
+    const { container } = render(
       <BrowserRouter>
         <AnalisisVideos />
       </BrowserRouter>
     );
     // El botón está deshabilitado si no hay ejercicio ni video, así que forzamos el submit
-    const form = screen.getByRole('form') || document.querySelector('form');
+    const form = container.querySelector('form');
     fireEvent.submit(form);
     // Buscar el mensaje de error específico en el div de error
     const errorDiv = await screen.findByText(
@@ -97,14 +97,14 @@ describe("AnalisisVideos (componente)", () => {
   });
 
   it("muestra error si se intenta analizar sin subir video", async () => {
-    render(
+    const { container } = render(
       <BrowserRouter>
         <AnalisisVideos />
       </BrowserRouter>
     );
     fireEvent.change(screen.getByLabelText(/ejercicio/i), { target: { value: "sentadilla" } });
     // El botón sigue deshabilitado, así que forzamos el submit del formulario
-    const form = screen.getByRole('form') || document.querySelector('form');
+    const form = container.querySelector('form');
     fireEvent.submit(form);
     // Buscar el mensaje de error específico en el div de error
     const errorDiv = await screen.findByText(

@@ -40,7 +40,7 @@ describe('Entrenamientos E2E', () => {
     cy.url().should('not.include', '/login');
 
     // Ir a Entrenamientos
-    cy.contains('Entrenamientos').click();
+    cy.get('.navbar-link-btn').contains('Entrenamientos').click();
     cy.url().should('include', '/entrenamientos');
 
     // Abrir formulario

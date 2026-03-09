@@ -77,6 +77,7 @@ export default function Benchmarks() {
   const [historyData, setHistoryData] = useState([]);
   const [exercisesWithData, setExercisesWithData] = useState([]);
   const [username, setUsername] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
@@ -131,6 +132,7 @@ export default function Benchmarks() {
     });
     setError("");
     setSuccessMessage("");
+    setSearchTerm(""); // Limpiar búsqueda al volver
     loadExercisesWithData(username);
   };
 
@@ -262,6 +264,11 @@ export default function Benchmarks() {
     }
   };
 
+  // Filtrar ejercicios según el término de búsqueda
+  const filteredExercises = EJERCICIOS_DISPONIBLES.filter(ejercicio =>
+    ejercicio.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <>
       <Navbar />
@@ -276,21 +283,55 @@ export default function Benchmarks() {
 
             <div className="card">
               <h2>Ejercicios Disponibles</h2>
+              
+              {/* Barra de búsqueda */}
+              <div className="search-container">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="🔍 Buscar ejercicio..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button 
+                    className="clear-search-btn"
+                    onClick={() => setSearchTerm("")}
+                    aria-label="Limpiar búsqueda"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Contador de resultados */}
+              {searchTerm && (
+                <p className="search-results-count">
+                  {filteredExercises.length} ejercicio{filteredExercises.length !== 1 ? 's' : ''} encontrado{filteredExercises.length !== 1 ? 's' : ''}
+                </p>
+              )}
+
               <div className="exercises-grid">
-                {EJERCICIOS_DISPONIBLES.map((ejercicio, index) => {
-                  const hasData = exercisesWithData.includes(ejercicio);
-                  return (
-                    <button
-                      key={index}
-                      className={`exercise-card ${hasData ? 'has-data' : ''}`}
-                      onClick={() => handleExerciseSelect(ejercicio)}
-                    >
-                      <span className="exercise-icon">💪</span>
-                      <span className="exercise-name">{ejercicio}</span>
-                      {hasData && <span className="badge">Con datos</span>}
-                    </button>
-                  );
-                })}
+                {filteredExercises.length > 0 ? (
+                  filteredExercises.map((ejercicio, index) => {
+                    const hasData = exercisesWithData.includes(ejercicio);
+                    return (
+                      <button
+                        key={index}
+                        className={`exercise-card ${hasData ? 'has-data' : ''}`}
+                        onClick={() => handleExerciseSelect(ejercicio)}
+                      >
+                        <span className="exercise-icon">💪</span>
+                        <span className="exercise-name">{ejercicio}</span>
+                        {hasData && <span className="badge">Con datos</span>}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="no-results">
+                    No se encontraron ejercicios que coincidan con "{searchTerm}"
+                  </p>
+                )}
               </div>
             </div>
           </>

@@ -234,13 +234,13 @@ const PlanEntrenamiento = () => {
                     <p style={{color: '#333', fontSize: '1rem'}}>Esto puede tardar unos segundos.<br />Por favor, espera sin salir de la página.</p>
                   </div>
                 )}
-        <h1>Plan de Entrenamiento Personalizado</h1>
+        
+        <div className="plan-header">
+          <h1>Plan de Entrenamiento Personalizado</h1>
+          <p className="subtitle">Genera un plan de entrenamiento personalizado basado en tu información de perfil, historial de entrenamientos y registros de 1RM</p>
+        </div>
       
         <div className="info-section">
-          <p>
-            Genera un plan de entrenamiento personalizado basado en tu información 
-            de perfil, historial de entrenamientos y registros de 1RM.
-          </p>
           <p className="warning-text">
             ⚠️ Este plan es orientativo y debe ser revisado por un profesional.
           </p>
