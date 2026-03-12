@@ -77,6 +77,7 @@ function detectarRepeticionesPesoMuerto(frames) {
     return [];
   }
   
+  // 1. Buscar frame de inicio: cadera más baja (Y más alto en coordenadas de pantalla)
   const posicionesCadera = frames.map(f => f.posicionCadera);
   const maxCaderaY = Math.max(...posicionesCadera);
   
@@ -93,15 +94,20 @@ function detectarRepeticionesPesoMuerto(frames) {
     return [];
   }
   
-  const posicionesHombroPost = framesPosteriores.map(f => f.posicionHombro);
-  const minHombroY = Math.min(...posicionesHombroPost);
+  // 2. Buscar frame lockout: ángulo de torso máximo (más vertical)
+  // Esto funciona incluso si no completa el lockout correctamente
+  const angulosTorso = framesPosteriores.map(f => f.anguloTorso);
+  const maxAnguloTorso = Math.max(...angulosTorso);
   
-  const frameLockout = framesPosteriores.find(f => f.posicionHombro === minHombroY);
+  const frameLockout = framesPosteriores.find(f => f.anguloTorso === maxAnguloTorso);
   
+  // Validar que hay movimiento significativo
   const amplitudCadera = frameInicio.posicionCadera - frameLockout.posicionCadera;
   const amplitudHombros = frameInicio.posicionHombro - frameLockout.posicionHombro;
+  const cambioAnguloTorso = frameLockout.anguloTorso - frameInicio.anguloTorso;
   
-  if (amplitudHombros < 0.02) {
+  // Debe haber al menos algo de movimiento vertical O cambio de ángulo
+  if (amplitudHombros < 0.02 && cambioAnguloTorso < 5) {
     return [];
   }
   
@@ -220,8 +226,8 @@ export async function analizarPesoMuertoVideo(videoFile) {
       video,
       detector,
       procesarFramePesoMuerto,
-      30,
-      300
+      10,
+      150
     );
         
     const resultado = await analizarResultadosPesoMuerto(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);

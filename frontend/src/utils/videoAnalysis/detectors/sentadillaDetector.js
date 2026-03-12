@@ -208,8 +208,8 @@ export async function analizarSentadillaVideo(videoFile) {
       video,
       detector,
       procesarFrameSentadilla,
-      30,
-      90
+      10,
+      150
     );
         
     const resultado = await analizarResultadosSentadilla(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);

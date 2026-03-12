@@ -206,8 +206,8 @@ export async function analizarRemoBarraVideo(videoFile) {
       video,
       detector,
       procesarFrameRemoBarra,
-      30,
-      300
+      10,
+      150
     );
         
     const resultado = await analizarResultadosRemoBarra(resultadosFrames, landmarksFrames, duracion, video, canvas, ctx);

@@ -48,41 +48,70 @@ function validarEjercicioConHeuristica(ejercicioSeleccionado, framesClave, metri
 
 /**
  * Validar sentadilla
- * Características: Movimiento vertical descendente, flexión profunda de rodilla, indicador de paralelo
+ * Características: Movimiento vertical descendente, flexión profunda de rodilla
  */
 function validarSentadilla(framesClave, metricas) {
   const { inicio, peak } = framesClave;
   
-  // 1. Debe haber movimiento vertical significativo de cadera (descendente)
-  if (inicio && peak) {
-    const movimientoCadera = peak.caderaY - inicio.caderaY;
-    
-    // La cadera debe bajar (Y aumenta en coordenadas de pantalla)
-    if (movimientoCadera < 0.05) {
+  if (!inicio || !peak) {
+    return {
+      valido: false,
+      sugerencia: 'desconocido',
+      razon: 'No se detectaron frames de inicio y peak. Asegúrate de grabar el ejercicio completo.'
+    };
+  }
+  
+  const movimientoCadera = peak.caderaY - inicio.caderaY;
+  const anguloRodillaPeak = peak.anguloRodilla;
+  const anguloTorsoPeak = peak.anguloTorso;
+  const anguloCodoPeak = peak.anguloCodo;
+  
+  // VALIDACIÓN 1: Descartar press de hombros (torso vertical + codos extendidos + poco movimiento de cadera)
+  if (anguloTorsoPeak && anguloTorsoPeak > 75 && anguloCodoPeak && anguloCodoPeak > 140 && movimientoCadera < 0.05) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con una sentadilla. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 2: Descartar peso muerto (torso muy inclinado al inicio + poco movimiento vertical)
+  const anguloTorsoInicio = inicio.anguloTorso;
+  if (anguloTorsoInicio && anguloTorsoInicio < 50 && movimientoCadera < 0.06) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con una sentadilla. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 3: Descartar remo (poco movimiento vertical + cambio grande de codo)
+  if (anguloCodoPeak && inicio.anguloCodo) {
+    const cambioAnguloCodo = Math.abs(anguloCodoPeak - inicio.anguloCodo);
+    if (movimientoCadera < 0.05 && cambioAnguloCodo > 30) {
       return {
         valido: false,
         sugerencia: 'otro',
-        razon: 'No se detectó movimiento descendente significativo de cadera. Verifica que el video muestre una sentadilla completa de perfil.'
+        razon: 'El movimiento detectado no coincide con una sentadilla. Verifica que el video muestre el ejercicio correcto.'
       };
     }
   }
   
-  // 2. Ángulo de rodilla debe estar en rango de flexión profunda (50-120°)
-  const anguloRodillaPeak = peak.anguloRodilla;
-  if (anguloRodillaPeak && (anguloRodillaPeak < 40 || anguloRodillaPeak > 140)) {
+  // VALIDACIÓN 4: Debe haber movimiento vertical significativo de cadera (característica principal)
+  if (movimientoCadera < 0.04) {
     return {
       valido: false,
       sugerencia: 'otro',
-      razon: `Ángulo de rodilla (${anguloRodillaPeak.toFixed(1)}°) fuera del rango típico de sentadilla. Verifica que el video muestre el ejercicio correcto.`
+      razon: 'No se detectó movimiento descendente significativo de cadera. En sentadilla, la cadera debe bajar considerablemente.'
     };
   }
   
-  // 3. Debe existir métrica de "rompió paralelo" (específica de sentadilla)
-  if (metricas && metricas.rompioParalelo === undefined) {
+  // VALIDACIÓN 5: Rodilla debe flexionarse (no puede estar casi recta)
+  if (anguloRodillaPeak && (anguloRodillaPeak < 30 || anguloRodillaPeak > 150)) {
     return {
       valido: false,
-      sugerencia: 'desconocido',
-      razon: 'No se detectaron métricas específicas de sentadilla. Verifica que el video muestre el ejercicio completo de perfil.'
+      sugerencia: 'otro',
+      razon: `Ángulo de rodilla (${anguloRodillaPeak.toFixed(1)}°) fuera del rango de sentadilla. Verifica que el video muestre el ejercicio correcto.`
     };
   }
   
@@ -96,7 +125,7 @@ function validarSentadilla(framesClave, metricas) {
 
 /**
  * Validar peso muerto
- * Características: Gran cambio en ángulo de torso (horizontal → vertical), extensión de rodillas
+ * Características: Gran cambio en ángulo de torso (inclinado → vertical), extensión de cadera
  */
 function validarPesoMuerto(framesClave, metricas) {
   const { inicio, peak } = framesClave;
@@ -109,9 +138,59 @@ function validarPesoMuerto(framesClave, metricas) {
     };
   }
   
-  // 1. Ángulo de torso inicial debe ser bajo (30-60°, torso inclinado)
   const anguloTorsoInicio = inicio.anguloTorso;
-  if (anguloTorsoInicio && anguloTorsoInicio > 70) {
+  const anguloTorsoFinal = peak.anguloTorso;
+  const anguloRodillaInicio = inicio.anguloRodilla;
+  const anguloCodoInicio = inicio.anguloCodo;
+  const anguloCodoPeak = peak.anguloCodo;
+  const movimientoCadera = Math.abs(peak.caderaY - inicio.caderaY);
+  
+  // VALIDACIÓN 1: Descartar sentadilla (mucho movimiento vertical + rodilla muy flexionada)
+  const anguloRodillaPeak = peak.anguloRodilla;
+  if (movimientoCadera > 0.10 && anguloRodillaPeak && anguloRodillaPeak < 100) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con un peso muerto. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 2: Descartar press de hombros (torso vertical + codos extendidos)
+  if (anguloTorsoInicio && anguloTorsoInicio > 70 && anguloCodoPeak && anguloCodoPeak > 140) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con un peso muerto. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 3: Descartar remo (torso se mantiene constante + cambio grande de codo)
+  if (anguloCodoInicio && anguloCodoPeak && anguloTorsoInicio && anguloTorsoFinal) {
+    const cambioAnguloCodo = Math.abs(anguloCodoPeak - anguloCodoInicio);
+    const cambioTorso = Math.abs(anguloTorsoFinal - anguloTorsoInicio);
+    if (cambioAnguloCodo > 30 && cambioTorso < 15) {
+      return {
+        valido: false,
+        sugerencia: 'otro',
+        razon: 'El movimiento detectado no coincide con un peso muerto. Verifica que el video muestre el ejercicio correcto.'
+      };
+    }
+  }
+  
+  // VALIDACIÓN 4: Debe haber cambio de torso (característica principal del peso muerto)
+  if (anguloTorsoInicio !== undefined && anguloTorsoFinal !== undefined) {
+    const cambioTorso = anguloTorsoFinal - anguloTorsoInicio;
+    if (cambioTorso < 8) {
+      return {
+        valido: false,
+        sugerencia: 'otro',
+        razon: `Cambio de torso insuficiente (${cambioTorso.toFixed(1)}°). En peso muerto, el torso debe cambiar de inclinado a más vertical.`
+      };
+    }
+  }
+  
+  // VALIDACIÓN 5: Torso inicial no debe estar ya vertical
+  if (anguloTorsoInicio && anguloTorsoInicio > 75) {
     return {
       valido: false,
       sugerencia: 'otro',
@@ -119,39 +198,7 @@ function validarPesoMuerto(framesClave, metricas) {
     };
   }
   
-  // 2. Ángulo de torso final debe ser alto (70-90°, torso vertical)
-  const anguloTorsoFinal = peak.anguloTorso;
-  if (anguloTorsoFinal && anguloTorsoFinal < 65) {
-    return {
-      valido: false,
-      sugerencia: 'otro',
-      razon: `Torso final no alcanza verticalidad (${anguloTorsoFinal.toFixed(1)}°). Verifica que el video muestre el ejercicio correcto.`
-    };
-  }
-  
-  // 3. Debe haber gran diferencia entre inicio y final en ángulo de torso (>25°)
-  if (anguloTorsoInicio && anguloTorsoFinal) {
-    const cambioTorso = anguloTorsoFinal - anguloTorsoInicio;
-    if (cambioTorso < 20) {
-      return {
-        valido: false,
-        sugerencia: 'otro',
-        razon: `Cambio de torso insuficiente (${cambioTorso.toFixed(1)}°). En peso muerto, el torso debe cambiar significativamente.`
-      };
-    }
-  }
-  
-  // 4. Rodilla inicial debe estar flexionada (60-90°)
-  const anguloRodillaInicio = inicio.anguloRodilla;
-  if (anguloRodillaInicio && (anguloRodillaInicio < 50 || anguloRodillaInicio > 100)) {
-    return {
-      valido: false,
-      sugerencia: 'otro',
-      razon: `Ángulo de rodilla inicial (${anguloRodillaInicio.toFixed(1)}°) fuera del rango típico de peso muerto. Verifica que el video muestre el ejercicio correcto.`
-    };
-  }
-  
-  // Validación exitosa
+  // Validación exitosa - permite técnicas malas (torso final no vertical, etc.)
   return {
     valido: true,
     sugerencia: 'peso-muerto',
@@ -161,33 +208,57 @@ function validarPesoMuerto(framesClave, metricas) {
 
 /**
  * Validar press de hombros
- * Características: Extensión completa de codos, torso vertical, movimiento vertical de muñecas
+ * Características: Extensión de codos, torso vertical, movimiento vertical de brazos
  */
 function validarPressHombros(framesClave, metricas, frames) {
   const { inicio, peak } = framesClave;
   
-  // 1. Debe tener array de frames completo (requerido para press-hombros)
-  if (!frames || frames.length === 0) {
+  if (!inicio || !peak) {
     return {
       valido: false,
       sugerencia: 'desconocido',
-      razon: 'No se detectaron frames completos. Press de hombros requiere análisis frame por frame.'
+      razon: 'No se detectaron frames de inicio y peak. Asegúrate de grabar el ejercicio completo.'
     };
   }
   
-  // 2. Ángulo de codo en peak debe estar cerca de 180° (extensión completa)
   const anguloCodoPeak = peak.anguloCodo;
-  if (anguloCodoPeak && anguloCodoPeak < 140) {
+  const anguloTorsoPeak = peak.anguloTorso;
+  const anguloTorsoInicio = inicio.anguloTorso;
+  const movimientoCadera = Math.abs(peak.caderaY - inicio.caderaY);
+  const anguloRodillaPeak = peak.anguloRodilla;
+  
+  // VALIDACIÓN 1: Descartar sentadilla (mucho movimiento vertical + rodillas flexionadas)
+  if (movimientoCadera > 0.08 && anguloRodillaPeak && anguloRodillaPeak < 120) {
     return {
       valido: false,
       sugerencia: 'otro',
-      razon: `Codos no alcanzan extensión completa (${anguloCodoPeak.toFixed(1)}°). Verifica que el video muestre el ejercicio correcto.`
+      razon: 'El movimiento detectado no coincide con un press de hombros. Verifica que el video muestre el ejercicio correcto.'
     };
   }
   
-  // 3. Torso debe mantenerse relativamente vertical (75-90°) durante el movimiento
-  const anguloTorsoPeak = peak.anguloTorso;
-  if (anguloTorsoPeak && anguloTorsoPeak < 70) {
+  // VALIDACIÓN 2: Descartar peso muerto (torso muy inclinado al inicio + gran cambio de torso)
+  if (anguloTorsoInicio && anguloTorsoPeak) {
+    const cambioTorso = Math.abs(anguloTorsoPeak - anguloTorsoInicio);
+    if (anguloTorsoInicio < 50 && cambioTorso > 20) {
+      return {
+        valido: false,
+        sugerencia: 'otro',
+        razon: 'El movimiento detectado no coincide con un press de hombros. Verifica que el video muestre el ejercicio correcto.'
+      };
+    }
+  }
+  
+  // VALIDACIÓN 3: Descartar remo (torso inclinado constante + codos no muy extendidos)
+  if (anguloTorsoPeak && anguloTorsoPeak < 65 && anguloCodoPeak && anguloCodoPeak < 140) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con un press de hombros. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 4: Torso debe mantenerse relativamente vertical (característica principal)
+  if (anguloTorsoPeak && anguloTorsoPeak < 60) {
     return {
       valido: false,
       sugerencia: 'otro',
@@ -195,21 +266,16 @@ function validarPressHombros(framesClave, metricas, frames) {
     };
   }
   
-  // 4. Debe haber movimiento vertical de muñeca/codo (posicionMuneca o posicionCodo)
-  if (inicio && peak) {
-    const tienePosicionMuneca = inicio.posicionMuneca !== undefined && peak.posicionMuneca !== undefined;
-    const tienePosicionCodo = inicio.posicionCodo !== undefined && peak.posicionCodo !== undefined;
-    
-    if (!tienePosicionMuneca && !tienePosicionCodo) {
-      return {
-        valido: false,
-        sugerencia: 'desconocido',
-        razon: 'No se detectaron posiciones de muñeca/codo. Asegúrate de grabar el ejercicio completo de perfil.'
-      };
-    }
+  // VALIDACIÓN 5: Codos deben tender a extenderse (permite técnica mala pero no demasiado)
+  if (anguloCodoPeak && anguloCodoPeak < 110) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: `Codos no se extienden suficientemente (${anguloCodoPeak.toFixed(1)}°). Verifica que el video muestre el ejercicio correcto.`
+    };
   }
   
-  // Validación exitosa
+  // Validación exitosa - permite extensión incompleta (120-180°)
   return {
     valido: true,
     sugerencia: 'press-hombros',
@@ -224,15 +290,6 @@ function validarPressHombros(framesClave, metricas, frames) {
 function validarRemoBarra(framesClave, metricas, frames) {
   const { inicio, peak } = framesClave;
   
-  // 1. Debe tener array de frames completo
-  if (!frames || frames.length === 0) {
-    return {
-      valido: false,
-      sugerencia: 'desconocido',
-      razon: 'No se detectaron frames completos. Remo con barra requiere análisis frame por frame.'
-    };
-  }
-  
   if (!inicio || !peak) {
     return {
       valido: false,
@@ -241,34 +298,46 @@ function validarRemoBarra(framesClave, metricas, frames) {
     };
   }
   
-  // 2. Torso debe estar inclinado (45-70°) y mantenerse relativamente constante
   const anguloTorsoInicio = inicio.anguloTorso;
   const anguloTorsoPeak = peak.anguloTorso;
-  
-  if (anguloTorsoInicio && (anguloTorsoInicio < 40 || anguloTorsoInicio > 75)) {
-    return {
-      valido: false,
-      sugerencia: 'otro',
-      razon: `Torso fuera del rango típico de remo (${anguloTorsoInicio.toFixed(1)}°). Verifica que el video muestre el ejercicio correcto.`
-    };
-  }
-  
-  // 3. Ángulo de codo debe variar significativamente (extensión-flexión)
   const anguloCodoInicio = inicio.anguloCodo;
   const anguloCodoPeak = peak.anguloCodo;
   
-  if (anguloCodoInicio && anguloCodoPeak) {
-    const cambioAnguloCodo = Math.abs(anguloCodoPeak - anguloCodoInicio);
-    if (cambioAnguloCodo < 30) {
+  // VALIDACIÓN 1: Descartar press de hombros (torso vertical + extensión de codos)
+  if (anguloTorsoPeak && anguloTorsoPeak > 75 && anguloCodoPeak && anguloCodoPeak > 140) {
+    return {
+      valido: false,
+      sugerencia: 'otro',
+      razon: 'El movimiento detectado no coincide con un remo con barra. Verifica que el video muestre el ejercicio correcto.'
+    };
+  }
+  
+  // VALIDACIÓN 2: Descartar sentadilla (movimiento vertical de cadera + flexión de rodilla)
+  if (inicio.caderaY && peak.caderaY) {
+    const movimientoCadera = Math.abs(peak.caderaY - inicio.caderaY);
+    const anguloRodillaPeak = peak.anguloRodilla;
+    if (movimientoCadera > 0.08 && anguloRodillaPeak && anguloRodillaPeak < 120) {
       return {
         valido: false,
         sugerencia: 'otro',
-        razon: `Cambio de ángulo de codo insuficiente (${cambioAnguloCodo.toFixed(1)}°). Verifica que el video muestre el ejercicio correcto.`
+        razon: 'El movimiento detectado no coincide con un remo con barra. Verifica que el video muestre el ejercicio correcto.'
       };
     }
   }
   
-  // Validación exitosa
+  // VALIDACIÓN 3: Debe haber cambio significativo de codo (característica principal del remo)
+  if (anguloCodoInicio && anguloCodoPeak) {
+    const cambioAnguloCodo = Math.abs(anguloCodoPeak - anguloCodoInicio);
+    if (cambioAnguloCodo < 15) {
+      return {
+        valido: false,
+        sugerencia: 'otro',
+        razon: `Cambio de ángulo de codo insuficiente (${cambioAnguloCodo.toFixed(1)}°). En remo, los codos deben flexionarse y extenderse significativamente.`
+      };
+    }
+  }
+  
+  // Validación exitosa - es remo (incluso con mala técnica de torso)
   return {
     valido: true,
     sugerencia: 'remo-barra',

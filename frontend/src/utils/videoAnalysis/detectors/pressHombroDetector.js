@@ -197,8 +197,8 @@ export async function analizarPressHombroVideo(videoFile) {
       video,
       detector,
       procesarFramePressHombro,
-      30,
-      300
+      10,
+      150
     );
     
     
