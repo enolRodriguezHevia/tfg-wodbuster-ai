@@ -1,4 +1,4 @@
-Eres un experto entrenador personal especializado en CrossFit y entrenamiento de fuerza. Tu tarea es generar un plan de entrenamiento personalizado basado en la información del usuario que se proporciona a continuación.
+Genera un plan de entrenamiento personalizado basado en la información del usuario que se proporciona a continuación.
 
 IMPORTANTE: Este plan es orientativo y debe ser revisado por un profesional de la salud o un entrenador certificado antes de su implementación.
 
@@ -14,25 +14,28 @@ REGISTROS DE 1RM (Una Repetición Máxima):
 ENTRENAMIENTOS CROSSFIT (WODs):
 {{CROSSFIT_WODS}}
 
+ANÁLISIS DE TÉCNICA CON VIDEO:
+{{VIDEO_ANALYSIS}}
+
 INSTRUCCIONES PARA GENERAR EL PLAN:
 
 1. Analiza cuidadosamente toda la información proporcionada sobre el usuario.
-2. Considera su historial de entrenamientos y sus registros de 1RM para evaluar su nivel actual.
-3. Genera un plan de entrenamiento que incluya:
-   - Duración del plan (por ejemplo, 4 semanas)
+2. Considera su historial de entrenamientos, registros de 1RM y análisis de técnica para evaluar su nivel actual y áreas de mejora.
+3. IMPORTANTE: Si hay análisis de técnica con feedback sobre errores o debilidades, incorpora ejercicios correctivos o de movilidad específicos para abordar esos problemas.
+4. Genera un plan de entrenamiento que incluya:
+   - Duración del plan
    - Frecuencia de entrenamiento recomendada (días por semana)
    - Ejercicios específicos organizados por sesiones
    - Volumen de entrenamiento (series, repeticiones, pesos recomendados)
    - Progresión a lo largo del plan
+   - Ejercicios correctivos o de movilidad si se detectaron problemas técnicos
    - Días de descanso y recuperación
 
-4. Proporciona explicaciones claras sobre:
+5. Proporciona explicaciones claras sobre:
    - Por qué has seleccionado estos ejercicios específicos
    - Cómo el plan se adapta a su nivel actual
+   - Si hay problemas técnicos detectados, cómo el plan ayuda a corregirlos
    - Recomendaciones de progresión
    - Consejos de seguridad y técnica
 
-5. RECORDATORIO IMPORTANTE: Incluye al final del plan una nota indicando que este plan es orientativo y debe ser supervisado por un profesional cualificado.
-
-FORMATO DE RESPUESTA:
-Organiza el plan de forma clara y estructurada, con secciones bien definidas. Usa un lenguaje profesional pero accesible.
+6. RECORDATORIO IMPORTANTE: Incluye al final del plan una nota indicando que este plan es orientativo y debe ser supervisado por un profesional cualificado.

@@ -107,10 +107,82 @@ export const registerWodCrossFit = (wodData) => request("/wod-crossfit", "POST",
 export const getWodsCrossFit = (username) => request(`/wod-crossfit/${username}`);
 export const deleteWodCrossFit = (id) => request(`/wod-crossfit/${id}`, "DELETE");
 
-// Plan de Entrenamiento
-export const generarPlanEntrenamiento = (username, nombre) => {
-  const body = nombre ? { nombre } : {};
-  return request(`/plan-entrenamiento/generar/${username}`, "POST", body);
+// Plan de Entrenamiento (con streaming SSE)
+export const generarPlanEntrenamiento = async (username, nombre, onChunk, onDone, onError) => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const body = nombre ? { nombre } : {};
+
+    const response = await fetch(`${API_URL}/plan-entrenamiento/generar/${username}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error en la petición");
+    }
+
+    // Leer el stream SSE
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      
+      // Procesar todas las líneas completas
+      buffer = lines.pop() || ''; // Guardar la última línea incompleta
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6); // Remover 'data: '
+          
+          if (data === '[DONE]') {
+            continue;
+          }
+          
+          try {
+            const event = JSON.parse(data);
+            
+            if (event.type === 'chunk' && onChunk) {
+              onChunk(event.content);
+            } else if (event.type === 'done' && onDone) {
+              onDone({
+                planId: event.planId,
+                advertencia: event.advertencia,
+                metadata: event.metadata
+              });
+            } else if (event.type === 'error' && onError) {
+              onError(new Error(event.message || 'Error desconocido'));
+            }
+          } catch (e) {
+            console.error('Error parsing SSE data:', e);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    if (onError) {
+      onError(error);
+    } else {
+      throw error;
+    }
+  }
 };
 export const obtenerPlanesAnteriores = (username) => request(`/plan-entrenamiento/mis-planes/${username}`);
 export const obtenerPlanPorId = (username, planId) => request(`/plan-entrenamiento/${username}/${planId}`);
@@ -119,6 +191,86 @@ export const eliminarPlan = (username, planId) => request(`/plan-entrenamiento/$
 // Configuración de LLM
 export const obtenerConfiguracionLLM = (username) => request(`/user/${username}/llm/config`);
 export const actualizarPreferenciaLLM = (username, llmPreference) => request(`/user/${username}/llm/preference`, "PUT", { llmPreference });
+
+// Análisis de Video (con streaming SSE)
+export const analizarVideoConStreaming = async (formData, onChunk, onDone, onError) => {
+  try {
+    const token = localStorage.getItem("token");
+    const headers = {};
+    
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/analisis-video/analizar`, {
+      method: 'POST',
+      headers,
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error en la petición");
+    }
+
+    // Leer el stream SSE
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      
+      // Procesar todas las líneas completas
+      buffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          
+          if (data === '[DONE]') {
+            continue;
+          }
+          
+          try {
+            const event = JSON.parse(data);
+            
+            if (event.type === 'chunk' && onChunk) {
+              onChunk(event.content);
+            } else if (event.type === 'done' && onDone) {
+              onDone({
+                analisisId: event.analisisId,
+                ejercicio: event.ejercicio,
+                esCorrecta: event.esCorrecta,
+                angulos: event.angulos,
+                rompioParalelo: event.rompioParalelo,
+                fechaAnalisis: event.fechaAnalisis,
+                usaIA: event.usaIA,
+                tokensUsados: event.tokensUsados,
+                metadata: event.metadata
+              });
+            } else if (event.type === 'error' && onError) {
+              onError(new Error(event.message || 'Error desconocido'));
+            }
+          } catch (e) {
+            console.error('Error parsing SSE data:', e);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    if (onError) {
+      onError(error);
+    } else {
+      throw error;
+    }
+  }
+};
 
 // Aquí puedes añadir más recursos según tu backend
 

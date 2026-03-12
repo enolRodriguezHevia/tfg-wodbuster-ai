@@ -62,6 +62,12 @@ describe('User Controller (integración real)', () => {
   }, 10000);
 
   test('Error al actualizar perfil con email vacío', async () => {
+    // Asegurar que el usuario existe antes de intentar actualizar
+    const userExists = await User.findOne({ username: testUser.username });
+    if (!userExists) {
+      await User.create(testUser);
+    }
+    
     const res = await request(app)
       .put(`/api/user/${testUser.username}`)
       .send({ email: '' });

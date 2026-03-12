@@ -26,9 +26,10 @@ const openai = new OpenAI({
  * @param {Object} framesClave - Frames importantes (inicio, peak, etc.)
  * @param {Object} metricas - Métricas calculadas (amplitud, duración, etc.)
  * @param {string} preferencia - Preferencia del usuario: 'claude' o 'openai' (default: 'claude')
+ * @param {Function} onChunk - Callback para recibir chunks de texto en streaming (opcional)
  * @returns {Object} Feedback estructurado del LLM
  */
-async function generarFeedbackEjercicio(ejercicio, frames, framesClave, metricas, preferencia = 'claude') {
+async function generarFeedbackEjercicio(ejercicio, frames, framesClave, metricas, preferencia = 'claude', onChunk = null) {
   
   // Construir prompt estructurado
   const prompt = construirPromptAnalisis(ejercicio, frames, framesClave, metricas);
@@ -57,13 +58,13 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
   const intentarDespues = preferencia === 'openai' ? 'claude' : 'openai';
   
   // Primer intento (modelo preferido)
-  const resultadoPrimero = await intentarLLM(intentarPrimero, systemPrompt, prompt);
+  const resultadoPrimero = await intentarLLM(intentarPrimero, systemPrompt, prompt, onChunk);
   if (resultadoPrimero.success) {
     return resultadoPrimero;
   }
   
   // Segundo intento (fallback)
-  const resultadoFallback = await intentarLLM(intentarDespues, systemPrompt, prompt);
+  const resultadoFallback = await intentarLLM(intentarDespues, systemPrompt, prompt, onChunk);
   
   if (resultadoFallback.success) {
     return {
@@ -83,16 +84,17 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
 }
 
 /**
- * Intenta generar feedback con un LLM específico
+ * Intenta generar feedback con un LLM específico (con streaming)
  * @param {string} modelo - 'claude' o 'openai'
  * @param {string} systemPrompt - Prompt del sistema
  * @param {string} userPrompt - Prompt del usuario
+ * @param {Function} onChunk - Callback para cada chunk de texto (opcional)
  * @returns {Object} Resultado del intento
  */
-async function intentarLLM(modelo, systemPrompt, userPrompt) {
+async function intentarLLM(modelo, systemPrompt, userPrompt, onChunk = null) {
   if (modelo === 'claude') {
     try {
-      const response = await anthropic.messages.create({
+      const stream = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1200,
         temperature: 0.7,
@@ -102,15 +104,32 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
             role: 'user',
             content: userPrompt
           }
-        ]
+        ],
+        stream: true
       });
       
-      const feedbackText = response.content[0].text;
+      let feedbackText = '';
+      let inputTokens = 0;
+      let outputTokens = 0;
+      
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          const chunk = event.delta.text;
+          feedbackText += chunk;
+          if (onChunk) {
+            onChunk(chunk);
+          }
+        } else if (event.type === 'message_start') {
+          inputTokens = event.message.usage.input_tokens;
+        } else if (event.type === 'message_delta') {
+          outputTokens = event.usage.output_tokens;
+        }
+      }
       
       return {
         success: true,
         feedback: feedbackText,
-        tokensUsados: response.usage.input_tokens + response.usage.output_tokens,
+        tokensUsados: inputTokens + outputTokens,
         modelo: 'claude-sonnet-4-20250514',
         provider: 'anthropic'
       };
@@ -122,7 +141,7 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
     }
   } else if (modelo === 'openai') {
     try {
-      const response = await openai.chat.completions.create({
+      const stream = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
@@ -135,16 +154,31 @@ async function intentarLLM(modelo, systemPrompt, userPrompt) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1200
+        max_tokens: 1200,
+        stream: true
       });
       
-      const feedbackText = response.choices[0].message.content;
+      let feedbackText = '';
+      let tokensUsados = 0;
+      
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          feedbackText += content;
+          if (onChunk) {
+            onChunk(content);
+          }
+        }
+        if (chunk.usage) {
+          tokensUsados = chunk.usage.total_tokens;
+        }
+      }
   
       return {
         success: true,
         feedback: feedbackText,
-        tokensUsados: response.usage.total_tokens,
-        modelo: response.model,
+        tokensUsados: tokensUsados,
+        modelo: 'gpt-4o',
         provider: 'openai'
       };
     } catch (error) {
@@ -227,44 +261,32 @@ function calcularEstadisticas(frames) {
  * Generar plan de entrenamiento personalizado usando Claude (principal) o OpenAI (respaldo)
  * @param {string} promptPlan - Prompt completo con información del usuario
  * @param {string} preferencia - Preferencia del usuario: 'claude' o 'openai' (default: 'claude')
+ * @param {Function} onChunk - Callback para recibir chunks de texto en streaming (opcional)
  * @returns {Object} Plan de entrenamiento estructurado
  */
-async function generarPlanEntrenamiento(promptPlan, preferencia = 'claude') {
+async function generarPlanEntrenamiento(promptPlan, preferencia = 'claude', onChunk = null) {
 
   const systemPrompt = `Eres un entrenador personal profesional experto en diseño de programas de entrenamiento personalizados.
 
-Tu tarea es crear un plan de entrenamiento detallado basándote en la información del usuario proporcionada.
-
-El plan debe incluir:
-1. Análisis de nivel actual y objetivos
-2. Programa semanal estructurado
-3. Ejercicios específicos con series, repeticiones y pesos recomendados
-4. Progresión planificada
-5. Consideraciones sobre recuperación y prevención de lesiones
-
-IMPORTANTE SOBRE EL FORMATO:
-- Usa encabezados claros pero sin exceso de símbolos (#, *, etc.)
-- Usa formato de texto limpio y profesional
-- Utiliza separadores visuales simples (líneas de guiones o espacios)
+FORMATO DE RESPUESTA:
+- Usa MAYÚSCULAS para títulos principales
+- Usa negritas (**texto**) solo para énfasis importante
 - Estructura clara con secciones bien definidas
-- Usa MAYÚSCULAS para títulos principales en lugar de múltiples #
-- Usa negritas (**texto**) solo para énfasis importante, no para todo
-- Los emojis son opcionales y solo para secciones principales
-
-El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto plano.`;
+- Texto limpio y profesional, fácil de leer
+- Emojis opcionales solo para secciones principales`;
 
   // Determinar orden de intentos según preferencia
   const intentarPrimero = preferencia === 'openai' ? 'openai' : 'claude';
   const intentarDespues = preferencia === 'openai' ? 'claude' : 'openai';
   
   // Primer intento (modelo preferido)
-  const resultadoPrimero = await intentarLLMPlan(intentarPrimero, systemPrompt, promptPlan);
+  const resultadoPrimero = await intentarLLMPlan(intentarPrimero, systemPrompt, promptPlan, onChunk);
   if (resultadoPrimero.success) {
     return resultadoPrimero;
   }
   
   // Segundo intento (fallback)
-  const resultadoFallback = await intentarLLMPlan(intentarDespues, systemPrompt, promptPlan);
+  const resultadoFallback = await intentarLLMPlan(intentarDespues, systemPrompt, promptPlan, onChunk);
   
   if (resultadoFallback.success) {
     return {
@@ -283,18 +305,19 @@ El plan debe ser profesional, motivador, realista y FÁCIL DE LEER como texto pl
 }
 
 /**
- * Intenta generar plan con un LLM específico
+ * Intenta generar plan con un LLM específico (con streaming)
  * @param {string} modelo - 'claude' o 'openai'
  * @param {string} systemPrompt - Prompt del sistema
  * @param {string} userPrompt - Prompt del usuario
+ * @param {Function} onChunk - Callback para cada chunk de texto (opcional)
  * @returns {Object} Resultado del intento
  */
-async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
+async function intentarLLMPlan(modelo, systemPrompt, userPrompt, onChunk = null) {
   if (modelo === 'claude') {
     try {
-      const response = await anthropic.messages.create({
+      const stream = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
+        max_tokens: 3000,
         temperature: 0.7,
         system: systemPrompt,
         messages: [
@@ -302,15 +325,32 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
             role: 'user',
             content: userPrompt
           }
-        ]
+        ],
+        stream: true
       });
       
-      const planText = response.content[0].text;
+      let planText = '';
+      let inputTokens = 0;
+      let outputTokens = 0;
+      
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          const chunk = event.delta.text;
+          planText += chunk;
+          if (onChunk) {
+            onChunk(chunk);
+          }
+        } else if (event.type === 'message_start') {
+          inputTokens = event.message.usage.input_tokens;
+        } else if (event.type === 'message_delta') {
+          outputTokens = event.usage.output_tokens;
+        }
+      }
       
       return {
         success: true,
         plan: planText,
-        tokensUsados: response.usage.input_tokens + response.usage.output_tokens,
+        tokensUsados: inputTokens + outputTokens,
         modelo: 'claude-sonnet-4-20250514',
         provider: 'anthropic'
       };
@@ -322,7 +362,7 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
     }
   } else if (modelo === 'openai') {
     try {
-      const response = await openai.chat.completions.create({
+      const stream = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
@@ -335,16 +375,31 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: 3000,
+        stream: true
       });
       
-      const planText = response.choices[0].message.content;
+      let planText = '';
+      let tokensUsados = 0;
+      
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          planText += content;
+          if (onChunk) {
+            onChunk(content);
+          }
+        }
+        if (chunk.usage) {
+          tokensUsados = chunk.usage.total_tokens;
+        }
+      }
       
       return {
         success: true,
         plan: planText,
-        tokensUsados: response.usage.total_tokens,
-        modelo: response.model,
+        tokensUsados: tokensUsados,
+        modelo: 'gpt-4o',
         provider: 'openai'
       };
     } catch (error) {

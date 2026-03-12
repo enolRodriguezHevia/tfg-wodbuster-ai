@@ -583,6 +583,23 @@
   color: var(--gray-dark);
 }
 
+/* Efecto de streaming en tiempo real */
+.plan-text.streaming {
+  animation: fadeIn 0.3s ease;
+}
+
+.plan-text.streaming::after {
+  content: '▊';
+  color: var(--primary-orange);
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .plan-entrenamiento-container {

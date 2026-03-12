@@ -7,10 +7,12 @@ const express = require('express');
 const AnalisisVideo = require('../models/AnalisisVideo');
 const User = require('../models/User');
 const llmService = require('../services/llmService');
+const ejercicioValidator = require('../utils/ejercicioValidator');
 
 jest.mock('../models/AnalisisVideo');
 jest.mock('../models/User');
 jest.mock('../services/llmService');
+jest.mock('../utils/ejercicioValidator');
 
 
 // Middleware fake para simular autenticación y archivo subido
@@ -28,28 +30,60 @@ app.use(fakeAuth);
 app.use(fakeFile);
 app.post('/api/analisis-video/analizar', require('../controllers/analisisVideoController').analizarVideo);
 
+// Helper para parsear SSE response
+const parseSSEResponse = (text) => {
+  const lines = text.split('\n');
+  const events = [];
+  
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = line.slice(6);
+      if (data && data !== '[DONE]') {
+        try {
+          events.push(JSON.parse(data));
+        } catch (e) {
+          // Ignorar líneas que no son JSON válido
+        }
+      }
+    }
+  }
+  
+  return events;
+};
+
 describe('AnalisisVideo Controller (unitarios)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock del validador para que siempre pase
+    ejercicioValidator.validarEjercicioConHeuristica.mockReturnValue({ valido: true });
   });
 
   test('POST /api/analisis-video/analizar crea un análisis con feedback LLM', async () => {
     User.findById = jest.fn().mockReturnValue({
       select: jest.fn().mockResolvedValue({ _id: 'user1', llmPreference: 'openai' })
     });
-    llmService.generarFeedbackEjercicio.mockResolvedValue({
-      success: true,
-      feedback: ['Feedback IA'],
-      tokensUsados: 10,
-      modelo: 'GPT-4',
-      provider: 'openai',
-      fallback: false
+    
+    // Mock LLM para simular streaming
+    llmService.generarFeedbackEjercicio.mockImplementation(async (ejercicio, frames, framesClave, metricas, preferencia, onChunk) => {
+      if (onChunk) {
+        onChunk('Feedback ');
+        onChunk('IA');
+      }
+      return {
+        success: true,
+        feedback: 'Feedback IA',
+        tokensUsados: 10,
+        modelo: 'GPT-4',
+        provider: 'openai',
+        fallback: false
+      };
     });
-    // Mockea save para que this.feedback esté disponible en la respuesta
+    
     AnalisisVideo.prototype.save = jest.fn().mockImplementation(function() {
       this._id = 'fakeid';
       return Promise.resolve(this);
     });
+    
     const res = await request(app)
       .post('/api/analisis-video/analizar')
       .send({
@@ -66,8 +100,15 @@ describe('AnalisisVideo Controller (unitarios)', () => {
         frames: JSON.stringify([]),
         metricas: JSON.stringify({ rompioParalelo: true })
       });
-    // Mostrar la respuesta real para depuración si el test falla
+    
     expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    
+    const events = parseSSEResponse(res.text);
+    const doneEvent = events.find(e => e.type === 'done');
+    
+    expect(doneEvent).toBeDefined();
+    expect(doneEvent.usaIA).toBe(true);
   });
 
   test('400 si no se sube archivo', async () => {
@@ -113,8 +154,10 @@ describe('AnalisisVideo Controller (unitarios)', () => {
     const oldOpenai = process.env.OPENAI_API_KEY;
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.OPENAI_API_KEY;
+    
     User.findById = jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: 'user1', llmPreference: 'openai' }) });
     AnalisisVideo.prototype.save = jest.fn().mockResolvedValue();
+    
     const res = await request(app)
       .post('/api/analisis-video/analizar')
       .send({
@@ -130,14 +173,16 @@ describe('AnalisisVideo Controller (unitarios)', () => {
         }),
         metricas: JSON.stringify({ rompioParalelo: true })
       });
+    
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.feedback)).toBe(true);
-    // Debe contener el feedback enviado o el mensaje genérico
-    expect(
-      res.body.feedback.some(
-        f => typeof f === 'string' && (f.includes('Feedback sin IA') || f.includes('No se pudo analizar') || f.includes('No se pudo generar análisis'))
-      )
-    ).toBe(true);
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    
+    const events = parseSSEResponse(res.text);
+    const doneEvent = events.find(e => e.type === 'done');
+    
+    expect(doneEvent).toBeDefined();
+    expect(doneEvent.usaIA).toBe(false);
+    
     process.env.ANTHROPIC_API_KEY = oldAnthropic;
     process.env.OPENAI_API_KEY = oldOpenai;
   });
@@ -146,7 +191,21 @@ describe('AnalisisVideo Controller (unitarios)', () => {
     // Forzar error lanzando excepción en save
     User.findById = jest.fn().mockReturnValue({ select: jest.fn().mockResolvedValue({ _id: 'user1', llmPreference: 'openai' }) });
     AnalisisVideo.prototype.save = jest.fn().mockRejectedValue(new Error('DB error'));
-    llmService.generarFeedbackEjercicio.mockResolvedValue({ success: true, feedback: ['Feedback'], tokensUsados: 1, modelo: 'GPT-4', provider: 'openai', fallback: false });
+    
+    llmService.generarFeedbackEjercicio.mockImplementation(async (ejercicio, frames, framesClave, metricas, preferencia, onChunk) => {
+      if (onChunk) {
+        onChunk('Feedback');
+      }
+      return { 
+        success: true, 
+        feedback: 'Feedback', 
+        tokensUsados: 1, 
+        modelo: 'GPT-4', 
+        provider: 'openai', 
+        fallback: false 
+      };
+    });
+    
     const res = await request(app)
       .post('/api/analisis-video/analizar')
       .send({
@@ -161,7 +220,14 @@ describe('AnalisisVideo Controller (unitarios)', () => {
         }),
         metricas: JSON.stringify({ rompioParalelo: true })
       });
-    expect(res.status).toBe(500);
-    expect(res.body.message).toMatch(/error al procesar/i);
+    
+    expect(res.status).toBe(200); // SSE siempre devuelve 200
+    expect(res.headers['content-type']).toContain('text/event-stream');
+    
+    const events = parseSSEResponse(res.text);
+    const errorEvent = events.find(e => e.type === 'error');
+    
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent.message).toMatch(/error al procesar/i);
   });
 });

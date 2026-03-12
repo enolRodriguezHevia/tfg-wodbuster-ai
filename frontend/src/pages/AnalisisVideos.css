@@ -650,6 +650,23 @@
   color: var(--gray-dark);
 }
 
+/* Efecto de streaming en tiempo real para feedback */
+.feedback-text.streaming {
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback-text.streaming::after {
+  content: '▊';
+  color: var(--primary-orange);
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 .feedback-list {
   margin: var(--spacing-sm) 0;
   padding-left: var(--spacing-xl);

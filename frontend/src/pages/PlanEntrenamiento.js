@@ -11,6 +11,7 @@ const PlanEntrenamiento = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [planGenerado, setPlanGenerado] = useState(null);
+  const [planEnProgreso, setPlanEnProgreso] = useState(''); // Texto acumulado durante streaming
   const [advertencia, setAdvertencia] = useState(null);
   const [error, setError] = useState(null);
   const [planesAnteriores, setPlanesAnteriores] = useState([]);
@@ -49,6 +50,7 @@ const PlanEntrenamiento = () => {
     setLoading(true);
     setError(null);
     setPlanGenerado(null);
+    setPlanEnProgreso('');
     setAdvertencia(null);
 
     try {
@@ -59,26 +61,38 @@ const PlanEntrenamiento = () => {
         return;
       }
 
-      const response = await generarPlanEntrenamiento(user.username, nombrePlan.trim() || undefined);
+      let planAcumulado = '';
 
-      if (response.success) {
-        setPlanGenerado(response.plan);
-        setAdvertencia(response.advertencia);
-        setPlanGeneradoMostrado(true);
-        setNombrePlan(''); // Limpiar el campo después de generar
-        cargarPlanesAnteriores();
-      } else {
-        setError(response.message);
-        if (response.camposFaltantes) {
-          setError(
-            `${response.message}\n\nCampos faltantes: ${response.camposFaltantes.join(', ')}`
-          );
+      await generarPlanEntrenamiento(
+        user.username, 
+        nombrePlan.trim() || undefined,
+        // onChunk: recibir texto en tiempo real
+        (chunk) => {
+          planAcumulado += chunk;
+          setPlanEnProgreso(planAcumulado);
+        },
+        // onDone: cuando termina
+        (result) => {
+          setPlanGenerado(planAcumulado);
+          setAdvertencia(result.advertencia);
+          setPlanGeneradoMostrado(true);
+          setNombrePlan('');
+          setPlanEnProgreso('');
+          setLoading(false);
+          cargarPlanesAnteriores();
+        },
+        // onError: si hay error
+        (error) => {
+          setError(error.message || 'Error al generar el plan de entrenamiento');
+          setLoading(false);
+          setPlanEnProgreso('');
         }
-      }
+      );
+
     } catch (err) {
       setError(err.message || 'Error al generar el plan de entrenamiento');
-    } finally {
       setLoading(false);
+      setPlanEnProgreso('');
     }
   };
 
@@ -213,7 +227,7 @@ const PlanEntrenamiento = () => {
     <>
       <Navbar />
       <div className="plan-entrenamiento-container">
-                {/* Overlay de carga bloqueante */}
+                {/* Overlay de carga bloqueante con streaming */}
                 {loading && (
                   <div style={{
                     position: 'fixed',
@@ -221,17 +235,71 @@ const PlanEntrenamiento = () => {
                     left: 0,
                     width: '100vw',
                     height: '100vh',
-                    background: 'rgba(255,255,255,0.85)',
+                    background: 'rgba(255,255,255,0.95)',
                     zIndex: 3000,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: 'flex-start',
                     pointerEvents: 'all',
+                    overflowY: 'auto',
+                    padding: '40px 20px',
                   }}>
-                    <div className="loading-spinner" style={{marginBottom: 18}}></div>
-                    <h2 style={{color: '#e85d04', fontWeight: 700, fontSize: '1.2rem', marginBottom: 8}}>Generando tu plan...</h2>
-                    <p style={{color: '#333', fontSize: '1rem'}}>Esto puede tardar unos segundos.<br />Por favor, espera sin salir de la página.</p>
+                    <div style={{
+                      maxWidth: '900px',
+                      width: '100%',
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 20
+                      }}>
+                        <div className="loading-spinner" style={{marginRight: 15}}></div>
+                        <h2 style={{color: '#e85d04', fontWeight: 700, fontSize: '1.3rem', margin: 0}}>
+                          Generando tu plan...
+                        </h2>
+                      </div>
+                      
+                      {planEnProgreso ? (
+                        <div style={{
+                          background: 'white',
+                          border: '2px solid #e85d04',
+                          borderRadius: '12px',
+                          padding: '30px',
+                          textAlign: 'left',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          minHeight: '400px',
+                          maxHeight: '70vh',
+                          overflowY: 'auto'
+                        }}>
+                          <div className="plan-text streaming">
+                            {renderizarPlan(planEnProgreso)}
+                          </div>
+                          <div style={{
+                            marginTop: 20,
+                            padding: '10px',
+                            background: '#fff3e0',
+                            borderRadius: '8px',
+                            textAlign: 'center',
+                            fontSize: '0.9rem',
+                            color: '#666'
+                          }}>
+                            ✍️ Escribiendo en tiempo real...
+                          </div>
+                        </div>
+                      ) : (
+                        <p style={{
+                          color: '#666',
+                          fontSize: '1rem',
+                          textAlign: 'center',
+                          marginTop: 10
+                        }}>
+                          Preparando tu plan personalizado...<br />
+                          Esto puede tardar unos segundos.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
         

@@ -4,7 +4,7 @@ const { generarFeedbackEjercicio } = require("../services/llmService");
 const { validarEjercicioConHeuristica } = require("../utils/ejercicioValidator");
 
 /**
- * Analizar un video de ejercicio con IA (LLM)
+ * Analizar un video de ejercicio con IA (LLM) - con streaming SSE
  */
 exports.analizarVideo = async (req, res) => {
   try {
@@ -60,8 +60,13 @@ exports.analizarVideo = async (req, res) => {
     const user = await User.findById(userId).select('llmPreference');
     const llmPreference = user?.llmPreference || 'claude';
 
-    // NUEVA FUNCIONALIDAD: Generar feedback con LLM si hay datos disponibles
-    let feedbackLLM = null;
+    // Configurar SSE (Server-Sent Events)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let feedbackCompleto = '';
     let tokensUsados = 0;
     let usaIA = false;
     let modeloUsado = null;
@@ -69,65 +74,60 @@ exports.analizarVideo = async (req, res) => {
     let huboFallback = false;
     
     // Validar que tenemos los datos mínimos necesarios
-    // framesClave es obligatorio para todos, frames solo para press-hombros
     const tieneFramesNecesarios = ejercicio === 'press-hombros' ? (framesData && framesClaveParsed) : framesClaveParsed;
     
     if (tieneFramesNecesarios && (process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY)) {      
       try {
+        // Callback para enviar chunks al cliente
+        const onChunk = (chunk) => {
+          feedbackCompleto += chunk;
+          res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
+        };
+
         const llmResponse = await generarFeedbackEjercicio(
           ejercicio,
           framesData,
           framesClaveParsed,
           metricasParsed,
-          llmPreference
+          llmPreference,
+          onChunk
         );
         
         if (llmResponse.success) {
-          feedbackLLM = llmResponse.feedback;
           tokensUsados = llmResponse.tokensUsados;
           modeloUsado = llmResponse.modelo;
           proveedorUsado = llmResponse.provider;
           huboFallback = llmResponse.fallback || false;
           usaIA = true;
-          
-          const mensajeFallback = huboFallback ? ` (fallback desde ${llmResponse.preferidoFallo?.toUpperCase()})` : '';
         } else {
-          feedbackLLM = llmResponse.feedback;
+          feedbackCompleto = llmResponse.feedback;
         }
       } catch (llmErr) {
-        // En caso de error de IA, usar feedback del frontend como fallback
-        feedbackLLM = resultadoAnalisis.feedback || [
+        feedbackCompleto = resultadoAnalisis.feedback || [
           "⚠️ Análisis completado sin IA.",
           "El sistema detectó tu movimiento pero no pudo generar un análisis detallado.",
           "Por favor, intenta de nuevo o contacta con soporte."
         ];
       }
     } else {
-      // Si faltan datos de IA, usar el feedback del análisis del frontend
-      const missingItems = [];
-      if (!framesClaveParsed) missingItems.push('framesClave');
-      if (ejercicio === 'press-hombros' && !framesData) missingItems.push('frames (requerido para press-hombros)');
-      if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) missingItems.push('API_KEYS');
-    
-      feedbackLLM = resultadoAnalisis.feedback || [
+      feedbackCompleto = resultadoAnalisis.feedback || [
         "❌ No se pudo analizar el video completamente.",
         "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
       ];
     }
 
-    // El feedback puede venir del LLM o del análisis básico
     // Asegurar que siempre tengamos un feedback válido
-    const feedbackFinal = feedbackLLM || [
+    const feedbackFinal = feedbackCompleto || [
       "❌ No se pudo generar análisis para este video.",
       "Por favor, verifica que el video muestre correctamente la ejecución del ejercicio."
     ];
 
-    // Guardar análisis en la base de datos (sin guardar el video)
+    // Guardar análisis en la base de datos
     const analisis = new AnalisisVideo({
       usuario: userId,
       ejercicio: ejercicio,
-      videoUrl: null, // No guardamos videos físicamente
-      esCorrecta: true, // Valor por defecto - el LLM ya no clasifica
+      videoUrl: null,
+      esCorrecta: true,
       angulos: resultadoAnalisis.angulos || {},
       rompioParalelo: resultadoAnalisis.rompioParalelo !== undefined ? resultadoAnalisis.rompioParalelo : null,
       feedback: feedbackFinal,
@@ -136,24 +136,40 @@ exports.analizarVideo = async (req, res) => {
 
     await analisis.save();
 
-    // Responder con el resultado
-    res.status(200).json({
-      id: analisis._id,
+    // Enviar evento final con metadata
+    res.write(`data: ${JSON.stringify({ 
+      type: 'done',
+      analisisId: analisis._id,
       ejercicio: analisis.ejercicio,
       esCorrecta: analisis.esCorrecta,
       angulos: analisis.angulos,
       rompioParalelo: analisis.rompioParalelo,
-      feedback: analisis.feedback !== undefined ? analisis.feedback : feedbackFinal,
       fechaAnalisis: analisis.fechaAnalisis,
       usaIA: usaIA,
-      tokensUsados: tokensUsados
-    });
+      tokensUsados: tokensUsados,
+      metadata: {
+        modelo: modeloUsado,
+        provider: proveedorUsado,
+        usadoFallback: huboFallback
+      }
+    })}\n\n`);
+    
+    res.end();
 
   } catch (err) {
-
-    res.status(500).json({ 
-      message: "Error al procesar el video",
-      error: err.message 
-    });
+    // Si ya se enviaron headers SSE, enviar error por SSE
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ 
+        type: 'error', 
+        message: 'Error al procesar el video',
+        error: err.message 
+      })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({ 
+        message: "Error al procesar el video",
+        error: err.message 
+      });
+    }
   }
 };

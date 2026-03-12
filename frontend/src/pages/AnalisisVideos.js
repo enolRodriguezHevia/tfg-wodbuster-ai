@@ -20,6 +20,7 @@ export default function AnalisisVideos() {
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [resultado, setResultado] = useState(null);
+  const [feedbackEnProgreso, setFeedbackEnProgreso] = useState(''); // Feedback streaming
   const [mostrarModalResultado, setMostrarModalResultado] = useState(false);
 
   const renderizarFeedback = (texto) => {
@@ -143,6 +144,7 @@ export default function AnalisisVideos() {
     e.preventDefault();
     setError("");
     setResultado(null);
+    setFeedbackEnProgreso('');
     setStatusMessage("");
 
     if (!ejercicioSeleccionado) {
@@ -178,7 +180,7 @@ export default function AnalisisVideos() {
         return;
       }
 
-      setStatusMessage("Generando feedback con IA... Esto puede tardar unos segundos.");
+      setStatusMessage("Generando feedback con IA en tiempo real...");
 
       const formData = new FormData();
       formData.append("ejercicio", ejercicioSeleccionado);
@@ -188,35 +190,43 @@ export default function AnalisisVideos() {
       if (resultadoAnalisis.framesClave) formData.append("framesClave", JSON.stringify(resultadoAnalisis.framesClave));
       if (resultadoAnalisis.metricas) formData.append("metricas", JSON.stringify(resultadoAnalisis.metricas));
 
-      const token = getAuthToken();
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
-      const response = await fetch(`${API_URL}/analisis-video/analizar`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+      // Importar la función de streaming
+      const { analizarVideoConStreaming } = await import('../api/api');
+      
+      let feedbackAcumulado = '';
 
-      const data = await response.json();
-      if (!response.ok) {
-        // Manejar error de validación de ejercicio
-        if (data.razon) {
-          throw new Error(`${data.message}\n\n💡 ${data.razon}`);
+      await analizarVideoConStreaming(
+        formData,
+        // onChunk: recibir texto en tiempo real
+        (chunk) => {
+          feedbackAcumulado += chunk;
+          setFeedbackEnProgreso(feedbackAcumulado);
+        },
+        // onDone: cuando termina
+        (data) => {
+          resultadoAnalisis.feedback = feedbackAcumulado;
+          resultadoAnalisis.esCorrecta = data.esCorrecta;
+          resultadoAnalisis.usaIA = data.usaIA;
+          setResultado(resultadoAnalisis);
+          setStatusMessage("");
+          setFeedbackEnProgreso('');
+          setIsAnalyzing(false);
+        },
+        // onError: si hay error
+        (error) => {
+          // Verificar si es error de validación de ejercicio
+          const errorMsg = error.message || "Error al procesar el video";
+          setError(errorMsg);
+          setStatusMessage("");
+          setFeedbackEnProgreso('');
+          setIsAnalyzing(false);
         }
-        throw new Error(data.message || "Error al guardar el análisis");
-      }
+      );
 
-      if (data.usaIA && data.feedback) {
-        resultadoAnalisis.feedback = data.feedback;
-        resultadoAnalisis.esCorrecta = data.esCorrecta;
-        resultadoAnalisis.usaIA = true;
-      }
-
-      setResultado(resultadoAnalisis);
-      setStatusMessage("");
     } catch (err) {
       setError(err.message || "Error al procesar el video. Por favor, inténtalo de nuevo.");
       setStatusMessage("");
-    } finally {
+      setFeedbackEnProgreso('');
       setIsAnalyzing(false);
     }
   };
@@ -450,6 +460,7 @@ export default function AnalisisVideos() {
           )}
 
           {/* Overlay bloqueante */}
+          {/* Overlay de carga con streaming */}
           {isAnalyzing && (
             <div style={{
               position:'fixed',
@@ -457,17 +468,64 @@ export default function AnalisisVideos() {
               left:0,
               width:'100vw',
               height:'100vh',
-              background:'rgba(255,255,255,0.85)',
+              background:'rgba(255,255,255,0.95)',
               zIndex:3000,
               display:'flex',
               flexDirection:'column',
               alignItems:'center',
-              justifyContent:'center',
-              pointerEvents:'all'
+              justifyContent:'flex-start',
+              pointerEvents:'all',
+              overflowY:'auto',
+              padding:'40px 20px'
             }}>
-              <div className="loading-spinner" style={{marginBottom: 18}}></div>
-              <h2 style={{color:'#e85d04', fontWeight:700, fontSize:'1.2rem', marginBottom:8}}>🔎 Procesando tu video</h2>
-              <p style={{color:'#333', fontSize:'1rem', textAlign:'center'}}>{statusMessage}</p>
+              <div style={{
+                maxWidth: '900px',
+                width: '100%',
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 20
+                }}>
+                  <div className="loading-spinner" style={{marginRight: 15}}></div>
+                  <h2 style={{color:'#e85d04', fontWeight:700, fontSize:'1.3rem', margin:0}}>
+                    🔎 Procesando tu video
+                  </h2>
+                </div>
+                <p style={{color:'#666', fontSize:'1rem', textAlign:'center', marginBottom: 20}}>
+                  {statusMessage}
+                </p>
+                
+                {feedbackEnProgreso && (
+                  <div style={{
+                    background: 'white',
+                    border: '2px solid #e85d04',
+                    borderRadius: '12px',
+                    padding: '30px',
+                    textAlign: 'left',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    minHeight: '300px',
+                    maxHeight: '60vh',
+                    overflowY: 'auto'
+                  }}>
+                    <div className="feedback-text streaming">
+                      {renderizarFeedback(feedbackEnProgreso)}
+                    </div>
+                    <div style={{
+                      marginTop: 20,
+                      padding: '10px',
+                      background: '#fff3e0',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      fontSize: '0.9rem',
+                      color: '#666'
+                    }}>
+                      ✍️ Generando análisis en tiempo real...
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

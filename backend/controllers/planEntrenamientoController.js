@@ -4,6 +4,7 @@ const Ejercicio = require('../models/Ejercicio');
 const OneRM = require('../models/OneRM');
 const WodCrossFit = require('../models/WodCrossFit');
 const PlanEntrenamiento = require('../models/PlanEntrenamiento');
+const AnalisisVideo = require('../models/AnalisisVideo');
 const { generarPlanEntrenamiento: generarConLLM } = require('../services/llmService');
 const fs = require('fs').promises;
 const path = require('path');
@@ -171,6 +172,46 @@ const formatearRegistros1RM = (registros) => {
 };
 
 /**
+ * Formatea los análisis de video para el prompt (últimos 5)
+ */
+const formatearAnalisisVideos = (analisis) => {
+  if (analisis.length === 0) {
+    return 'El usuario no ha registrado análisis de técnica con video.';
+  }
+  
+  let texto = `El usuario ha analizado su técnica en ${analisis.length} ejercicios:\n\n`;
+  
+  analisis.forEach((a, idx) => {
+    const fecha = new Date(a.fechaAnalisis).toLocaleDateString('es-ES');
+    const ejercicioNombre = a.ejercicio.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    texto += `${idx + 1}. ${ejercicioNombre} (${fecha}):\n`;
+    
+    // Extraer resumen del feedback (primeras 3-4 líneas o hasta 200 caracteres)
+    let feedbackResumen = '';
+    if (typeof a.feedback === 'string') {
+      // Feedback es string, tomar primeras líneas
+      const lineas = a.feedback.split('\n').filter(l => l.trim() !== '');
+      feedbackResumen = lineas.slice(0, 3).join(' ').substring(0, 200);
+    } else if (Array.isArray(a.feedback)) {
+      // Feedback es array, tomar primeros elementos
+      feedbackResumen = a.feedback.slice(0, 3).join(' ').substring(0, 200);
+    } else if (typeof a.feedback === 'object' && a.feedback.evaluacionGeneral) {
+      // Feedback estructurado con evaluación general
+      feedbackResumen = a.feedback.evaluacionGeneral.substring(0, 200);
+    }
+    
+    if (feedbackResumen) {
+      texto += `   Evaluación: ${feedbackResumen}${feedbackResumen.length >= 200 ? '...' : ''}\n`;
+    }
+    
+    texto += '\n';
+  });
+  
+  return texto;
+};
+
+/**
  * Formatea los WODs de CrossFit para el prompt
  */
 const formatearWodsCrossFit = (wods) => {
@@ -222,11 +263,12 @@ const formatearWodsCrossFit = (wods) => {
  */
 const generarPrompt = async (userId) => {
   // Obtener información del usuario y datos en paralelo
-  const [user, entrenamientos, registros1RM, wodsCrossFit] = await Promise.all([
+  const [user, entrenamientos, registros1RM, wodsCrossFit, analisisVideos] = await Promise.all([
     User.findById(userId),
     Entrenamiento.find({ userId }).sort({ fecha: -1 }),
     OneRM.find({ userId }).sort({ fecha: -1 }),
-    WodCrossFit.find({ userId }).sort({ fecha: -1 })
+    WodCrossFit.find({ userId }).sort({ fecha: -1 }),
+    AnalisisVideo.find({ usuario: userId }).sort({ fechaAnalisis: -1 }).limit(5)
   ]);
   
   if (!user) {
@@ -251,12 +293,14 @@ const generarPrompt = async (userId) => {
   const historialEntrenamientos = await formatearHistorialEntrenamientos(entrenamientos);
   const registros1RMTexto = formatearRegistros1RM(registros1RM);
   const wodsCrossFitTexto = formatearWodsCrossFit(wodsCrossFit);
+  const analisisVideoTexto = formatearAnalisisVideos(analisisVideos);
   
   // Reemplazar placeholders
   template = template.replace('{{USER_INFO}}', infoUsuario);
   template = template.replace('{{TRAINING_HISTORY}}', historialEntrenamientos);
   template = template.replace('{{ONE_RM_RECORDS}}', registros1RMTexto);
   template = template.replace('{{CROSSFIT_WODS}}', wodsCrossFitTexto);
+  template = template.replace('{{VIDEO_ANALYSIS}}', analisisVideoTexto);
   
   return {
     prompt: template,
@@ -265,12 +309,12 @@ const generarPrompt = async (userId) => {
 };
 
 /**
- * Controlador para generar el prompt (por ahora solo devuelve el prompt)
+ * Controlador para generar el plan (con streaming SSE)
  */
 exports.generarPlanEntrenamiento = async (req, res) => {
   try {
     const { username } = req.params;
-    const { nombre } = req.body; // Obtener el nombre del plan del body
+    const { nombre } = req.body;
 
     // Obtener el userId desde el username
     const user = await User.findOne({ username });
@@ -294,15 +338,32 @@ exports.generarPlanEntrenamiento = async (req, res) => {
       });
     }
 
-    // Generar el plan usando el LLM con la preferencia del usuario
-    const resultadoLLM = await generarConLLM(resultado.prompt, llmPreference);
+    // Configurar SSE (Server-Sent Events)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let planCompleto = '';
+    
+    // Callback para enviar chunks al cliente
+    const onChunk = (chunk) => {
+      planCompleto += chunk;
+      res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
+    };
+
+    // Generar el plan usando el LLM con streaming
+    const resultadoLLM = await generarConLLM(resultado.prompt, llmPreference, onChunk);
     
     if (!resultadoLLM.success) {
-      return res.status(500).json({
-        success: false,
+      res.write(`data: ${JSON.stringify({ 
+        type: 'error', 
         message: 'No se pudo generar el plan con el LLM. Por favor, inténtalo de nuevo.',
-        error: resultadoLLM.error
-      });
+        error: resultadoLLM.error 
+      })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
     }
     
     // Guardar el plan generado en la base de datos
@@ -317,26 +378,36 @@ exports.generarPlanEntrenamiento = async (req, res) => {
     
     await nuevoPlan.save();
     
-    // Devolver el plan generado
-    res.json({
-      success: true,
-      message: 'Plan de entrenamiento generado correctamente',
-      plan: resultadoLLM.plan,
-      advertencia: resultado.advertencia,
+    // Enviar evento final con metadata
+    res.write(`data: ${JSON.stringify({ 
+      type: 'done',
       planId: nuevoPlan._id,
+      advertencia: resultado.advertencia,
       metadata: {
         modelo: resultadoLLM.modelo,
         provider: resultadoLLM.provider,
         usadoFallback: resultadoLLM.fallback || false
       }
-    });
+    })}\n\n`);
+    
+    res.end();
     
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al generar el plan de entrenamiento',
-      error: error.message
-    });
+    // Si ya se enviaron headers SSE, enviar error por SSE
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ 
+        type: 'error', 
+        message: 'Error al generar el plan de entrenamiento',
+        error: error.message 
+      })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Error al generar el plan de entrenamiento',
+        error: error.message
+      });
+    }
   }
 };
 

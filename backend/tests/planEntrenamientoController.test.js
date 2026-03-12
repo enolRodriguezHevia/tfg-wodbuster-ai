@@ -30,6 +30,27 @@ jest.mock('../services/llmService');
 // Test de integración real SOLO si hay API KEY
 // ...tests unitarios únicamente...
 
+// Helper para parsear SSE response
+const parseSSEResponse = (text) => {
+  const lines = text.split('\n');
+  const events = [];
+  
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = line.slice(6);
+      if (data && data !== '[DONE]') {
+        try {
+          events.push(JSON.parse(data));
+        } catch (e) {
+          // Ignorar líneas que no son JSON válido
+        }
+      }
+    }
+  }
+  
+  return events;
+};
+
 describe('PlanEntrenamiento Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,6 +65,13 @@ describe('PlanEntrenamiento Controller', () => {
     // Mock global para Ejercicio.find
     const emptyEjercicio = { sort: () => Promise.resolve([]) };
     require('../models/Ejercicio').find = jest.fn().mockImplementation(() => emptyEjercicio);
+    // Mock global para AnalisisVideo.find
+    const AnalisisVideo = require('../models/AnalisisVideo');
+    AnalisisVideo.find = jest.fn().mockImplementation(() => ({
+      sort: () => ({
+        limit: () => Promise.resolve([])
+      })
+    }));
   });
 
   describe('POST /api/plan/:username', () => {
@@ -92,21 +120,37 @@ describe('PlanEntrenamiento Controller', () => {
       WodCrossFit.find.mockImplementation(() => ({
         sort: () => Promise.resolve([])
       }));
-      llmService.generarPlanEntrenamiento.mockResolvedValue({
-        success: true,
-        plan: 'Plan generado por OpenAI',
-        modelo: 'GPT-4o',
-        provider: 'openai',
-        fallback: false
+      
+      // Mock LLM para simular streaming
+      llmService.generarPlanEntrenamiento.mockImplementation(async (prompt, preference, onChunk) => {
+        if (onChunk) {
+          onChunk('Plan generado por ');
+          onChunk('OpenAI');
+        }
+        return {
+          success: true,
+          plan: 'Plan generado por OpenAI',
+          modelo: 'GPT-4o',
+          provider: 'openai',
+          fallback: false
+        };
       });
+      
       PlanEntrenamiento.prototype.save = jest.fn().mockResolvedValue();
+      
       const res = await request(app)
         .post('/api/plan/testuser')
         .send({ nombre: 'Mi plan' });
+      
       expect(res.status).toBe(200);
-      expect(res.body.plan).toContain('OpenAI');
-      expect(res.body.metadata.modelo).toBe('GPT-4o');
-      expect(res.body.metadata.provider).toBe('openai');
+      expect(res.headers['content-type']).toContain('text/event-stream');
+      
+      const events = parseSSEResponse(res.text);
+      const doneEvent = events.find(e => e.type === 'done');
+      
+      expect(doneEvent).toBeDefined();
+      expect(doneEvent.metadata.modelo).toBe('GPT-4o');
+      expect(doneEvent.metadata.provider).toBe('openai');
     });
 
     test('Genera plan correctamente con Claude', async () => {
@@ -150,21 +194,37 @@ describe('PlanEntrenamiento Controller', () => {
       WodCrossFit.find.mockImplementation(() => ({
         sort: () => Promise.resolve([])
       }));
-      llmService.generarPlanEntrenamiento.mockResolvedValue({
-        success: true,
-        plan: 'Plan generado por Claude',
-        modelo: 'Claude Sonnet 4.5',
-        provider: 'anthropic',
-        fallback: false
+      
+      // Mock LLM para simular streaming
+      llmService.generarPlanEntrenamiento.mockImplementation(async (prompt, preference, onChunk) => {
+        if (onChunk) {
+          onChunk('Plan generado por ');
+          onChunk('Claude');
+        }
+        return {
+          success: true,
+          plan: 'Plan generado por Claude',
+          modelo: 'Claude Sonnet 4.5',
+          provider: 'anthropic',
+          fallback: false
+        };
       });
+      
       PlanEntrenamiento.prototype.save = jest.fn().mockResolvedValue();
+      
       const res = await request(app)
         .post('/api/plan/testuser')
         .send({ nombre: 'Mi plan' });
+      
       expect(res.status).toBe(200);
-      expect(res.body.plan).toContain('Claude');
-      expect(res.body.metadata.modelo).toMatch(/claude/i);
-      expect(res.body.metadata.provider).toMatch(/anthropic/i);
+      expect(res.headers['content-type']).toContain('text/event-stream');
+      
+      const events = parseSSEResponse(res.text);
+      const doneEvent = events.find(e => e.type === 'done');
+      
+      expect(doneEvent).toBeDefined();
+      expect(doneEvent.metadata.modelo).toMatch(/claude/i);
+      expect(doneEvent.metadata.provider).toMatch(/anthropic/i);
     });
 
     test('400 si falta información básica', async () => {
@@ -213,22 +273,71 @@ describe('PlanEntrenamiento Controller', () => {
     });
 
     test('500 si el LLM falla', async () => {
-            Entrenamiento.find.mockImplementation(() => ({
-              sort: () => Promise.resolve([])
-            }));
-      User.findOne.mockResolvedValue({ _id: 'user1', username: 'testuser', sex: 'masculino', age: 25, weight: 70, height: 180 });
-      Entrenamiento.find.mockResolvedValue([]);
-      OneRM.find.mockResolvedValue([]);
-      WodCrossFit.find.mockResolvedValue([]);
-      llmService.generarPlanEntrenamiento = jest.fn().mockResolvedValue({
-        success: false,
-        error: 'Error LLM'
+      // Mock User con llmPreference
+      User.findOne.mockResolvedValue({ 
+        _id: 'user1', 
+        username: 'testuser', 
+        sex: 'masculino', 
+        age: 25, 
+        weight: 70, 
+        height: 180,
+        llmPreference: 'claude'
       });
+      
+      // Mock User.findById para generarPrompt
+      User.findById.mockResolvedValue({ 
+        _id: 'user1', 
+        username: 'testuser', 
+        sex: 'masculino', 
+        age: 25, 
+        weight: 70, 
+        height: 180 
+      });
+      
+      // Mock Entrenamiento.find con sort
+      Entrenamiento.find.mockImplementation(() => ({
+        sort: () => Promise.resolve([])
+      }));
+      
+      // Mock OneRM.find con sort
+      OneRM.find.mockImplementation(() => ({
+        sort: () => Promise.resolve([])
+      }));
+      
+      // Mock WodCrossFit.find con sort
+      WodCrossFit.find.mockImplementation(() => ({
+        sort: () => Promise.resolve([])
+      }));
+      
+      // Mock AnalisisVideo.find con sort y limit
+      const AnalisisVideo = require('../models/AnalisisVideo');
+      AnalisisVideo.find = jest.fn().mockImplementation(() => ({
+        sort: () => ({
+          limit: () => Promise.resolve([])
+        })
+      }));
+      
+      // Mock LLM para simular fallo con streaming
+      llmService.generarPlanEntrenamiento.mockImplementation(async (prompt, preference, onChunk) => {
+        // No llamar onChunk para simular fallo inmediato
+        return {
+          success: false,
+          error: 'Error LLM'
+        };
+      });
+      
       const res = await request(app)
         .post('/api/plan/testuser')
         .send({ nombre: 'Mi plan' });
-      expect(res.status).toBe(500);
-      expect(res.body.success).toBe(false);
+      
+      expect(res.status).toBe(200); // SSE siempre devuelve 200
+      expect(res.headers['content-type']).toContain('text/event-stream');
+      
+      const events = parseSSEResponse(res.text);
+      const errorEvent = events.find(e => e.type === 'error');
+      
+      expect(errorEvent).toBeDefined();
+      expect(errorEvent.message).toMatch(/no se pudo generar el plan/i);
     });
   });
 
