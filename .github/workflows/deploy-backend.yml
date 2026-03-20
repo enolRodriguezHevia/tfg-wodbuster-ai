@@ -41,6 +41,31 @@ jobs:
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
 
+      - name: Check and start ECS service if needed
+        run: |
+          # Get current desired count
+          DESIRED_COUNT=$(aws ecs describe-services \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services ${{ secrets.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'services[0].desiredCount' \
+            --output text)
+          
+          echo "Current desired count: $DESIRED_COUNT"
+          
+          # If service is stopped (desired count = 0), start it
+          if [ "$DESIRED_COUNT" -eq 0 ]; then
+            echo "⚠️ Service is stopped. Starting service..."
+            aws ecs update-service \
+              --cluster ${{ secrets.ECS_CLUSTER }} \
+              --service ${{ secrets.ECS_SERVICE }} \
+              --desired-count 1 \
+              --region ${{ secrets.AWS_REGION }}
+            echo "✅ Service started"
+          else
+            echo "✅ Service is already running"
+          fi
+
       - name: Force new deployment in ECS
         run: |
           aws ecs update-service \

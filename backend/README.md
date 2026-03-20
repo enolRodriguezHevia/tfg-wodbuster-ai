@@ -9,7 +9,7 @@ backend/
 ├── app.js                    # Punto de entrada de la aplicación
 ├── config/                   # Configuración
 │   ├── db.js                # Conexión a MongoDB
-│   └── promptTemplate.txt   # Templates para LLMs
+│   └── promptTemplate.txt   # Templates para LLM
 ├── controllers/             # Lógica de negocio
 │   ├── authController.js
 │   ├── userController.js
