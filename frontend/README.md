@@ -1,70 +1,423 @@
-# Getting Started with Create React App
+# Frontend - WodBuster AI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicación web desarrollada con React para la gestión de entrenamientos, análisis de video con IA y visualización de progreso deportivo.
 
-## Available Scripts
+## 🏗️ Arquitectura
 
-In the project directory, you can run:
+```
+frontend/
+├── public/                  # Archivos estáticos
+│   ├── index.html
+│   └── assets/
+├── src/
+│   ├── App.js              # Componente principal
+│   ├── App.css             # Estilos globales
+│   ├── index.js            # Punto de entrada
+│   ├── pages/              # Páginas de la aplicación
+│   │   ├── Home.js
+│   │   ├── Login.js
+│   │   ├── SignUp.js
+│   │   ├── Dashboard.js
+│   │   ├── Profile.js
+│   │   ├── Entrenamientos.js
+│   │   ├── OneRM.js
+│   │   ├── WodsCrossFit.js
+│   │   ├── AnalisisVideo.js
+│   │   ├── PlanEntrenamiento.js
+│   │   └── ConfiguracionIA.js
+│   ├── components/         # Componentes reutilizables
+│   │   ├── Navbar.js
+│   │   ├── ProtectedRoute.js
+│   │   ├── VideoAnalyzer.js
+│   │   ├── ChartComponent.js
+│   │   └── ...
+│   ├── utils/              # Utilidades
+│   │   ├── api.js         # Cliente API
+│   │   ├── auth.js        # Gestión de autenticación
+│   │   └── videoAnalysis.js  # Análisis de video con MediaPipe
+│   └── cypress/            # Tests E2E
+│       ├── e2e/
+│       └── support/
+```
 
-### `npm start`
+## 🚀 Instalación y Configuración
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 1. Instalar dependencias
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+npm install
+```
 
-### `npm test`
+### 2. Configurar variables de entorno
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Crear archivo `.env` en la raíz del frontend:
 
-### `npm run build`
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+# o para producción:
+# REACT_APP_API_URL=https://api.wodbuster-ai.online/api
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 3. Ejecutar en desarrollo
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm start
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+La aplicación estará disponible en `http://localhost:3000`
 
-### `npm run eject`
+### 4. Construir para producción
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm run build
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Los archivos optimizados se generarán en la carpeta `build/`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 📱 Páginas y Rutas
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Públicas
+- `/` - Página de inicio
+- `/login` - Inicio de sesión
+- `/signup` - Registro de usuario
 
-## Learn More
+### Protegidas (requieren autenticación)
+- `/dashboard` - Panel principal con resumen
+- `/profile` - Perfil de usuario
+- `/entrenamientos` - Gestión de entrenamientos
+- `/onerm` - Registro y seguimiento de 1RM
+- `/wods` - WODs de CrossFit
+- `/analisis-video` - Análisis de técnica con IA
+- `/plan-entrenamiento` - Generación de planes personalizados
+- `/configuracion-ia` - Configuración de modelo LLM
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🎨 Componentes Principales
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### VideoAnalyzer
+Componente que utiliza MediaPipe para analizar videos de ejercicios:
 
-### Code Splitting
+```jsx
+import VideoAnalyzer from './components/VideoAnalyzer';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+<VideoAnalyzer
+  ejercicio="sentadilla"
+  onAnalysisComplete={(data) => console.log(data)}
+/>
+```
 
-### Analyzing the Bundle Size
+**Funcionalidades:**
+- Captura de video desde cámara o archivo
+- Detección de pose en tiempo real
+- Extracción de landmarks y métricas
+- Validación biomecánica del ejercicio
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### ChartComponent
+Visualización de progreso con Chart.js:
 
-### Making a Progressive Web App
+```jsx
+import ChartComponent from './components/ChartComponent';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+<ChartComponent
+  type="line"
+  data={chartData}
+  options={chartOptions}
+/>
+```
 
-### Advanced Configuration
+### ProtectedRoute
+Componente para proteger rutas que requieren autenticación:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```jsx
+import ProtectedRoute from './components/ProtectedRoute';
 
-### Deployment
+<Route path="/dashboard" element={
+  <ProtectedRoute>
+    <Dashboard />
+  </ProtectedRoute>
+} />
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🔧 Utilidades
 
-### `npm run build` fails to minify
+### API Client (`utils/api.js`)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Cliente HTTP para comunicación con el backend:
+
+```javascript
+import api from './utils/api';
+
+// GET request
+const entrenamientos = await api.get('/entrenamientos');
+
+// POST request
+const nuevoEntrenamiento = await api.post('/entrenamientos', data);
+
+// PUT request
+await api.put('/user/profile', profileData);
+
+// DELETE request
+await api.delete('/entrenamientos/123');
+```
+
+**Características:**
+- Incluye automáticamente el token JWT
+- Manejo de errores centralizado
+- Interceptores para requests/responses
+
+### Auth Utils (`utils/auth.js`)
+
+Gestión de autenticación:
+
+```javascript
+import { login, logout, isAuthenticated, getToken } from './utils/auth';
+
+// Login
+await login(email, password);
+
+// Logout
+logout();
+
+// Verificar autenticación
+if (isAuthenticated()) {
+  // Usuario autenticado
+}
+
+// Obtener token
+const token = getToken();
+```
+
+### Video Analysis (`utils/videoAnalysis.js`)
+
+Análisis de video con MediaPipe:
+
+```javascript
+import { analyzeVideo, extractLandmarks } from './utils/videoAnalysis';
+
+// Analizar video
+const analysis = await analyzeVideo(videoFile, 'sentadilla');
+
+// Extraer landmarks
+const landmarks = extractLandmarks(videoFrame);
+```
+
+## 🧪 Testing
+
+### Tests Unitarios (Jest + React Testing Library)
+
+```bash
+npm test
+```
+
+Ejecuta tests unitarios de componentes:
+
+```javascript
+// Ejemplo: Profile.test.js
+import { render, screen } from '@testing-library/react';
+import Profile from './pages/Profile';
+
+test('renders profile page', () => {
+  render(<Profile />);
+  expect(screen.getByText(/Mi Perfil/i)).toBeInTheDocument();
+});
+```
+
+### Tests E2E (Cypress)
+
+**Abrir interfaz de Cypress:**
+```bash
+npm run cypress:open
+```
+
+**Ejecutar tests en modo headless:**
+```bash
+npm run cypress:run
+```
+
+**Estructura de tests E2E:**
+```
+cypress/
+├── e2e/
+│   ├── auth.cy.js              # Tests de autenticación
+│   ├── entrenamientos.cy.js    # Tests de entrenamientos
+│   ├── onerm.cy.js             # Tests de 1RM
+│   ├── wods.cy.js              # Tests de WODs
+│   ├── analisis-video.cy.js    # Tests de análisis
+│   └── plan-entrenamiento.cy.js # Tests de planes
+└── support/
+    ├── commands.js             # Comandos personalizados
+    └── e2e.js                  # Configuración global
+```
+
+**Ejemplo de test E2E:**
+```javascript
+describe('Login Flow', () => {
+  it('should login successfully', () => {
+    cy.visit('/login');
+    cy.get('input[name="email"]').type('user@example.com');
+    cy.get('input[name="password"]').type('password123');
+    cy.get('button[type="submit"]').click();
+    cy.url().should('include', '/dashboard');
+  });
+});
+```
+
+## 🎨 Estilos
+
+El proyecto utiliza CSS modular con archivos `.css` por componente:
+
+```
+src/
+├── App.css                 # Estilos globales
+├── pages/
+│   ├── Home.css
+│   ├── Dashboard.css
+│   └── ...
+└── components/
+    ├── Navbar.css
+    └── ...
+```
+
+**Variables CSS globales:**
+```css
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+}
+```
+
+## 📊 Gestión de Estado
+
+El proyecto utiliza React Hooks para gestión de estado:
+
+- `useState` - Estado local de componentes
+- `useEffect` - Efectos secundarios y llamadas API
+- `useContext` - Contexto global (si se implementa)
+- `useNavigate` - Navegación programática
+
+**Ejemplo:**
+```javascript
+const [entrenamientos, setEntrenamientos] = useState([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const data = await api.get('/entrenamientos');
+      setEntrenamientos(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
+```
+
+## 🎥 Análisis de Video con MediaPipe
+
+El análisis de video se realiza completamente en el navegador usando MediaPipe:
+
+1. **Captura de video**: Desde cámara o archivo
+2. **Detección de pose**: MediaPipe identifica 33 landmarks del cuerpo
+3. **Extracción de métricas**: Cálculo de ángulos y posiciones
+4. **Validación**: Verificación biomecánica del ejercicio
+5. **Envío al backend**: Solo se envían landmarks y métricas (no el video)
+
+**Landmarks detectados:**
+- Cabeza y cuello
+- Hombros, codos, muñecas
+- Caderas, rodillas, tobillos
+- Torso y espalda
+
+## 🚀 Despliegue
+
+El frontend se despliega automáticamente mediante GitHub Actions:
+
+1. Push a rama `main`
+2. GitHub Actions ejecuta `npm run build`
+3. Sube archivos a S3
+4. Invalida caché de CloudFront
+5. Aplicación disponible en `https://wodbuster-ai.online`
+
+Ver `.github/workflows/deploy-frontend.yml`
+
+## 🌐 Navegación
+
+La navegación se gestiona con React Router v6:
+
+```javascript
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/dashboard" element={
+      <ProtectedRoute><Dashboard /></ProtectedRoute>
+    } />
+  </Routes>
+</BrowserRouter>
+```
+
+## 📱 Responsive Design
+
+La aplicación es completamente responsive y se adapta a:
+
+- 📱 Móviles (< 768px)
+- 📱 Tablets (768px - 1024px)
+- 💻 Desktop (> 1024px)
+
+**Media queries:**
+```css
+/* Mobile */
+@media (max-width: 767px) { }
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) { }
+
+/* Desktop */
+@media (min-width: 1024px) { }
+```
+
+## 🔐 Seguridad
+
+- Tokens JWT almacenados en localStorage
+- Validación de formularios en cliente
+- Sanitización de inputs
+- HTTPS en producción
+- CORS configurado en backend
+
+## 📝 Notas de Desarrollo
+
+- Usar componentes funcionales con Hooks
+- Mantener componentes pequeños y reutilizables
+- Documentar props con PropTypes o TypeScript
+- Seguir convenciones de nombres (PascalCase para componentes)
+- Mantener cobertura de tests > 70%
+
+## 🐛 Debugging
+
+**React DevTools:**
+- Instalar extensión de navegador
+- Inspeccionar componentes y estado
+
+**Console logs:**
+```javascript
+console.log('Debug:', data);
+```
+
+**Network tab:**
+- Verificar llamadas API
+- Inspeccionar requests/responses
+
+## 📚 Recursos
+
+- [React Documentation](https://react.dev/)
+- [React Router Documentation](https://reactrouter.com/)
+- [MediaPipe Documentation](https://developers.google.com/mediapipe/)
+- [Chart.js Documentation](https://www.chartjs.org/)
+- [Cypress Documentation](https://docs.cypress.io/)
