@@ -59,7 +59,7 @@ wodbuster-ai/
 
 1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/tu-usuario/wodbuster-ai.git
+git clone https://github.com/enolRodriguezHevia/tfg-wodbuster-ai.git
 cd wodbuster-ai
 ```
 
