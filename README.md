@@ -2,6 +2,8 @@
 
 Aplicación web para análisis de entrenamientos y generación de planes personalizados mediante inteligencia artificial.
 
+🌐 **Aplicación disponible en:** [https://wodbuster-ai.online/](https://wodbuster-ai.online/)
+
 ## 📋 Descripción
 
 WodBuster AI es una plataforma integral diseñada para deportistas de CrossFit que combina:
