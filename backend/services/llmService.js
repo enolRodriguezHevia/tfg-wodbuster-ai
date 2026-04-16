@@ -95,7 +95,7 @@ async function intentarLLM(modelo, systemPrompt, userPrompt, onChunk = null) {
   if (modelo === 'claude') {
     try {
       const stream = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1200,
         temperature: 0.7,
         system: systemPrompt,
@@ -130,7 +130,7 @@ async function intentarLLM(modelo, systemPrompt, userPrompt, onChunk = null) {
         success: true,
         feedback: feedbackText,
         tokensUsados: inputTokens + outputTokens,
-        modelo: 'claude-sonnet-4-20250514',
+        modelo: 'claude-sonnet-4-5-20250929',
         provider: 'anthropic'
       };
     } catch (error) {
@@ -316,7 +316,7 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt, onChunk = null)
   if (modelo === 'claude') {
     try {
       const stream = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5-20250929',
         max_tokens: 3000,
         temperature: 0.7,
         system: systemPrompt,
@@ -351,7 +351,7 @@ async function intentarLLMPlan(modelo, systemPrompt, userPrompt, onChunk = null)
         success: true,
         plan: planText,
         tokensUsados: inputTokens + outputTokens,
-        modelo: 'claude-sonnet-4-20250514',
+        modelo: 'claude-sonnet-4-5-20250929',
         provider: 'anthropic'
       };
     } catch (error) {
