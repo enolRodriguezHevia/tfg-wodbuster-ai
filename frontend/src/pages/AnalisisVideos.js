@@ -190,7 +190,7 @@ export default function AnalisisVideos() {
       if (resultadoAnalisis.framesClave) formData.append("framesClave", JSON.stringify(resultadoAnalisis.framesClave));
       if (resultadoAnalisis.metricas) formData.append("metricas", JSON.stringify(resultadoAnalisis.metricas));
 
-      // Importar la función de streaming
+      // Importa la función de streaming
       const { analizarVideoConStreaming } = await import('../api/api');
       
       let feedbackAcumulado = '';

@@ -84,7 +84,7 @@ El feedback debe ser profesional pero amigable, sin ser condescendiente. Escribe
 }
 
 /**
- * Intenta generar feedback con un LLM específico (con streaming)
+ * Intenta generar feedback con un LLM especifico (con streaming)
  * @param {string} modelo - 'claude' o 'openai'
  * @param {string} systemPrompt - Prompt del sistema
  * @param {string} userPrompt - Prompt del usuario
